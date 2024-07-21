@@ -1,0 +1,58 @@
+{
+  "editor.tabSize": 2,
+  "editor.acceptSuggestionOnEnter": "off",
+  "editor.bracketPairColorization.enabled": false,
+  "editor.cursorSurroundingLines": 4,
+  "editor.dragAndDrop": false,
+  "editor.guides.bracketPairs": true,
+  "editor.linkedEditing": true,
+  "editor.minimap.enabled": false,
+  "editor.smoothScrolling": false,
+  "editor.wordWrap": "on",
+  "editor.wrappingIndent": "deepIndent",
+  "workbench.editor.closeOnFileDelete": true,
+  "workbench.fontAliasing": "auto",
+  "workbench.startupEditor": "none",
+  "workbench.tree.renderIndentGuides": "always",
+  "files.autoSaveDelay": 500,
+  "files.exclude": {
+    "**/.git": true,
+    ".vscode": true,
+    ".bundle": true,
+  },
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "screencastMode.keyboardOptions": {
+    "showKeys": false,
+    "showKeybindings": true,
+    "showCommands": false,
+    "showCommandGroups": false,
+    "showSingleEditorCursorMoves": true
+  },
+  "screencastMode.verticalOffset": 10,
+  "explorer.compactFolders": false,
+  "explorer.incrementalNaming": "smart",
+  "html.format.preserveNewLines": true,
+  "html.format.templating": true,
+  "terminal.integrated.altClickMovesCursor": true,
+  "terminal.integrated.defaultProfile.linux": "bash",
+  "vscode-erb-beautify.keepBlankLines": 1,
+  "gitpod.openInStable.neverPrompt": true,
+  "gitlens.showWelcomeOnInstall": false,
+  "gitlens.currentLine.enabled": false,
+  "emmet.includeLanguages": {
+    "erb": "html"
+  },
+  "[ruby]": {
+    "editor.defaultFormatter": "mbessey.vscode-rufo",
+    "editor.formatOnSave": false
+  },
+  "[erb]": {
+    "editor.defaultFormatter": "aliariff.vscode-erb-beautify",
+    "editor.formatOnSave": false,
+    "editor.autoClosingBrackets": "beforeWhitespace"
+  },
+  "files.associations": {
+    "*.html.erb": "erb"
+  }
+}
