@@ -19,8 +19,8 @@
   </div>
 
   <div>
-    <%= f.label :dob %><br />
-    <%= f.date_select :dob %>
+    <%= f.label :dob, "Date of Birth" %><br />
+    <%= f.date_field :dob, start_year: 1900, end_year: Time.now.year, class: 'form-control' %>
   </div>
 
   <div>

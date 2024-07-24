@@ -34,6 +34,7 @@ class SurveyResponsesController < ApplicationController
   def process_personality_profile
     responses = current_user.survey_responses.includes(:survey_question)
     personality_profile = calculate_personality_profile(responses)
+    Rails.logger.debug "Personality Profile: #{personality_profile.inspect}"
     current_user.user_preference.update(personality_profiles: personality_profile)
   end
 
