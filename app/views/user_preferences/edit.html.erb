@@ -2,12 +2,15 @@
 <p>Select your favorite genres from the list below.</p>
 
 <%= form_with model: @user_preference, local: true do |form| %>
-  <% @genres.each do |genre| %>
-    <div>
-      <%= form.check_box :favorite_genres, { multiple: true }, genre, nil %>
-      <%= form.label genre %>
-    </div>
-  <% end %>
+  <div>
+    <%= form.label :favorite_genres, "Select your favorite genres" %><br>
+    <%= form.collection_check_boxes :favorite_genres, @genres, :name, :name do |b| %>
+      <div class="genre-checkbox">
+        <%= b.check_box %>
+        <%= b.label %>
+      </div>
+    <% end %>
+  </div>
   <div>
     <%= form.submit "Save Preferences" %>
   </div>

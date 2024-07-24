@@ -3,7 +3,7 @@ class UserPreferencesController < ApplicationController
 
   def edit
     @user_preference = current_user.user_preference
-    @genres = ["Action", "Adventure", "Comedy", "Crime", "Drama", "Fantasy", "Historical", "Horror", "Romance", "Sci-Fi", "Thriller", "Western", "Other"]
+    @genres = Genre.all
   end
 
   def update

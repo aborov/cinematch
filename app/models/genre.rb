@@ -6,6 +6,7 @@
 #  name       :string
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
+#  tmdb_id    :integer
 #
 class Genre < ApplicationRecord
   has_many :content_genres, class_name: "ContentGenre", foreign_key: "genre_id", dependent: :destroy

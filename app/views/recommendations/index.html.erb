@@ -1,5 +1,19 @@
 <h1>Personalized Recommendations</h1>
 
+<h2>Recommended Content</h2>
+
+<% if @recommendations.present? %>
+  <ul>
+    <% @recommendations.each do |recommendation| %>
+      <li>
+        <strong><%= recommendation[:title] %></strong> - <%= recommendation[:match_score].round(2) %>% match
+      </li>
+    <% end %>
+  </ul>
+<% else %>
+  <p>No recommendations available. Please complete the survey to receive recommendations.</p>
+<% end %>
+
 <% if @user_preference.present? %>
   <% if @user_preference.personality_profiles.present? %>
     <h2>Your Big Five Personality Profile</h2>
