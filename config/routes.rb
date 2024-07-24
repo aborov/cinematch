@@ -1,11 +1,12 @@
 Rails.application.routes.draw do
-  devise_for :users
+  devise_for :users, controllers: {
+    registrations: 'users/registrations'
+  }
 
-  # This is a blank app! Pick your first screen, build out the RCAV, and go from there. E.g.:
-  # get "/your_first_screen" => "pages#first"
+  root to: 'recommendations#index'
 
-  resources :users, only: [:show] # We handle user sign-up/sign-in with Devise
-  resources :surveys, only: [:index, :show, :create]
-
-  root to: "home#index"
+  resources :users, only: [:show, :edit, :update]
+  resources :survey_responses, only: [:index, :create]
+  resources :user_preferences, only: [:edit, :update]
+  resources :recommendations, only: [:index]
 end

@@ -1,0 +1,21 @@
+<h1>Survey Questions</h1>
+<p>Please rate the following statements on a scale from 1 (Strongly Disagree) to 5 (Strongly Agree). This will help us understand your personality and preferences to provide better recommendations.</p>
+
+<%= form_with url: survey_responses_path, local: true do |form| %>
+  <% @survey_questions.each do |question| %>
+    <div>
+      <p><%= question.question_text %></p>
+      <%= hidden_field_tag "responses[#{question.id}][survey_question_id]", question.id %>
+      <%= hidden_field_tag "responses[#{question.id}][user_id]", current_user.id %>
+      <div class="radio-group">
+        <% (1..5).each do |option| %>
+          <%= radio_button_tag "responses[#{question.id}][response]", option, false, id: "responses_#{question.id}_#{option}" %>
+          <%= label_tag "responses_#{question.id}_#{option}", option %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+  <div>
+    <%= form.submit "Submit Responses" %>
+  </div>
+<% end %>

@@ -1,0 +1,27 @@
+<h1>Personalized Recommendations</h1>
+
+<% if @user_preference.present? %>
+  <% if @user_preference.personality_profiles.present? %>
+    <h2>Your Big Five Personality Profile</h2>
+    <ul>
+      <% @user_preference.personality_profiles.each do |trait, score| %>
+        <li><%= trait.capitalize %>: <%= score %></li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p>No personality profile available. Please complete the <%= link_to 'survey', survey_responses_path %> to receive recommendations.</p>
+  <% end %>
+
+  <h2>Your Favorite Genres</h2>
+  <% if @user_preference.favorite_genres.present? %>
+    <ul>
+      <% @user_preference.favorite_genres.each do |genre| %>
+        <li><%= genre %></li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p>No favorite genres available. Please update your preferences to receive recommendations.</p>
+  <% end %>
+<% else %>
+  <p>No preferences found. Please complete the <%= link_to 'survey', survey_responses_path %> to receive recommendations.</p>
+<% end %>

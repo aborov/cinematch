@@ -1,0 +1,41 @@
+<h2>Sign up</h2>
+
+<%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
+  <%= devise_error_messages! %>
+
+  <div>
+    <%= f.label :name %><br />
+    <%= f.text_field :name, autofocus: true %>
+  </div>
+
+  <div>
+    <%= f.label :email %><br />
+    <%= f.email_field :email %>
+  </div>
+
+  <div>
+    <%= f.label :gender %><br />
+    <%= f.select :gender, ['Male', 'Female', 'Other'] %>
+  </div>
+
+  <div>
+    <%= f.label :dob %><br />
+    <%= f.date_select :dob %>
+  </div>
+
+  <div>
+    <%= f.label :password %><br />
+    <%= f.password_field :password, autocomplete: "new-password" %>
+  </div>
+
+  <div>
+    <%= f.label :password_confirmation %><br />
+    <%= f.password_field :password_confirmation, autocomplete: "new-password" %>
+  </div>
+
+  <div>
+    <%= f.submit "Sign up" %>
+  </div>
+<% end %>
+
+<%= render "devise/shared/links" %>

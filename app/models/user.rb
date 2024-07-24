@@ -24,10 +24,19 @@ class User < ApplicationRecord
   # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable
-  has_many :user_preferences, class_name: "UserPreference", foreign_key: "user_id", dependent: :nullify
-  has_many  :survey_responses, class_name: "SurveyResponse", foreign_key: "user_id", dependent: :destroy
+
+  has_one :user_preference, dependent: :nullify
+  has_many  :survey_responses, dependent: :destroy
 
   validates :name, presence: true
   validates :gender, presence: true
   validates :dob, presence: true
+
+  after_create :create_user_preference
+
+  private
+
+  def create_user_preference
+    self.create_user_preference!
+  end
 end
