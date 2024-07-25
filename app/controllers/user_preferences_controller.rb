@@ -3,7 +3,7 @@ class UserPreferencesController < ApplicationController
 
   def edit
     @user_preference = current_user.user_preference
-    @genres = Genre.all
+    @genres = Genre.select(:name).distinct
   end
 
   def update

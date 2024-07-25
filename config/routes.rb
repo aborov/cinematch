@@ -8,5 +8,5 @@ Rails.application.routes.draw do
   resources :users, only: [:show, :edit, :update]
   resources :survey_responses, only: [:index, :create]
   resources :user_preferences, only: [:edit, :update]
-  resources :recommendations, only: [:index]
+  resources :recommendations, only: [:index, :show]
 end

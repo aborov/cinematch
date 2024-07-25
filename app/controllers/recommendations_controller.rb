@@ -13,6 +13,9 @@ class RecommendationsController < ApplicationController
   def index
     @user_preference = current_user.user_preference
     if @user_preference.personality_profiles.present?
+      genres = Genre.all
+      @genres_map = genres.group_by(&:name).transform_values { |g| g.map(&:tmdb_id) }
+
       movies = TmdbService.fetch_popular_movies
       tv_shows = TmdbService.fetch_popular_tv_shows
       content = movies + tv_shows
@@ -22,11 +25,22 @@ class RecommendationsController < ApplicationController
     end
   end
 
+  def show
+    @item = if params[:type] == 'movie'
+              TmdbService.fetch_movie_details(params[:id])
+            else
+              TmdbService.fetch_tv_show_details(params[:id])
+            end
+    render json: @item
+  end
+
   private
 
   def calculate_recommendations(content)
     recommendations = content.map do |item|
       {
+        id: item['id'],
+        type: item['media_type'] || (item['title'] ? 'movie' : 'tv'),
         title: item['title'] || item['name'],
         match_score: calculate_match_score(item)
       }
@@ -35,7 +49,8 @@ class RecommendationsController < ApplicationController
   end
 
   def calculate_match_score(item)
-    genres = item['genre_ids'].map { |id| Genre.find_by(tmdb_id: id).name }
+    genre_ids = item['genre_ids']
+    genres = genre_ids.flat_map { |id| @genres_map.keys.select { |k| @genres_map[k].include?(id) } }.uniq
     big_five_score = calculate_big_five_score(genres)
     favorite_genres_score = calculate_favorite_genres_score(genres)
     (big_five_score * 0.7) + (favorite_genres_score * 0.3)
