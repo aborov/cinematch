@@ -7,9 +7,9 @@ class UserPreferencesController < ApplicationController
   end
 
   def update
-    @user_preference = current_user.user_preference
-
-    if @user_preference.update(user_preference_params)
+    @user_preference = current_user.user_preference || current_user.build_user_preference
+    genres = user_preference_params[:favorite_genres].reject(&:blank?)
+    if @user_preference.update(favorite_genres: genres)
       redirect_to recommendations_path, notice: 'Preferences updated successfully.'
     else
       render :edit
