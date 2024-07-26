@@ -16,9 +16,9 @@ class RecommendationsController < ApplicationController
       genres = Genre.all
       @genres_map = genres.group_by(&:name).transform_values { |g| g.map(&:tmdb_id) }
 
-      movies = TmdbService.fetch_popular_movies
-      tv_shows = TmdbService.fetch_popular_tv_shows
-      content = movies + tv_shows
+      movies = TmdbService.fetch_popular_movies + TmdbService.fetch_top_rated_movies + TmdbService.fetch_upcoming_movies
+      tv_shows = TmdbService.fetch_popular_tv_shows + TmdbService.fetch_top_rated_tv_shows
+      content = (movies + tv_shows).uniq { |item| item['id'] }
       @recommendations = calculate_recommendations(content)
     else
       redirect_to survey_responses_path, alert: 'Please complete the survey to receive recommendations.'
