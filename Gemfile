@@ -82,6 +82,9 @@ gem "htmlbeautifier"
 gem "http"
 gem "sqlite3", "~> 1.4"
 gem "table_print"
+gem "rails-ujs"
+gem "turbolinks", '~> 5'
+gem "jquery-rails"
 
 group :development do
   gem "annotate"

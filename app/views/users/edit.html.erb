@@ -1,0 +1,23 @@
+<h1>Edit Profile</h1>
+<%= form_for @user do |f| %>
+  <div>
+    <%= f.label :name %>
+    <%= f.text_field :name %>
+  </div>
+  <div>
+    <%= f.label :email %>
+    <%= f.email_field :email %>
+  </div>
+  <div>
+    <%= f.label :gender %>
+    <%= f.select :gender, ['Male', 'Female', 'Other'] %>
+  </div>
+  <div>
+    <%= f.label :dob %>
+    <%= f.date_select :dob %>
+  </div>
+  <div>
+    <%= f.submit 'Update' %>
+  </div>
+<% end %>
+<%= link_to 'Back', user_path(@user) %>

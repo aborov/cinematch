@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_07_23_204740) do
+ActiveRecord::Schema[7.1].define(version: 2024_07_24_203917) do
   create_table "content_genres", force: :cascade do |t|
     t.integer "content_id"
     t.integer "genre_id"
@@ -36,6 +36,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_07_23_204740) do
     t.string "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "tmdb_id"
+    t.index ["tmdb_id"], name: "index_genres_on_tmdb_id", unique: true
   end
 
   create_table "survey_questions", force: :cascade do |t|

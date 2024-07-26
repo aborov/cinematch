@@ -1,0 +1,16 @@
+<h1>Edit Preferences</h1>
+
+<%= form_with model: @user_preference, local: true do |form| %>
+  <div>
+    <%= form.label :favorite_genres, "Select your favorite genres" %><br>
+    <%= form.collection_check_boxes :favorite_genres, @genres, :name, :name do |b| %>
+      <div class="genre-checkbox">
+        <%= b.check_box %>
+        <%= b.label %>
+      </div>
+    <% end %>
+  </div>
+  <div>
+    <%= form.submit "Save Preferences" %>
+  </div>
+<% end %>
