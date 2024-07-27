@@ -1,7 +1,6 @@
 class RecommendationsController < ApplicationController
   before_action :authenticate_user!
 
-  # Genre mapping for Big Five personality traits
   GENRE_MAPPING = {
     openness: %w[Science-Fiction Fantasy Animation],
     conscientiousness: %w[Drama Biography History],
@@ -12,7 +11,7 @@ class RecommendationsController < ApplicationController
 
   def index
     @user_preference = current_user.user_preference
-    if @user_preference.personality_profiles.present?
+    if @user_preference && @user_preference.personality_profiles.present?
       genres = Genre.all
       @genres_map = genres.group_by(&:name).transform_values { |g| g.map(&:tmdb_id) }
 
@@ -61,12 +60,16 @@ class RecommendationsController < ApplicationController
     score = 0
     GENRE_MAPPING.each do |trait, trait_genres|
       match = (genres & trait_genres).size
-      score += profile[trait.to_s] * match
+      trait_score = profile[trait.to_s]
+      Rails.logger.debug("Trait: #{trait}, Match: #{match}, Trait Score: #{trait_score}")
+      score += trait_score.to_i * match
     end
     score
   end
 
   def calculate_favorite_genres_score(genres)
-    (genres & @user_preference.favorite_genres).size
+    favorite_genres = @user_preference.favorite_genres
+    Rails.logger.debug("Favorite genres: #{favorite_genres.class} - #{favorite_genres}")
+    (genres & favorite_genres).size
   end
 end

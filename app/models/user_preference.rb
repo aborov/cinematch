@@ -19,4 +19,12 @@
 #
 class UserPreference < ApplicationRecord
   belongs_to :user, required: true
+
+  def personality_profiles
+    read_attribute(:personality_profiles) || {}
+  end
+
+  def favorite_genres
+    read_attribute(:favorite_genres) || []
+  end
 end
