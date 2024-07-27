@@ -14,67 +14,108 @@
  *= require_self
  */
 
- /* Override Bootstrap variables */
+ /* Override Quartz variables */
 :root {
-  --space-cadet: #2b2d42ff;
-  --jonquil: #efc81aff;
-  --mint-green: #e9fff9ff;
-  --engineering-orange: #ba2d0bff;
-  --tufts-blue: #1a8fe3ff;
-  --golden-glare: #ffd700ff;
+  --bs-body-bg: #e9fff9ff; /* mint-green */
+  --bs-body-color: #2b2d42ff; /* space-cadet */
+  --bs-font-sans-serif: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --bs-font-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  --bs-primary: #1a8fe3ff; /* tufts-blue */
+  --bs-secondary: #efc81aff; /* jonquil */
+  --bs-success: #e9fff9ff; /* mint-green */
+  --bs-info: #ba2d0bff; /* engineering-orange */
+  --bs-warning: #ffd700ff; /* golden-glare */
+  --bs-danger: #ba2d0bff; /* engineering-orange */
+  --bs-light: #e9fff9ff; /* mint-green */
+  --bs-dark: #2b2d42ff; /* space-cadet */
+
+  --bs-link-color: #1a8fe3ff; /* tufts-blue */
+  --bs-link-hover-color: #ba2d0bff; /* engineering-orange */
 }
 
+/* Global styles */
 body {
-  background-color: var(--mint-green);
-  color: var(--space-cadet);
+  font-family: var(--bs-font-sans-serif);
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--bs-body-color);
+  font-weight: 700;
 }
 
 /* Navbar customization */
 .navbar {
-  background-color: var(--space-cadet);
+  background-color: var(--bs-dark);
+  padding: 10px 20px;
+  border-radius: 0; /* Remove rounded corners */
+  margin-bottom: 0; /* Remove bottom margin */
 }
 
 .navbar-brand {
-  color: var(--jonquil) !important;
+  color: var(--bs-secondary) !important;
 }
 
 .nav-link {
-  color: var(--mint-green) !important;
+  color: var(--bs-light) !important;
 }
 
 .nav-link:hover {
-  color: var(--jonquil) !important;
+  color: var(--bs-secondary) !important;
+}
+
+/* Link customization */
+a {
+  color: var(--bs-link-color);
+}
+
+a:hover {
+  color: var(--bs-link-hover-color);
 }
 
 /* Button customization */
 .btn-primary {
-  background-color: var(--tufts-blue);
-  border-color: var(--tufts-blue);
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+  border-radius: 10px;
 }
 
 .btn-primary:hover {
-  background-color: var(--engineering-orange);
-  border-color: var(--engineering-orange);
+  background-color: var(--bs-info);
+  border-color: var(--bs-info);
 }
 
-/* Additional custom styles */
+/* Form customization */
+.form-control {
+  border-radius: 10px;
+  border: 1px solid var(--bs-primary);
+}
+
+.form-control:focus {
+  border-color: var(--bs-info);
+  box-shadow: none;
+}
+
+/* Container padding */
 .container {
   padding-top: 20px;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  color: var(--space-cadet);
+/* Card styles */
+.card {
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-a {
-  color: var(--tufts-blue);
+.card img {
+  border-radius: 10px 10px 0 0;
 }
 
-a:hover {
-  color: var(--engineering-orange);
-}
-
- /* Popup Modal */
+/* Custom popup */
 .popup {
   position: fixed;
   top: 0;
@@ -93,7 +134,7 @@ a:hover {
   position: relative;
   background-color: white;
   padding: 20px;
-  border-radius: 5px;
+  border-radius: 10px;
   width: 80%;
   max-width: 900px;
   display: flex;
@@ -136,4 +177,34 @@ a:hover {
 .popup-details iframe {
   max-width: 100%;
   height: auto;
+}
+
+/* Additional styles */
+.radio-group {
+  display: flex;
+  justify-content: space-between;
+  max-width: 300px;
+  margin: auto;
+}
+
+.radio-group input[type="radio"] {
+  display: none;
+}
+
+.radio-group label {
+  background-color: var(--bs-primary);
+  color: var(--bs-light);
+  padding: 5px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.radio-group input[type="radio"]:checked + label {
+  background-color: var(--bs-info);
+}
+
+/* Override Quartz background gradient */
+body {
+  background: var(--bs-body-bg);
 }
