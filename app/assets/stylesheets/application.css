@@ -14,6 +14,66 @@
  *= require_self
  */
 
+ /* Override Bootstrap variables */
+:root {
+  --space-cadet: #2b2d42ff;
+  --jonquil: #efc81aff;
+  --mint-green: #e9fff9ff;
+  --engineering-orange: #ba2d0bff;
+  --tufts-blue: #1a8fe3ff;
+  --golden-glare: #ffd700ff;
+}
+
+body {
+  background-color: var(--mint-green);
+  color: var(--space-cadet);
+}
+
+/* Navbar customization */
+.navbar {
+  background-color: var(--space-cadet);
+}
+
+.navbar-brand {
+  color: var(--jonquil) !important;
+}
+
+.nav-link {
+  color: var(--mint-green) !important;
+}
+
+.nav-link:hover {
+  color: var(--jonquil) !important;
+}
+
+/* Button customization */
+.btn-primary {
+  background-color: var(--tufts-blue);
+  border-color: var(--tufts-blue);
+}
+
+.btn-primary:hover {
+  background-color: var(--engineering-orange);
+  border-color: var(--engineering-orange);
+}
+
+/* Additional custom styles */
+.container {
+  padding-top: 20px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--space-cadet);
+}
+
+a {
+  color: var(--tufts-blue);
+}
+
+a:hover {
+  color: var(--engineering-orange);
+}
+
  /* Popup Modal */
 .popup {
   position: fixed;
