@@ -1,16 +1,24 @@
-<h1>Edit Preferences</h1>
-
-<%= form_with model: @user_preference, local: true, class: 'form-horizontal' do |form| %>
-  <div class="mb-3">
-    <%= form.label :favorite_genres, "Select your favorite genres", class: 'form-label' %><br>
-    <%= form.collection_check_boxes :favorite_genres, @genres, :name, :name do |b| %>
-      <div class="form-check form-check-inline">
-        <%= b.check_box class: 'form-check-input' %>
-        <%= b.label class: 'form-check-label' %>
-      </div>
-    <% end %>
+<div class="d-flex justify-content-center">
+  <div class="card w-75">
+    <h2 class="card-header">Edit Preferences</h1>
+    
+    <div class="card-body">
+      <%= form_with model: @user_preference, local: true do |form| %>
+        <div class="mb-3">
+          <%= form.label :favorite_genres, "Select your favorite genres", class: "form-label" %><br>
+          <div class="btn-group-toggle" data-toggle="buttons" style="flex-wrap: wrap;">
+            <% @genres.each do |genre| %>
+              <label class="btn btn-outline-primary m-1 <%= 'active' if @user_preference.favorite_genres.include?(genre['name']) %>">
+                <%= form.check_box :favorite_genres, { multiple: true, class: 'btn-check', id: genre['name'].parameterize }, genre['name'], nil %>
+                <%= label_tag genre['name'].parameterize, genre['name'] %>
+              </label>
+            <% end %>
+          </div>
+        </div>
+        <div>
+          <%= form.submit "Save Preferences", class: "btn btn-primary" %>
+        </div>
+      <% end %>
+    </div>
   </div>
-  <div>
-    <%= form.submit "Save Preferences", class: 'btn btn-primary' %>
-  </div>
-<% end %>
+</div>
