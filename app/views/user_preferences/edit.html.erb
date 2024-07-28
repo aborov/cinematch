@@ -1,16 +1,16 @@
 <h1>Edit Preferences</h1>
 
-<%= form_with model: @user_preference, local: true do |form| %>
-  <div>
-    <%= form.label :favorite_genres, "Select your favorite genres" %><br>
+<%= form_with model: @user_preference, local: true, class: 'form-horizontal' do |form| %>
+  <div class="mb-3">
+    <%= form.label :favorite_genres, "Select your favorite genres", class: 'form-label' %><br>
     <%= form.collection_check_boxes :favorite_genres, @genres, :name, :name do |b| %>
-      <div class="genre-checkbox">
-        <%= b.check_box %>
-        <%= b.label %>
+      <div class="form-check form-check-inline">
+        <%= b.check_box class: 'form-check-input' %>
+        <%= b.label class: 'form-check-label' %>
       </div>
     <% end %>
   </div>
   <div>
-    <%= form.submit "Save Preferences" %>
+    <%= form.submit "Save Preferences", class: 'btn btn-primary' %>
   </div>
 <% end %>
