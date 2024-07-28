@@ -1,0 +1,79 @@
+<h1>User Profile</h1>
+
+<div class="accordion w-75" id="profileAccordion">
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="settingsHeading">
+      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#settingsCollapse" aria-expanded="true" aria-controls="settingsCollapse">
+        User Settings
+      </button>
+    </h2>
+    <div id="settingsCollapse" class="accordion-collapse collapse show" aria-labelledby="settingsHeading" data-bs-parent="#profileAccordion">
+      <div class="accordion-body">
+        <%= link_to 'Edit Account Data', edit_user_registration_path, class: 'btn btn-primary' %>
+        <h3 class="mt-4">Edit Personal Information</h3>
+        <%= render 'users/edit' %>
+      </div>
+    </div>
+  </div>
+
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="personalityProfileHeading">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#personalityProfileCollapse" aria-expanded="false" aria-controls="personalityProfileCollapse">
+        Personality Profile
+      </button>
+    </h2>
+    <div id="personalityProfileCollapse" class="accordion-collapse collapse" aria-labelledby="personalityProfileHeading" data-bs-parent="#profileAccordion">
+      <div class="accordion-body">
+        <% if @user.user_preference.present? %>
+          <% if @user.user_preference.personality_profiles.present? %>
+            
+                <h2>Your Big Five Personality Profile</h2>
+                <ul class="list-group list-group-flush">
+                  <% @user.user_preference.personality_profiles.each do |trait, score| %>
+                    <li class="list-group-item"><%= trait.capitalize %>: <%= score %></li>
+                  <% end %>
+                </ul>
+                <%= link_to 'Retake Personality Survey', survey_responses_path, class: "btn btn-primary mt-3" %>
+          <% else %>
+            <div class="alert alert-warning" role="alert">
+              No personality profile available. Please complete the <%= link_to 'survey', survey_responses_path, class: "alert-link" %> to receive recommendations.
+            </div>
+          <% end %>
+        <% else %>
+          <div class="alert alert-warning" role="alert">
+            No preferences found. Please complete the <%= link_to 'survey', survey_responses_path, class: "alert-link" %> to receive recommendations.
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="contentPreferencesHeading">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#contentPreferencesCollapse" aria-expanded="false" aria-controls="contentPreferencesCollapse">
+        Content Preferences
+      </button>
+    </h2>
+    <div id="contentPreferencesCollapse" class="accordion-collapse collapse" aria-labelledby="contentPreferencesHeading" data-bs-parent="#profileAccordion">
+      <div class="accordion-body">
+
+        <h1>Edit Content Preferences</h1>
+
+        <%= form_with model: @user_preference, url: user_preference_path(@user_preference), method: :patch, local: true do |form| %>
+          <div class="mb-3">
+            <%= form.label :favorite_genres, "Select your favorite genres", class: "form-label" %><br>
+            <%= form.collection_check_boxes :favorite_genres, @genres, :name, :name do |b| %>
+              <div class="form-check">
+                <%= b.check_box class: "form-check-input" %>
+                <%= b.label class: "form-check-label" %>
+              </div>
+            <% end %>
+          </div>
+          <div>
+            <%= form.submit "Save Preferences", class: "btn btn-primary" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

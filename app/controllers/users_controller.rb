@@ -1,4 +1,7 @@
 class UsersController < ApplicationController
+  before_action :authenticate_user!
+  before_action :set_user, only: [:show, :edit, :update, :profile]
+
   def show
   end
 
@@ -7,10 +10,15 @@ class UsersController < ApplicationController
 
   def update
     if @user.update(user_params)
-      redirect_to @user, notice: "Profile was successfully updated."
+      redirect_to profile_user_path(@user), notice: "Profile was successfully updated."
     else
       render :edit
     end
+  end
+
+  def profile
+    @user_preference = current_user.user_preference || current_user.build_user_preference
+    @genres = Genre.select(:name).distinct
   end
 
   private

@@ -7,4 +7,8 @@ class Users::RegistrationsController < Devise::RegistrationsController
     devise_parameter_sanitizer.permit(:sign_up, keys: [:name, :gender, :dob])
     devise_parameter_sanitizer.permit(:account_update, keys: [:name, :gender, :dob])
   end
+
+  def update_resource(resource, params)
+    resource.update_with_password(params)
+  end
 end

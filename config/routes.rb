@@ -5,7 +5,12 @@ Rails.application.routes.draw do
 
   root to: 'recommendations#index'
 
-  resources :users, only: [:show, :edit, :update]
+  resources :users, only: [:show, :edit, :update] do
+    member do
+      get 'profile'
+    end
+  end
+
   resources :survey_responses, only: [:index, :create]
   resources :user_preferences, only: [:edit, :update]
   resources :recommendations, only: [:index, :show]
