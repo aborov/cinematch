@@ -26,7 +26,6 @@
       <div class="accordion-body">
         <% if @user.user_preference.present? %>
           <% if @user.user_preference.personality_profiles.present? %>
-
             <h3>Your Big Five Personality Profile</h3>
             <ul class="list-group list-group-flush">
               <% @user.user_preference.personality_profiles.each do |trait, score| %>
@@ -56,18 +55,15 @@
     </h2>
     <div id="contentPreferencesCollapse" class="accordion-collapse collapse" aria-labelledby="contentPreferencesHeading" data-bs-parent="#profileAccordion">
       <div class="accordion-body">
-
         <h3>Edit Content Preferences</h3>
 
         <%= form_with model: @user_preference, local: true do |form| %>
           <div class="mb-3">
             <%= form.label :favorite_genres, "Select your favorite genres", class: "form-label" %><br>
-            <div class="btn-group-toggle" data-toggle="buttons" style="flex-wrap: wrap;">
+            <div class="btn-group-toggle d-flex flex-wrap" data-toggle="buttons">
               <% @genres.each do |genre| %>
-                <label class="btn btn-outline-primary m-1 <%= 'active' if @user_preference.favorite_genres.include?(genre['name']) %>">
-                  <%= form.check_box :favorite_genres, { multiple: true, class: 'btn-check', id: genre['name'].parameterize }, genre['name'], nil %>
-                  <%= label_tag genre['name'].parameterize, genre['name'] %>
-                </label>
+                <%= form.check_box :favorite_genres, { multiple: true, class: 'btn-check', id: genre['name'].parameterize }, genre['name'], nil %>
+                <%= label_tag genre['name'].parameterize, genre['name'], class: 'btn btn-outline-primary m-1' %>
               <% end %>
             </div>
           </div>
@@ -75,7 +71,6 @@
             <%= form.submit "Save Preferences", class: "btn btn-primary" %>
           </div>
         <% end %>
-
       </div>
     </div>
   </div>

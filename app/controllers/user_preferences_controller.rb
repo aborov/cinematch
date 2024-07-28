@@ -3,7 +3,9 @@ class UserPreferencesController < ApplicationController
 
   def edit
     @user_preference = current_user.user_preference
-    @genres = Genre.select(:name).distinct
+    genres = TmdbService.fetch_genres
+    @genres = genres[:user_facing_genres]
+    @all_genres = genres[:all_genres]
   end
 
   def update

@@ -1,14 +1,20 @@
 class UsersController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_user, only: [:show, :edit, :update, :profile]
 
-  def show
+  def profile
+    @user = current_user
+    @user_preference = current_user.user_preference || current_user.build_user_preference
+    genres = TmdbService.fetch_genres
+    @genres = genres[:user_facing_genres]
+    @all_genres = genres[:all_genres]
   end
 
   def edit
+    @user = current_user
   end
 
   def update
+    @user = current_user
     if @user.update(user_params)
       redirect_to profile_user_path(@user), notice: "Profile was successfully updated."
     else
@@ -16,16 +22,7 @@ class UsersController < ApplicationController
     end
   end
 
-  def profile
-    @user_preference = current_user.user_preference || current_user.build_user_preference
-    @genres = Genre.select(:name).distinct
-  end
-
   private
-
-  def set_user
-    @user = User.find(params[:id])
-  end
 
   def user_params
     params.require(:user).permit(:name, :gender, :dob, :email)

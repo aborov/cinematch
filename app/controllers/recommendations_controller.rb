@@ -11,9 +11,9 @@ class RecommendationsController < ApplicationController
 
   def index
     @user_preference = current_user.user_preference
-    if @user_preference && @user_preference.personality_profiles.present?
-      genres = Genre.all
-      @genres_map = genres.group_by(&:name).transform_values { |g| g.map(&:tmdb_id) }
+    if @user_preference.personality_profiles.present?
+      genres = TmdbService.fetch_genres[:all_genres]
+      @genres_map = genres.group_by { |g| g['name'] }.transform_values { |g| g.map { |gg| gg['id'] } }
 
       movies = TmdbService.fetch_popular_movies + TmdbService.fetch_top_rated_movies + TmdbService.fetch_upcoming_movies
       tv_shows = TmdbService.fetch_popular_tv_shows + TmdbService.fetch_top_rated_tv_shows
@@ -60,16 +60,24 @@ class RecommendationsController < ApplicationController
     score = 0
     GENRE_MAPPING.each do |trait, trait_genres|
       match = (genres & trait_genres).size
-      trait_score = profile[trait.to_s]
-      Rails.logger.debug("Trait: #{trait}, Match: #{match}, Trait Score: #{trait_score}")
-      score += trait_score.to_i * match
+      score += profile[trait.to_s].to_i * match # Ensure the value is converted to integer
     end
     score
   end
 
   def calculate_favorite_genres_score(genres)
-    favorite_genres = @user_preference.favorite_genres
-    Rails.logger.debug("Favorite genres: #{favorite_genres.class} - #{favorite_genres}")
+    favorite_genres = @user_preference.favorite_genres || []
+    favorite_genres = favorite_genres.map(&:to_s) # Ensure all genres are strings
+    combined_genres = {
+      "Sci-Fi & Fantasy" => ["Science Fiction", "Fantasy"],
+      "Action & Adventure" => ["Action", "Adventure"],
+      "War & Politics" => ["War", "Politics"]
+    }
+    combined_genres.each do |combined, separates|
+      if (favorite_genres & separates).any?
+        favorite_genres << combined
+      end
+    end
     (genres & favorite_genres).size
   end
 end

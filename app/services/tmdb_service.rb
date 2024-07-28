@@ -48,7 +48,13 @@ class TmdbService
     tv_response = HTTP.get(tv_genres_url, params: { api_key: API_KEY, language: 'en-US' })
     tv_genres = JSON.parse(tv_response.body.to_s)['genres']
 
-    (movie_genres + tv_genres).uniq { |genre| genre['id'] }
+    genres = (movie_genres + tv_genres).uniq { |genre| genre['id'] }
+
+    # Exclude combined genres from user-facing views
+    combined_genres = ["Sci-Fi & Fantasy", "Action & Adventure", "War & Politics"]
+    user_facing_genres = genres.reject { |genre| combined_genres.include?(genre['name']) }
+
+    { all_genres: genres, user_facing_genres: user_facing_genres }
   end
 
   private

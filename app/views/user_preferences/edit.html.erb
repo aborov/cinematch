@@ -1,17 +1,15 @@
 <div class="d-flex justify-content-center">
   <div class="card w-75">
     <h2 class="card-header">Edit Preferences</h1>
-    
+
     <div class="card-body">
       <%= form_with model: @user_preference, local: true do |form| %>
         <div class="mb-3">
           <%= form.label :favorite_genres, "Select your favorite genres", class: "form-label" %><br>
-          <div class="btn-group-toggle" data-toggle="buttons" style="flex-wrap: wrap;">
+          <div class="btn-group-toggle d-flex flex-wrap" data-toggle="buttons">
             <% @genres.each do |genre| %>
-              <label class="btn btn-outline-primary m-1 <%= 'active' if @user_preference.favorite_genres.include?(genre['name']) %>">
-                <%= form.check_box :favorite_genres, { multiple: true, class: 'btn-check', id: genre['name'].parameterize }, genre['name'], nil %>
-                <%= label_tag genre['name'].parameterize, genre['name'] %>
-              </label>
+              <%= form.check_box :favorite_genres, { multiple: true, class: 'btn-check', id: genre['name'].parameterize }, genre['name'], nil %>
+              <%= label_tag genre['name'].parameterize, genre['name'], class: 'btn btn-outline-primary m-1' %>
             <% end %>
           </div>
         </div>
