@@ -11,12 +11,12 @@
         <% if user_signed_in? %>
           <li class="nav-item">
             <%= link_to profile_user_path(current_user), class: 'nav-link', title: 'Profile' do %>
-              <i class="fas fa-user fa-lg" aria-hidden="true"></i><span class="sr-only">Profile</span>
+              <i class="fa-solid fa-circle-user fa-2x" aria-hidden="true"></i><span class="sr-only">Profile</span>
             <% end %>
           </li>
           <li class="nav-item">
             <%= link_to destroy_user_session_path, method: :delete, class: 'nav-link', title: 'Sign Out' do %>
-              <i class="fas fa-sign-out-alt fa-lg" aria-hidden="true"></i><span class="sr-only">Sign Out</span>
+              <i class="fas fa-sign-out-alt fa-2x" aria-hidden="true"></i><span class="sr-only">Sign Out</span>
             <% end %>
           </li>
         <% else %>
