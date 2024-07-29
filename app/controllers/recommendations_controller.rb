@@ -37,14 +37,27 @@ class RecommendationsController < ApplicationController
 
   def calculate_recommendations(content)
     recommendations = content.map do |item|
+      details = fetch_details(item['id'], item['media_type'] || (item['title'] ? 'movie' : 'tv'))
       {
         id: item['id'],
         type: item['media_type'] || (item['title'] ? 'movie' : 'tv'),
         title: item['title'] || item['name'],
+        poster_path: item['poster_path'],
+        country: abbreviate_country(details['production_countries']&.first&.dig('name')),
+        release_year: (item['release_date'] || item['first_air_date'])&.split('-')&.first,
+        genres: details['genres']&.map { |g| g['name'] },
         match_score: calculate_match_score(item)
       }
     end
     recommendations.sort_by { |r| -r[:match_score] }
+  end
+
+  def fetch_details(id, type)
+    if type == 'movie'
+      TmdbService.fetch_movie_details(id)
+    else
+      TmdbService.fetch_tv_show_details(id)
+    end
   end
 
   def calculate_match_score(item)
@@ -79,5 +92,10 @@ class RecommendationsController < ApplicationController
       end
     end
     (genres & favorite_genres).size
+  end
+
+  def abbreviate_country(country)
+    return 'USA' if country == 'United States of America'
+    country
   end
 end
