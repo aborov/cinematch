@@ -1,6 +1,6 @@
 <div class="d-flex justify-content-center">
   <div class="card w-25">
-    <h3 class="card-header">Log In</h3>
+    <h3 class="card-header">Sign In</h3>
 
     <div class="card-body">
       <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
@@ -24,7 +24,7 @@
         <% end %>
 
         <div class="d-flex justify-content-between">
-          <%= f.submit "Log In", class: "btn btn-primary" %>
+          <%= f.submit "Sign In", class: "btn btn-primary" %>
           <%= link_to "Sign Up", new_user_registration_path, class: "btn btn-outline-primary" %>
         </div>
       <% end %>
