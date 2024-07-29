@@ -46,7 +46,8 @@ class RecommendationsController < ApplicationController
         country: abbreviate_country(details['production_countries']&.first&.dig('name')),
         release_year: (item['release_date'] || item['first_air_date'])&.split('-')&.first,
         genres: details['genres']&.map { |g| g['name'] },
-        match_score: calculate_match_score(item)
+        match_score: calculate_match_score(item),
+        rating: details['vote_average'] # Include TMDb rating
       }
     end
     recommendations.sort_by { |r| -r[:match_score] }
