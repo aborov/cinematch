@@ -12,6 +12,7 @@ $(document).on('turbolinks:load', function() {
       method: 'GET',
       dataType: 'json',
       success: function(data) {
+        var country = data.production_countries.map(c => c.name === 'United States of America' ? 'USA' : c.name).join(', ');
         var details = `
           <div class="row">
             <div class="col-md-4">
@@ -21,7 +22,8 @@ $(document).on('turbolinks:load', function() {
               <h2>${data.title || data.name}</h2>
               <p><strong>Runtime:</strong> ${data.runtime || data.episode_run_time[0]} minutes</p>
               <p><strong>Release Year:</strong> ${(data.release_date || data.first_air_date).substring(0, 4)}</p>
-              <p><strong>Country:</strong> ${data.production_countries.map(c => c.name).join(', ')}</p>
+              <p><strong>Country:</strong> ${country}</p>
+              <p><strong>TMDb Rating:</strong> ${data.vote_average}</p>
               <p><strong>Description:</strong> ${data.overview}</p>
               <p><strong>Director(s):</strong> ${data.credits.crew.filter(c => c.job === 'Director').map(d => d.name).join(', ')}</p>
               <p><strong>Cast:</strong> ${data.credits.cast.slice(0, 5).map(c => c.name).join(', ')}</p>
