@@ -27,6 +27,16 @@
   <% end %>
 </div>
 
+<nav aria-label="Page navigation" class="mt-4">
+  <ul class="pagination justify-content-center">
+    <% (1..@total_pages).each do |page_num| %>
+      <li class="page-item <%= 'active' if page_num == @page %>">
+        <%= link_to page_num, recommendations_path(page: page_num), class: 'page-link' %>
+      </li>
+    <% end %>
+  </ul>
+</nav>
+
 <%= render 'shared/footer' %>
 
 <!-- Popup Modal -->
