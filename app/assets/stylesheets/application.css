@@ -46,12 +46,14 @@ h6 {
 .btn-primary {
   background-color: var(--tufts-blue);
   border-color: var(--tufts-blue);
+  color: var(--mint-green);
   transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .btn-primary:hover {
-  background-color: var(--engineering-orange);
-  border-color: var(--engineering-orange);
+  background-color: var(--jonquil);
+  border-color: var(--jonquil);
+  color: var(--space-cadet);
 }
 
 .btn-danger {
@@ -78,6 +80,17 @@ h6 {
   color: var(--engineering-orange);
   background-color: var(--mint-green);
   border-color: var(--engineering-orange);
+}
+
+.btn-outline-primary {
+  color: var(--tufts-blue);
+  border-color: var(--tufts-blue);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--jonquil);
+  border-color: var(--jonquil);
+  color: var(--space-cadet);
 }
 
 .btn-outline-primary:hover,
@@ -252,12 +265,23 @@ h6 {
   margin: 0.25rem !important;
 }
 
+.profile-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+#profileAccordion {
+  width: 75%;
+  max-width: 800px;
+}
+
 .accordion-item {
   background-color: var(--space-cadet);
 }
 
 .accordion-header .accordion-button {
-  background-color: var(--tufts-blue);
+  background-color: var(--engineering-orange);
   color: var(--mint-green);
   font-weight: 700;
 }
@@ -267,12 +291,17 @@ h6 {
 }
 
 .accordion-header .accordion-button:not(.collapsed) {
+  background-color: var(--tufts-blue);
+  color: var(--mint-green);
+}
+
+.accordion-header .accordion-button:hover {
   background-color: var(--jonquil);
-  color: var(--engineering-orange);
+  color: var(--space-cadet);
 }
 
 .accordion-body {
-  background-color: #ffffff;
+  background-color: var(--mint-green);
   color: var(--space-cadet);
-  border-top: 1px solid var(--tufts-blue);
+  border-top: 1px solid var(--engineering-orange);
 }
