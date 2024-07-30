@@ -12,7 +12,7 @@
             <div class="card-body position-relative">
               <h5 class="card-title d-flex justify-content-between align-items-start">
                 <span class="title-text"><%= recommendation[:title] %></span>
-                <span class="badge bg-warning text-danger ms-2"><%= recommendation[:match_score].round(2) %>%</span>
+                      <span class="badge bg-warning text-danger ms-2"><%= recommendation[:match_score].round(2) %>%</span>
               </h5>
               <p class="card-text-small text-muted mb-1"><%= [recommendation[:country], recommendation[:release_year]].compact.join(', ') %>
               <strong>TMDb:</strong> <%= recommendation[:rating] %>
@@ -31,7 +31,7 @@
 
 <!-- Popup Modal -->
 <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="detailsModalLabel">Details</h5>

@@ -4,7 +4,7 @@ require 'json'
 class TmdbService
   BASE_URL = 'https://api.themoviedb.org/3'
   API_KEY = ENV.fetch('THEMOVIEDB_KEY')
-  MAX_PAGES = 5 # Number of pages to fetch
+  MAX_PAGES = 1 # Number of pages to fetch
 
   def self.fetch_popular_movies
     fetch_multiple_pages("#{BASE_URL}/movie/popular")
