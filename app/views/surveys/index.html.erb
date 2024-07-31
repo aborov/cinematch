@@ -51,7 +51,7 @@
 </div>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
+  function initializeSurvey() {
     const form = document.getElementById('survey-form');
     const personalityQuestions = document.querySelectorAll('#personality-questions .question-container');
     const genreSelection = document.getElementById('genre-selection');
@@ -138,5 +138,8 @@
     });
 
     showQuestion(0);
-  });
+  }
+
+  document.addEventListener('DOMContentLoaded', initializeSurvey);
+  document.addEventListener('turbolinks:load', initializeSurvey); // Ensure JavaScript is executed when Turbolinks loads a new page
 </script>
