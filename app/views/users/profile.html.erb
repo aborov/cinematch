@@ -33,15 +33,15 @@
                   <li class="list-group-item"><%= trait.capitalize %>: <%= score %></li>
                 <% end %>
               </ul>
-              <%= link_to 'Retake Personality Survey', survey_responses_path, class: "btn btn-primary mt-3" %>
+              <%= link_to 'Retake Personality Survey', surveys_path, class: "btn btn-primary mt-3" %>
             <% else %>
               <div class="alert alert-warning" role="alert">
-                No personality profile available. Please complete the <%= link_to 'survey', survey_responses_path, class: "alert-link" %> to receive recommendations.
+                No personality profile available. Please complete the <%= link_to 'survey', surveys_path, class: "alert-link" %> to receive recommendations.
               </div>
             <% end %>
           <% else %>
             <div class="alert alert-warning" role="alert">
-              No preferences found. Please complete the <%= link_to 'survey', survey_responses_path, class: "alert-link" %> to receive recommendations.
+              No preferences found. Please complete the <%= link_to 'survey', surveys_path, class: "alert-link" %> to receive recommendations.
             </div>
           <% end %>
         </div>

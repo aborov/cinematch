@@ -2,29 +2,36 @@ class SurveysController < ApplicationController
   before_action :authenticate_user!
 
   def index
-    @survey_questions = SurveyQuestion.all
+    @personality_questions = SurveyQuestion.all
+    puts "Number of questions: #{@personality_questions.count}"
+    genres = TmdbService.fetch_genres
+    @genres = genres[:user_facing_genres]
+    @total_questions = @personality_questions.count + 1 # +1 for genre selection
   end
 
   def create
-    responses_params.each do |response_param|
-      SurveyResponse.create(response_param.merge(user: current_user))
-    end
+    process_personality_responses(params[:personality_responses])
+    process_genre_preferences(params[:genre_preferences])
 
-    process_personality_profile if all_responses_received?
-    redirect_to edit_user_preference_path(current_user.user_preference), notice: 'Survey completed. Please update your preferences.'
+    redirect_to recommendations_path, notice: 'Survey completed. Here are your recommendations!'
   end
 
   private
 
-  def responses_params
-    params.require(:responses).map do |response|
-      response.permit(:survey_question_id, :response)
+  def process_personality_responses(responses)
+    responses.each do |question_id, response|
+      SurveyResponse.create(
+        user: current_user,
+        survey_question_id: question_id,
+        response: response
+      )
     end
+    process_personality_profile
   end
 
-  def all_responses_received?
-    required_questions_count = SurveyQuestion.where(question_type: %w[openness conscientiousness extraversion agreeableness neuroticism]).count
-    current_user.survey_responses.where(survey_question: SurveyQuestion.where(question_type: %w[openness conscientiousness extraversion agreeableness neuroticism])).count == required_questions_count
+  def process_genre_preferences(genres)
+    user_preference = current_user.user_preference || current_user.build_user_preference
+    user_preference.update(favorite_genres: genres)
   end
 
   def process_personality_profile

@@ -24,7 +24,7 @@ class RecommendationsController < ApplicationController
     @total_pages = (@recommendations.length.to_f / per_page).ceil
     @recommendations = @recommendations.slice((@page - 1) * per_page, per_page)
     else
-      redirect_to survey_responses_path, alert: "Please complete the survey to receive recommendations."
+      redirect_to surveys_path, alert: "Please complete the survey to receive recommendations."
     end
   end
 

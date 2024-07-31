@@ -1,0 +1,142 @@
+<div class="survey-container d-flex justify-content-center align-items-center">
+  <div class="card" style="max-width: 600px;">
+    <div class="card-header">
+      <h2 class="mb-0">Personalization Survey</h2>
+    </div>
+    <div class="card-body">
+      <div class="progress mb-4">
+        <div id="survey-progress" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+      </div>
+
+      <p id="personality-instructions" class="mb-4">
+        Please rate the following statement on a scale from 1 (Strongly Disagree) to 5 (Strongly Agree). 
+        This will help us understand your personality and preferences to provide better recommendations.
+      </p>
+
+      <%= form_with url: surveys_path, local: false, html: { id: 'survey-form' } do |form| %>
+        <div id="personality-questions">
+          <% @personality_questions.each_with_index do |question, index| %>
+            <div class="question-container" style="display: <%= index == 0 ? 'block' : 'none' %>;" data-question-index="<%= index %>">
+              <h3 class="mb-3"><%= question.question_text %></h3>
+              <div class="btn-group-toggle d-flex justify-content-between" data-toggle="buttons">
+                <% (1..5).each do |option| %>
+                  <%= form.radio_button "personality_responses[#{question.id}]", option, class: 'btn-check', id: "q#{question.id}_#{option}" %>
+                  <%= form.label "q#{question.id}_#{option}", option, class: 'btn btn-outline-primary', style: 'width: 18%;' %>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <div id="genre-selection" style="display: none;">
+          <h3 class="mb-3">Select your favorite genres</h3>
+          <div class="btn-group-toggle d-flex flex-wrap" data-toggle="buttons">
+            <% @genres.each do |genre| %>
+              <%= form.check_box :genre_preferences, { multiple: true, class: 'btn-check', id: genre['name'].parameterize }, genre['name'], nil %>
+              <%= form.label genre['name'].parameterize, genre['name'], class: 'btn btn-outline-primary m-1' %>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="mt-3 d-flex justify-content-between align-items-center">
+          <button type="button" class="btn btn-secondary" id="prev-button" style="display: none;">Previous</button>
+          <div>
+            <button type="button" class="btn btn-primary" id="next-button" disabled>Next</button>
+            <%= form.submit "Submit", class: "btn btn-success", style: "display: none;", id: "submit-button" %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('survey-form');
+    const personalityQuestions = document.querySelectorAll('#personality-questions .question-container');
+    const genreSelection = document.getElementById('genre-selection');
+    const submitButton = document.getElementById('submit-button');
+    const prevButton = document.getElementById('prev-button');
+    const nextButton = document.getElementById('next-button');
+    const progressBar = document.getElementById('survey-progress');
+    const personalityInstructions = document.getElementById('personality-instructions');
+    const totalQuestions = <%= @total_questions %>;
+    let currentQuestion = 0;
+
+    function updateProgress() {
+      const progress = ((currentQuestion + 1) / totalQuestions) * 100;
+      progressBar.style.width = `${progress}%`;
+      progressBar.setAttribute('aria-valuenow', progress);
+      progressBar.textContent = `${Math.round(progress)}%`;
+    }
+
+    function showQuestion(index) {
+      personalityQuestions.forEach((q, i) => {
+        q.style.display = i === index ? 'block' : 'none';
+      });
+
+      prevButton.style.display = index > 0 ? 'inline-block' : 'none';
+      nextButton.style.display = index < personalityQuestions.length ? 'inline-block' : 'none';
+      nextButton.disabled = !isQuestionAnswered(index);
+      submitButton.style.display = 'none';
+      personalityInstructions.style.display = 'block';
+
+      updateProgress();
+    }
+
+    function showGenreSelection() {
+      personalityQuestions.forEach(q => q.style.display = 'none');
+      genreSelection.style.display = 'block';
+      submitButton.style.display = 'inline-block';
+      prevButton.style.display = 'inline-block';
+      nextButton.style.display = 'none';
+      personalityInstructions.style.display = 'none';
+      updateProgress();
+    }
+
+    function isQuestionAnswered(index) {
+      const currentQuestionRadios = personalityQuestions[index].querySelectorAll('input[type="radio"]');
+      return Array.from(currentQuestionRadios).some(radio => radio.checked);
+    }
+
+    function showNextQuestion() {
+      if (currentQuestion < personalityQuestions.length - 1) {
+        currentQuestion++;
+        showQuestion(currentQuestion);
+      } else if (currentQuestion === personalityQuestions.length - 1) {
+        currentQuestion++;
+        showGenreSelection();
+      }
+    }
+
+    personalityQuestions.forEach((question, index) => {
+      const radioButtons = question.querySelectorAll('input[type="radio"]');
+      radioButtons.forEach(radio => {
+        radio.addEventListener('change', () => {
+          nextButton.disabled = false;
+          setTimeout(showNextQuestion, 300); // Delay to show the selection before moving to next question
+        });
+      });
+    });
+
+    nextButton.addEventListener('click', showNextQuestion);
+
+    prevButton.addEventListener('click', function() {
+      if (currentQuestion > 0) {
+        currentQuestion--;
+        if (currentQuestion < personalityQuestions.length) {
+          showQuestion(currentQuestion);
+        } else {
+          showGenreSelection();
+        }
+      }
+    });
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      this.submit();
+    });
+
+    showQuestion(0);
+  });
+</script>

@@ -162,7 +162,7 @@ h6 {
 }
 
 .card:hover {
-  transform: scale(1.05);
+  transform: scale(1.02);
 }
 
 .card-body {
@@ -304,4 +304,111 @@ h6 {
   background-color: var(--mint-green);
   color: var(--space-cadet);
   border-top: 1px solid var(--engineering-orange);
+}
+
+/* Survey-specific styles */
+.survey-container {
+  min-height: calc(100vh - 200px); /* Adjust to match your navbar height */
+  padding: 2rem 0;
+}
+
+.progress-bar {
+  background-color: var(--tufts-blue);
+}
+
+.question-container h3 {
+  color: var(--engineering-orange);
+}
+
+#survey-form .btn-outline-primary {
+  color: var(--tufts-blue);
+  border-color: var(--tufts-blue);
+}
+
+#survey-form .btn-outline-primary:hover,
+#survey-form .btn-outline-primary:focus {
+  color: var(--mint-green);
+  background-color: var(--tufts-blue);
+  border-color: var(--tufts-blue);
+}
+
+#survey-form .btn-check:checked + .btn-outline-primary {
+  color: var(--mint-green);
+  background-color: var(--tufts-blue);
+  border-color: var(--tufts-blue);
+}
+
+#genre-selection .btn-outline-primary {
+  color: var(--engineering-orange);
+  border-color: var(--engineering-orange);
+}
+
+#genre-selection .btn-outline-primary:hover,
+#genre-selection .btn-outline-primary:focus,
+#genre-selection .btn-check:checked + .btn-outline-primary {
+  color: var(--mint-green);
+  background-color: var(--engineering-orange);
+  border-color: var(--engineering-orange);
+}
+
+#submit-button {
+  background-color: var(--jonquil);
+  border-color: var(--jonquil);
+  color: var(--space-cadet);
+}
+
+#submit-button:hover {
+  background-color: var(--engineering-orange);
+  border-color: var(--engineering-orange);
+  color: var(--mint-green);
+}
+
+#prev-button, #next-button {
+  min-width: 100px;
+}
+
+#prev-button {
+  background-color: var(--space-cadet);
+  border-color: var(--space-cadet);
+  color: var(--mint-green);
+}
+
+#prev-button:hover {
+  background-color: var(--engineering-orange);
+  border-color: var(--engineering-orange);
+}
+
+#next-button {
+  background-color: var(--tufts-blue);
+  border-color: var(--tufts-blue);
+}
+
+#next-button:hover {
+  background-color: var(--jonquil);
+  border-color: var(--jonquil);
+  color: var(--space-cadet);
+}
+
+@media (max-height: 800px) {
+  .survey-container {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .survey-container {
+    align-items: flex-start;
+  }
+  
+  .card {
+    width: 100%;
+  }
+}
+
+.card-body > p {
+  color: var(--space-cadet);
+  background-color: var(--mint-green);
+  padding: 10px;
+  border-radius: 5px;
+  border-left: 4px solid var(--tufts-blue);
 }
