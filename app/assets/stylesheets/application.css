@@ -11,9 +11,32 @@
 
 body {
   font-family: var(--bs-body-font-family);
-  background-color: var(--mint-green);
-  background: var(--mint-green);
   color: var(--space-cadet);
+  background: 
+    radial-gradient(
+      circle at center,
+      rgba(233, 255, 249, 0.7) 0%, /* mint-green */
+      rgba(239, 200, 26, 0.5) 25%, /* jonquil */
+      rgba(26, 143, 227, 0.5) 50%, /* tufts-blue */
+      rgba(186, 45, 11, 0.5) 75%, /* engineering-orange */
+      rgba(43, 45, 66, 0.7) 100% /* space-cadet */
+    ),
+    var(--mint-green); /* solid background color */
+  background-size: 400% 400%;
+  background-attachment: fixed;
+  animation: gradientAnimation 60s ease infinite;
+}
+
+@keyframes gradientAnimation {
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
 }
 
 h1,
