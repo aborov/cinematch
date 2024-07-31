@@ -43,6 +43,12 @@ h6 {
   color: var(--jonquil) !important;
 }
 
+.user-greeting {
+  font-size: 1.2rem; /* Adjust font size as needed */
+  color: var(--jonquil); /* Apply your color palette */
+  margin-right: 10px; /* Adjust margin as needed */
+}
+
 .btn-primary {
   background-color: var(--tufts-blue);
   border-color: var(--tufts-blue);
