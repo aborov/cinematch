@@ -14,10 +14,10 @@
                 <span class="title-text"><%= recommendation[:title] %></span>
                       <span class="badge bg-warning text-danger ms-2"><%= recommendation[:match_score].round(2) %>%</span>
               </h5>
-              <span class="card-text-small text-muted mb-1"><%= [recommendation[:country], recommendation[:release_year]].compact.join(', ') %>
+              <div class="card-text-small text-muted mb-1"><%= [recommendation[:country], recommendation[:release_year]].compact.join(', ') %>
               <strong>TMDb:</strong> <%= recommendation[:rating] %>
-              </span>
-              <span class="card-text-small text-muted"><%= (recommendation[:genres] || []).join(', ') %></span>
+              </div>
+              <div class="card-text-small text-muted"><%= (recommendation[:genres] || []).join(', ') %></div>
               <a href="#" class="stretched-link show-details" data-id="<%= recommendation[:id] %>" data-type="<%= recommendation[:type] %>"></a>
             </div>
           </div>
