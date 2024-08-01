@@ -1,4 +1,42 @@
 <div class="survey-container d-flex justify-content-center align-items-center">
+  <!-- Welcome Modal -->
+  <div class="modal fade welcome-modal" id="welcomeModal" tabindex="-1" aria-labelledby="welcomeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title" id="welcomeModalLabel">Welcome to Cinematch!</h4>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="text-center p-3">
+            <img src="<%= asset_path 'cm_logo_glare.svg' %>" alt="Welcome to Cinematch" class="img-fluid w-80" style="max-height: 150px; object-fit: cover;">
+          </div>
+          <div>Hello, <%= current_user.name %>! We're excited to have you join us.</div>
+          <div class="mt-3">Cinematch helps you find the perfect movies and TV shows based on your personality and preferences. Here's how it works:</div>
+          <ul class="list-unstyled mt-3">
+            <li class="d-flex align-items-start mb-2">
+              <i class="fa-solid fa-clipboard-question fa-lg text-primary me-3"></i>
+              <span>Take our personalized survey to understand your tastes.</span>
+            </li>
+            <li class="d-flex align-items-start mb-2">
+              <i class="fa-solid fa-star fa-lg text-primary me-3"></i>
+              <span>Get recommendations tailored to your unique profile.</span>
+            </li>
+            <li class="d-flex align-items-start mb-2">
+              <i class="fa-solid fa-compass fa-lg text-primary me-3"></i>
+              <span>Explore new content that matches your mood and interests.</span>
+            </li>
+          </ul>
+          <div class="mt-3">Answering the questions genuinely is important for the quality of matches. Enjoy your journey with Cinematch!</div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Start Survey</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Survey Content -->
   <div class="card" style="max-width: 600px;">
     <div class="card-header">
       <h2 class="mb-0">Personalization Survey</h2>
@@ -138,6 +176,13 @@
     });
 
     showQuestion(0);
+
+    // Show the welcome modal if it's the first time the user has signed up
+    if (localStorage.getItem('showWelcomeModal') !== 'false') {
+      const welcomeModal = new bootstrap.Modal(document.getElementById('welcomeModal'));
+      welcomeModal.show();
+      localStorage.setItem('showWelcomeModal', 'false'); // Ensure it only shows once
+    }
   }
 
   document.addEventListener('DOMContentLoaded', initializeSurvey);

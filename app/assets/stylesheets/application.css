@@ -234,7 +234,6 @@ h6 {
 }
 
 .modal-body {
-  display: flex;
   justify-content: center;
   align-items: center;
   padding: 2rem;
@@ -463,3 +462,107 @@ h6 {
 .alert-danger .btn-close {
   filter: invert(1) grayscale(100%) brightness(200%);
 }
+
+.welcome-modal .modal-body {
+  padding: 20px;
+  color: var(--jonquil)
+}
+
+.welcome-modal .modal-body p,
+.welcome-modal .modal-body ul li {
+  display: block; /* Ensure each block of text is displayed below the previous one */
+  margin-bottom: 10px; /* Add margin between blocks */
+}
+
+.welcome-modal .modal-body ul {
+  padding-left: 0; /* Remove default padding */
+  list-style: none; /* Remove default list style */
+}
+
+.welcome-modal .modal-body ul li {
+  display: flex;
+  align-items: flex-start; /* Align items to the top */
+  margin-bottom: 10px; /* Add margin between list items */
+}
+
+.welcome-modal .modal-body ul li i {
+  margin-right: 10px;
+  color: var(--tufts-blue); /* Adjust color to match your palette */
+  font-size: 1.5em; /* Ensure icon size is consistent */
+  line-height: 1; /* Ensure line height is consistent */
+}
+
+.welcome-modal .modal-body p,
+.welcome-modal .modal-body ul li {
+  color: var(--jonquil);
+}
+
+.welcome-modal .modal-body ul li span {
+  line-height: 1.5; /* Ensure line height for text is consistent */
+}
+
+.welcome-modal .modal-content {
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.welcome-modal .modal-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 20px;
+}
+
+.welcome-modal .modal-title {
+  color: var(--jonquil);
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.welcome-modal .modal-body ul li {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 15px;
+  transition: transform 0.2s ease-in-out;
+}
+
+.welcome-modal .modal-body ul li:hover {
+  transform: translateY(-3px);
+}
+
+.welcome-modal .modal-body ul li i {
+  color: var(--jonquil);
+  font-size: 24px;
+  margin-right: 15px;
+}
+
+.welcome-modal .modal-footer .btn-primary {
+  background-color: var(--jonquil);
+  border: none;
+  color: var(--space-cadet);
+  padding: 10px 20px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.welcome-modal .modal-footer .btn-primary:hover {
+  background-color: var(--mint-green);
+  transform: scale(1.05);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.welcome-modal .modal-content {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.welcome-modal .modal-body ul li {
+  animation: fadeIn 0.5s ease-out;
+  animation-fill-mode: both;
+}
+
+.welcome-modal .modal-body ul li:nth-child(1) { animation-delay: 0.2s; }
+.welcome-modal .modal-body ul li:nth-child(2) { animation-delay: 0.4s; }
+.welcome-modal .modal-body ul li:nth-child(3) { animation-delay: 0.6s; }
