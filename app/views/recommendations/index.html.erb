@@ -1,50 +1,55 @@
-<h1>Personalized Recommendations</h1>
+<h1 class="mb-4">Personalized Recommendations</h1>
 
-<h2>Recommended Content</h2>
+<div class="row">
+  <% @recommendations.each do |recommendation| %>
+    <div class="col-md-6 col-lg-4 mb-4">
+      <div class="card h-100">
+        <div class="row no-gutters">
+          <div class="col-4">
+            <%= image_tag "https://image.tmdb.org/t/p/w154#{recommendation[:poster_path]}", class: "card-img" %>
+          </div>
+          <div class="col-8">
+            <div class="card-body position-relative">
+              <h5 class="card-title d-flex justify-content-between align-items-start">
+                <span class="title-text"><%= recommendation[:title] %></span>
+                      <span class="badge bg-warning text-danger ms-2"><%= recommendation[:match_score].round(2) %>%</span>
+              </h5>
+              <div class="card-text-small text-muted mb-1"><%= [recommendation[:country], recommendation[:release_year]].compact.join(', ') %>
+              <strong>TMDb:</strong> <%= recommendation[:rating] %>
+              </div>
+              <div class="card-text-small text-muted"><%= (recommendation[:genres] || []).join(', ') %></div>
+              <a href="#" class="stretched-link show-details" data-id="<%= recommendation[:id] %>" data-type="<%= recommendation[:type] %>"></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
 
-<% if @recommendations.present? %>
-  <ul>
-    <% @recommendations.each do |recommendation| %>
-      <li>
-        <a href="#" class="show-details" data-id="<%= recommendation[:id] %>" data-type="<%= recommendation[:type] %>">
-          <strong><%= recommendation[:title] %></strong>
-        </a> - <%= recommendation[:match_score].round(2) %>% match
+<nav aria-label="Page navigation" class="mt-4">
+  <ul class="pagination justify-content-center">
+    <% (1..@total_pages).each do |page_num| %>
+      <li class="page-item <%= 'active' if page_num == @page %>">
+        <%= link_to page_num, recommendations_path(page: page_num), class: 'page-link' %>
       </li>
     <% end %>
   </ul>
-<% else %>
-  <p>No recommendations available. Please complete the survey to receive recommendations.</p>
-<% end %>
+</nav>
 
-<div id="popup" class="popup" style="display:none;">
-  <div class="popup-content">
-    <span class="close-button">&times;</span>
-    <div id="popup-details"></div>
+<%= render 'shared/footer' %>
+
+<!-- Popup Modal -->
+<div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="detailsModalLabel">Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="popup-details"></div>
+      </div>
+    </div>
   </div>
 </div>
-
-<% if @user_preference.present? %>
-  <% if @user_preference.personality_profiles.present? %>
-    <h2>Your Big Five Personality Profile</h2>
-    <ul>
-      <% @user_preference.personality_profiles.each do |trait, score| %>
-        <li><%= trait.capitalize %>: <%= score %></li>
-      <% end %>
-    </ul>
-  <% else %>
-    <p>No personality profile available. Please complete the <%= link_to 'survey', survey_responses_path %> to receive recommendations.</p>
-  <% end %>
-
-  <h2>Your Favorite Genres</h2>
-  <% if @user_preference.favorite_genres.present? %>
-    <ul>
-      <% @user_preference.favorite_genres.each do |genre| %>
-        <li><%= genre %></li>
-      <% end %>
-    </ul>
-  <% else %>
-    <p>No favorite genres available. Please update your preferences to receive recommendations.</p>
-  <% end %>
-<% else %>
-  <p>No preferences found. Please complete the <%= link_to 'survey', survey_responses_path %> to receive recommendations.</p>
-<% end %>

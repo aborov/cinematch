@@ -1,41 +1,84 @@
-<h2>Sign up</h2>
+<div class="container">
+  <div class="row justify-content-center align-items-center" style="min-height: calc(100vh - 200px);">
+    <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5">
+      <div class="card">
+        <h3 class="card-header">Sign Up</h3>
 
-<%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
-  <%= devise_error_messages! %>
+        <div class="card-body">
+          <%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
+            <%= devise_error_messages! %>
 
-  <div>
-    <%= f.label :name %><br />
-    <%= f.text_field :name, autofocus: true %>
+            <div class="mb-3">
+              <%= f.label :name, class: "form-label" %>
+              <%= f.text_field :name, autofocus: true, class: "form-control" %>
+            </div>
+
+            <div class="mb-3">
+              <%= f.label :email, class: "form-label" %>
+              <%= f.email_field :email, class: "form-control" %>
+            </div>
+
+            <div class="mb-3">
+              <%= f.label :gender, class: "form-label" %><br>
+              <div class="btn-group btn-group-sm flex-wrap" role="group" aria-label="Gender">
+                <%= f.radio_button :gender, 'Male', id: 'gender_male', class: "btn-check" %>
+                <%= f.label :gender, 'Male', class: "btn btn-outline-primary", for: 'gender_male' %>
+
+                <%= f.radio_button :gender, 'Female', id: 'gender_female', class: "btn-check" %>
+                <%= f.label :gender, 'Female', class: "btn btn-outline-primary", for: 'gender_female' %>
+
+                <%= f.radio_button :gender, 'Non-binary', id: 'gender_non_binary', class: "btn-check" %>
+                <%= f.label :gender, 'Non-binary', class: "btn btn-outline-primary", for: 'gender_non_binary' %>
+
+                <%= f.radio_button :gender, 'Prefer not to say', id: 'gender_prefer_not_to_say', class: "btn-check" %>
+                <%= f.label :gender, 'Prefer not to say', class: "btn btn-outline-primary", for: 'gender_prefer_not_to_say' %>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <%= f.label :dob, "Date of Birth", class: "form-label" %>
+              <%= f.date_field :dob, start_year: 1900, end_year: Time.now.year, class: "form-control" %>
+            </div>
+
+            <div class="mb-3">
+              <%= f.label :password, class: "form-label" %>
+              <%= f.password_field :password, autocomplete: "new-password", class: "form-control", id: "password" %>
+            </div>
+
+            <div class="mb-3">
+              <%= f.label :password_confirmation, class: "form-label" %><br />
+              <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "form-control", id: "password_confirmation" %>
+              <small id="passwordConfirmationHelp" class="form-text text-muted"></small>
+            </div>
+
+            <div class="d-flex justify-content-between">
+              <%= link_to "Back", new_user_session_path, class: "btn btn-secondary" %>
+              <%= f.submit "Sign Up", class: "btn btn-primary" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
   </div>
+</div>
 
-  <div>
-    <%= f.label :email %><br />
-    <%= f.email_field :email %>
-  </div>
+<script>
+  document.addEventListener('turbolinks:load', () => {
+    const password = document.getElementById('password');
+    const passwordConfirmation = document.getElementById('password_confirmation');
+    const passwordConfirmationHelp = document.getElementById('passwordConfirmationHelp');
 
-  <div>
-    <%= f.label :gender %><br />
-    <%= f.select :gender, ['Male', 'Female', 'Other'] %>
-  </div>
+    function validatePassword() {
+      if (password.value !== passwordConfirmation.value) {
+        passwordConfirmationHelp.textContent = 'Passwords do not match';
+        passwordConfirmationHelp.style.color = 'red';
+      } else {
+        passwordConfirmationHelp.textContent = 'Passwords match';
+        passwordConfirmationHelp.style.color = 'green';
+      }
+    }
 
-  <div>
-    <%= f.label :dob, "Date of Birth" %><br />
-    <%= f.date_field :dob, start_year: 1900, end_year: Time.now.year, class: 'form-control' %>
-  </div>
-
-  <div>
-    <%= f.label :password %><br />
-    <%= f.password_field :password, autocomplete: "new-password" %>
-  </div>
-
-  <div>
-    <%= f.label :password_confirmation %><br />
-    <%= f.password_field :password_confirmation, autocomplete: "new-password" %>
-  </div>
-
-  <div>
-    <%= f.submit "Sign up" %>
-  </div>
-<% end %>
-
-<%= render "devise/shared/links" %>
+    password.addEventListener('input', validatePassword);
+    passwordConfirmation.addEventListener('input', validatePassword);
+  });
+</script>

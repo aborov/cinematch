@@ -1,16 +1,22 @@
-<h1>Edit Preferences</h1>
+<div class="d-flex justify-content-center">
+  <div class="card w-75">
+    <h2 class="card-header">Edit Preferences</h1>
 
-<%= form_with model: @user_preference, local: true do |form| %>
-  <div>
-    <%= form.label :favorite_genres, "Select your favorite genres" %><br>
-    <%= form.collection_check_boxes :favorite_genres, @genres, :name, :name do |b| %>
-      <div class="genre-checkbox">
-        <%= b.check_box %>
-        <%= b.label %>
-      </div>
-    <% end %>
+    <div class="card-body">
+      <%= form_with model: @user_preference, local: true do |form| %>
+        <div class="mb-3">
+          <%= form.label :favorite_genres, "Select your favorite genres", class: "form-label" %><br>
+          <div class="btn-group-toggle d-flex flex-wrap" data-toggle="buttons">
+            <% @genres.each do |genre| %>
+              <%= form.check_box :favorite_genres, { multiple: true, class: 'btn-check', id: genre['name'].parameterize }, genre['name'], nil %>
+              <%= label_tag genre['name'].parameterize, genre['name'], class: 'btn btn-outline-primary m-1' %>
+            <% end %>
+          </div>
+        </div>
+        <div>
+          <%= form.submit "Save Preferences", class: "btn btn-primary" %>
+        </div>
+      <% end %>
+    </div>
   </div>
-  <div>
-    <%= form.submit "Save Preferences" %>
-  </div>
-<% end %>
+</div>

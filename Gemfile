@@ -85,6 +85,7 @@ gem "table_print"
 gem "rails-ujs"
 gem "turbolinks", '~> 5'
 gem "jquery-rails"
+gem "kaminari"
 
 group :development do
   gem "annotate"
