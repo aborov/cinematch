@@ -1,4 +1,12 @@
-export function initializeSurvey(totalQuestions) {
+export function initSurvey() {
+  const surveyContainer = document.querySelector('.survey-container');
+  if (surveyContainer) {
+    const totalQuestions = parseInt(surveyContainer.dataset.totalQuestions, 10);
+    initializeSurvey(totalQuestions);
+  }
+}
+
+function initializeSurvey(totalQuestions) {
   const form = document.getElementById('survey-form');
   const personalityQuestions = document.querySelectorAll('#personality-questions .question-container');
   const genreSelection = document.getElementById('genre-selection');
@@ -92,14 +100,3 @@ export function initializeSurvey(totalQuestions) {
     localStorage.setItem('showWelcomeModal', 'false'); // Ensure it only shows once
   }
 }
-
-function initSurvey() {
-  const surveyContainer = document.querySelector('.survey-container');
-  if (surveyContainer) {
-    const totalQuestions = parseInt(surveyContainer.dataset.totalQuestions, 10);
-    initializeSurvey(totalQuestions);
-  }
-}
-
-document.addEventListener('DOMContentLoaded', initSurvey);
-document.addEventListener('turbolinks:load', initSurvey);
