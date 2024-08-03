@@ -1,7 +1,7 @@
 Rails.application.routes.draw do
   devise_for :users, controllers: {
-            registrations: "users/registrations",
-          }
+    registrations: "users/registrations",
+  }
 
   root to: "recommendations#index"
 
@@ -12,7 +12,6 @@ Rails.application.routes.draw do
   end
 
   resources :surveys, only: [:index, :create]
-  # resources :survey_responses, only: [:index, :create]
   resources :user_preferences, only: [:edit, :update]
   resources :recommendations, only: [:index, :show]
 end

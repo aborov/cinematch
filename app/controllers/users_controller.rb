@@ -1,6 +1,10 @@
 class UsersController < ApplicationController
   before_action :authenticate_user!
 
+  def show
+    @user = User.find(params[:id])
+  end
+
   def profile
     @user = current_user
     @user_preference = current_user.user_preference || current_user.build_user_preference
