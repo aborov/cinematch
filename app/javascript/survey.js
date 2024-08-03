@@ -37,6 +37,9 @@ function initializeSurvey(totalQuestions) {
   if (!nextButton) console.error('Next button is missing');
   if (!progressBar) console.error('Progress bar is missing');
   if (!personalityInstructions) console.error('Personality instructions are missing');
+
+  if (!form || !personalityQuestions.length || !genreSelection || !submitButton || !prevButton || !nextButton || !progressBar || !personalityInstructions) {
+    console.error('Some survey elements are missing');
     return;
   }
 
@@ -100,7 +103,7 @@ function initializeSurvey(totalQuestions) {
 
   nextButton.addEventListener('click', showNextQuestion);
 
-  prevButton.addEventListener('click', function() {
+  prevButton.addEventListener('click', function () {
     if (currentQuestion > 0) {
       currentQuestion--;
       if (currentQuestion < personalityQuestions.length) {
@@ -111,7 +114,7 @@ function initializeSurvey(totalQuestions) {
     }
   });
 
-  form.addEventListener('submit', function(e) {
+  form.addEventListener('submit', function (e) {
     e.preventDefault();
     this.submit();
   });
