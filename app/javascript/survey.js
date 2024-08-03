@@ -1,4 +1,5 @@
 export function initSurvey() {
+  console.log("Initializing survey...");
   // Wait for DOM content to be fully loaded
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initSurveyWhenReady);
@@ -8,8 +9,10 @@ export function initSurvey() {
 }
 
 function initSurveyWhenReady() {
+  console.log("DOM fully loaded. Initializing survey when ready...");
   setTimeout(() => {
     const surveyContainer = document.querySelector('.survey-container');
+    console.log("Survey container:", surveyContainer);
     if (surveyContainer) {
       const totalQuestions = parseInt(surveyContainer.dataset.totalQuestions, 10);
       initializeSurvey(totalQuestions);
@@ -18,6 +21,7 @@ function initSurveyWhenReady() {
 }
 
 function initializeSurvey(totalQuestions) {
+  console.log("Initializing survey with total questions:", totalQuestions);
   const form = document.getElementById('survey-form');
   const personalityQuestions = document.querySelectorAll('#personality-questions .question-container');
   const genreSelection = document.getElementById('genre-selection');
@@ -28,15 +32,14 @@ function initializeSurvey(totalQuestions) {
   const personalityInstructions = document.getElementById('personality-instructions');
   let currentQuestion = 0;
 
-  // Check if all necessary elements are present
-  if (!form) console.error('Form is missing');
-  if (!personalityQuestions.length) console.error('Personality questions are missing');
-  if (!genreSelection) console.error('Genre selection is missing');
-  if (!submitButton) console.error('Submit button is missing');
-  if (!prevButton) console.error('Previous button is missing');
-  if (!nextButton) console.error('Next button is missing');
-  if (!progressBar) console.error('Progress bar is missing');
-  if (!personalityInstructions) console.error('Personality instructions are missing');
+  console.log('Form:', form);
+  console.log('Personality Questions:', personalityQuestions);
+  console.log('Genre Selection:', genreSelection);
+  console.log('Submit Button:', submitButton);
+  console.log('Prev Button:', prevButton);
+  console.log('Next Button:', nextButton);
+  console.log('Progress Bar:', progressBar);
+  console.log('Personality Instructions:', personalityInstructions);
 
   if (!form || !personalityQuestions.length || !genreSelection || !submitButton || !prevButton || !nextButton || !progressBar || !personalityInstructions) {
     console.error('Some survey elements are missing');
