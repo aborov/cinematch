@@ -3,7 +3,7 @@ import "@hotwired/turbo-rails"
 import "controllers"
 import jquery from "jquery"
 import * as bootstrap from "bootstrap"
-import { initSurvey } from "./survey"
+import { initSurvey } from "survey"
 
 window.jQuery = jquery
 window.$ = jquery
