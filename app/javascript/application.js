@@ -13,3 +13,8 @@ window.bootstrap = bootstrap
 document.addEventListener("turbo:load", () => {
   initSurvey();
 });
+
+// Also initialize on DOMContentLoaded for the initial page load
+document.addEventListener("DOMContentLoaded", () => {
+  initSurvey();
+});

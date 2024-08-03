@@ -3,7 +3,6 @@ class SurveysController < ApplicationController
 
   def index
     @personality_questions = SurveyQuestion.all
-    puts "Number of questions: #{@personality_questions.count}"
     genres = TmdbService.fetch_genres
     @genres = genres[:user_facing_genres]
     @total_questions = @personality_questions.count + 1 # +1 for genre selection

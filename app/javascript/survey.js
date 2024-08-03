@@ -1,4 +1,13 @@
 export function initSurvey() {
+  // Wait for DOM content to be fully loaded
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSurveyWhenReady);
+  } else {
+    initSurveyWhenReady();
+  }
+}
+
+function initSurveyWhenReady() {
   const surveyContainer = document.querySelector('.survey-container');
   if (surveyContainer) {
     const totalQuestions = parseInt(surveyContainer.dataset.totalQuestions, 10);
@@ -16,6 +25,12 @@ function initializeSurvey(totalQuestions) {
   const progressBar = document.getElementById('survey-progress');
   const personalityInstructions = document.getElementById('personality-instructions');
   let currentQuestion = 0;
+
+  // Check if all necessary elements are present
+  if (!form || !personalityQuestions.length || !genreSelection || !submitButton || !prevButton || !nextButton || !progressBar || !personalityInstructions) {
+    console.error('Some survey elements are missing');
+    return;
+  }
 
   function updateProgress() {
     const progress = ((currentQuestion + 1) / totalQuestions) * 100;
@@ -49,7 +64,9 @@ function initializeSurvey(totalQuestions) {
   }
 
   function isQuestionAnswered(index) {
-    const currentQuestionRadios = personalityQuestions[index].querySelectorAll('input[type="radio"]');
+    const currentQuestion = personalityQuestions[index];
+    if (!currentQuestion) return false;
+    const currentQuestionRadios = currentQuestion.querySelectorAll('input[type="radio"]');
     return Array.from(currentQuestionRadios).some(radio => radio.checked);
   }
 
