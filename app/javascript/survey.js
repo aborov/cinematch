@@ -8,11 +8,13 @@ export function initSurvey() {
 }
 
 function initSurveyWhenReady() {
-  const surveyContainer = document.querySelector('.survey-container');
-  if (surveyContainer) {
-    const totalQuestions = parseInt(surveyContainer.dataset.totalQuestions, 10);
-    initializeSurvey(totalQuestions);
-  }
+  setTimeout(() => {
+    const surveyContainer = document.querySelector('.survey-container');
+    if (surveyContainer) {
+      const totalQuestions = parseInt(surveyContainer.dataset.totalQuestions, 10);
+      initializeSurvey(totalQuestions);
+    }
+  }, 100);  // 100ms delay
 }
 
 function initializeSurvey(totalQuestions) {
@@ -27,8 +29,14 @@ function initializeSurvey(totalQuestions) {
   let currentQuestion = 0;
 
   // Check if all necessary elements are present
-  if (!form || !personalityQuestions.length || !genreSelection || !submitButton || !prevButton || !nextButton || !progressBar || !personalityInstructions) {
-    console.error('Some survey elements are missing');
+  if (!form) console.error('Form is missing');
+  if (!personalityQuestions.length) console.error('Personality questions are missing');
+  if (!genreSelection) console.error('Genre selection is missing');
+  if (!submitButton) console.error('Submit button is missing');
+  if (!prevButton) console.error('Previous button is missing');
+  if (!nextButton) console.error('Next button is missing');
+  if (!progressBar) console.error('Progress bar is missing');
+  if (!personalityInstructions) console.error('Personality instructions are missing');
     return;
   }
 
