@@ -143,6 +143,7 @@ GEM
       rspec
     drb (2.2.1)
     erubi (1.12.0)
+    execjs (2.9.1)
     faker (3.4.1)
       i18n (>= 1.8.11, < 2)
     faraday (2.9.0)
@@ -389,6 +390,8 @@ GEM
       railties (>= 6.0.0)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
+    uglifier (4.2.0)
+      execjs (>= 0.3.0, < 3)
     unicode-display_width (2.5.0)
     uri (0.13.0)
     warden (1.2.9)
@@ -458,6 +461,7 @@ DEPENDENCIES
   table_print
   turbo-rails
   tzinfo-data
+  uglifier
   web-console
   webdrivers
   webmock

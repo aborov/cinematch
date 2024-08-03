@@ -85,6 +85,7 @@ gem "table_print"
 gem "rails-ujs"
 gem "jquery-rails"
 gem "kaminari"
+gem "uglifier"
 
 group :development do
   gem "annotate"
