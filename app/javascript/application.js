@@ -3,17 +3,13 @@ import "@hotwired/turbo-rails"
 import "controllers"
 import jquery from "jquery"
 import * as bootstrap from "bootstrap"
+import { initSurvey } from "./survey"
 
 window.jQuery = jquery
 window.$ = jquery
 window.bootstrap = bootstrap
 
-// Load survey.js after Turbo navigation
+// Initialize survey after Turbo navigation
 document.addEventListener("turbo:load", () => {
-  const surveyContainer = document.querySelector('.survey-container');
-  if (surveyContainer) {
-    import("./survey").then(module => {
-      module.initSurvey();
-    });
-  }
+  initSurvey();
 });
