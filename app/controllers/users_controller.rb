@@ -2,7 +2,12 @@ class UsersController < ApplicationController
   before_action :authenticate_user!
 
   def show
-    @user = User.find(params[:id])
+    @user = User.find_by({ :id => params.fetch("id") })
+    if @user.nil?
+      redirect_to root_path, { :alert => "User not found" }
+    else
+      render({ :template => "users/show" })
+    end
   end
 
   def profile
