@@ -89,13 +89,18 @@
 </div>
 
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    initializeSurvey();
+  $(document).ready(function() {
+  initializeSurvey();
   });
 
   document.addEventListener('turbo:load', () => {
     initializeSurvey();
   });
+
+  document.addEventListener('turbo:before-cache', () => {
+  initializeSurvey();
+  });
+
 
   function initializeSurvey() {
   const form = document.getElementById('survey-form');
@@ -221,6 +226,5 @@
     welcomeModal.show();
     localStorage.setItem('showWelcomeModal', 'false'); // Ensure it only shows once
   }
-}
-
+  }
 </script>
