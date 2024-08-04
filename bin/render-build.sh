@@ -2,12 +2,6 @@
 # exit on error
 set -o errexit
 
-# Check Node.js version
-node -v
-
-# Check npm version
-npm -v
-
 bundle install
 
 # For Ruby on Rails apps uncomment these lines to precompile assets and migrate your database.
