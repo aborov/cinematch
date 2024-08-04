@@ -20,9 +20,9 @@ class RecommendationsController < ApplicationController
       content = (movies + tv_shows).uniq { |item| item["id"] }
       @recommendations = calculate_recommendations(content)
       @page = params[:page].present? ? params[:page].to_i : 1
-    per_page = 15
-    @total_pages = (@recommendations.length.to_f / per_page).ceil
-    @recommendations = @recommendations.slice((@page - 1) * per_page, per_page)
+      per_page = 15
+      @total_pages = (@recommendations.length.to_f / per_page).ceil
+      @recommendations = @recommendations.slice((@page - 1) * per_page, per_page)
     else
       redirect_to surveys_path, alert: "Please complete the survey to receive recommendations."
     end
@@ -85,18 +85,27 @@ class RecommendationsController < ApplicationController
 
   def calculate_favorite_genres_score(genres)
     favorite_genres = @user_preference.favorite_genres || []
-    favorite_genres = favorite_genres.map(&:to_s) # Ensure all genres are strings
+
+    # Split the favorite_genres if it's a String
+    if favorite_genres.is_a?(String)
+      favorite_genres = favorite_genres.split(",")
+    end
+
+    favorite_genres = favorite_genres.map(&:strip).map(&:to_s) # Ensure all genres are strings and remove whitespace
+
     combined_genres = {
       "Sci-Fi & Fantasy" => ["Science Fiction", "Fantasy"],
       "Action & Adventure" => ["Action", "Adventure"],
       "War & Politics" => ["War", "Politics"],
     }
+
     combined_genres.each do |combined, separates|
       if (favorite_genres & separates).any?
         favorite_genres << combined
       end
     end
-    (genres & favorite_genres).size
+
+    return (genres & favorite_genres).size
   end
 
   def abbreviate_country(country)
