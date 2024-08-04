@@ -437,6 +437,7 @@ DEPENDENCIES
   dotenv-rails
   draft_generators
   draft_matchers
+  execjs
   faker
   grade_runner
   htmlbeautifier

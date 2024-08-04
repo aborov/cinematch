@@ -7,5 +7,6 @@ Turbo.session.drive = false
 import jquery from "jquery";
 window.jQuery = jquery;
 window.$ = jquery;
-import Rails from "@rails/ujs"
+
+import Rails from "@rails/ujs";
 Rails.start();
