@@ -381,6 +381,8 @@ GEM
       unicode-display_width (~> 2.5)
     terminal-table (3.0.2)
       unicode-display_width (>= 1.1.1, < 3)
+    terser (1.2.3)
+      execjs (>= 0.3.0, < 3)
     thor (1.3.1)
     timeout (0.4.1)
     tty-screen (0.8.2)
@@ -393,8 +395,6 @@ GEM
     turbolinks-source (5.2.0)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
-    uglifier (4.2.0)
-      execjs (>= 0.3.0, < 3)
     unicode-display_width (2.5.0)
     uri (0.13.0)
     warden (1.2.9)
@@ -437,7 +437,6 @@ DEPENDENCIES
   dotenv-rails
   draft_generators
   draft_matchers
-  execjs
   faker
   grade_runner
   htmlbeautifier
@@ -463,10 +462,10 @@ DEPENDENCIES
   sqlite3 (~> 1.4)
   stimulus-rails
   table_print
+  terser
   turbo-rails
   turbolinks (~> 5)
   tzinfo-data
-  uglifier
   web-console
   webdrivers
   webmock
