@@ -89,6 +89,14 @@
 </div>
 
 <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    initializeSurvey();
+  });
+
+  document.addEventListener('turbo:load', () => {
+    initializeSurvey();
+  });
+
   function initializeSurvey() {
     const form = document.getElementById('survey-form');
     const personalityQuestions = document.querySelectorAll('#personality-questions .question-container');
@@ -189,7 +197,4 @@
       localStorage.setItem('showWelcomeModal', 'false'); // Ensure it only shows once
     }
   }
-
-  document.addEventListener('DOMContentLoaded', initializeSurvey);
-  document.addEventListener('turbo:load', initializeSurvey); // Ensure JavaScript is executed when Turbo loads a new page
 </script>
