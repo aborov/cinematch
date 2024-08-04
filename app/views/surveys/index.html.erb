@@ -101,6 +101,11 @@
     const totalQuestions = <%= @total_questions %>;
     let currentQuestion = 0;
 
+    if (!form || !personalityQuestions || !genreSelection || !submitButton || !prevButton || !nextButton || !progressBar || !personalityInstructions) {
+      console.error('Some survey elements are missing.');
+      return;
+    }
+
     function updateProgress() {
       const progress = ((currentQuestion + 1) / totalQuestions) * 100;
       progressBar.style.width = `${progress}%`;
@@ -186,5 +191,5 @@
   }
 
   document.addEventListener('DOMContentLoaded', initializeSurvey);
-  document.addEventListener('turbolinks:load', initializeSurvey); // Ensure JavaScript is executed when Turbolinks loads a new page
+  document.addEventListener('turbo:load', initializeSurvey); // Ensure JavaScript is executed when Turbo loads a new page
 </script>
