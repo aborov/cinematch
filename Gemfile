@@ -86,6 +86,7 @@ gem "rails-ujs"
 gem "turbolinks", '~> 5'
 gem "jquery-rails"
 gem "kaminari"
+gem "uglifier"
 
 group :development do
   gem "annotate"

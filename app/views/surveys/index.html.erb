@@ -89,40 +89,40 @@
 </div>
 
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', function() {
     initializeSurvey();
   });
 
-  document.addEventListener('turbo:load', () => {
+  document.addEventListener('turbo:load', function() {
     initializeSurvey();
   });
 
   function initializeSurvey() {
-    const form = document.getElementById('survey-form');
-    const personalityQuestions = document.querySelectorAll('#personality-questions .question-container');
-    const genreSelection = document.getElementById('genre-selection');
-    const submitButton = document.getElementById('submit-button');
-    const prevButton = document.getElementById('prev-button');
-    const nextButton = document.getElementById('next-button');
-    const progressBar = document.getElementById('survey-progress');
-    const personalityInstructions = document.getElementById('personality-instructions');
-    const totalQuestions = <%= @total_questions %>;
-    let currentQuestion = 0;
+    var form = document.getElementById('survey-form');
+    var personalityQuestions = document.querySelectorAll('#personality-questions .question-container');
+    var genreSelection = document.getElementById('genre-selection');
+    var submitButton = document.getElementById('submit-button');
+    var prevButton = document.getElementById('prev-button');
+    var nextButton = document.getElementById('next-button');
+    var progressBar = document.getElementById('survey-progress');
+    var personalityInstructions = document.getElementById('personality-instructions');
+    var totalQuestions = <%= @total_questions %>;
+    var currentQuestion = 0;
 
-    if (!form || !personalityQuestions || !genreSelection || !submitButton || !prevButton || !nextButton || !progressBar || !personalityInstructions) {
+    if (!form || !personalityQuestions.length || !genreSelection || !submitButton || !prevButton || !nextButton || !progressBar || !personalityInstructions) {
       console.error('Some survey elements are missing.');
       return;
     }
 
     function updateProgress() {
-      const progress = ((currentQuestion + 1) / totalQuestions) * 100;
-      progressBar.style.width = `${progress}%`;
+      var progress = ((currentQuestion + 1) / totalQuestions) * 100;
+      progressBar.style.width = progress + '%';
       progressBar.setAttribute('aria-valuenow', progress);
-      progressBar.textContent = `${Math.round(progress)}%`;
+      progressBar.textContent = Math.round(progress) + '%';
     }
 
     function showQuestion(index) {
-      personalityQuestions.forEach((q, i) => {
+      personalityQuestions.forEach(function(q, i) {
         q.style.display = i === index ? 'block' : 'none';
       });
 
@@ -136,7 +136,7 @@
     }
 
     function showGenreSelection() {
-      personalityQuestions.forEach(q => q.style.display = 'none');
+      personalityQuestions.forEach(function(q) { q.style.display = 'none'; });
       genreSelection.style.display = 'block';
       submitButton.style.display = 'inline-block';
       prevButton.style.display = 'inline-block';
@@ -146,8 +146,8 @@
     }
 
     function isQuestionAnswered(index) {
-      const currentQuestionRadios = personalityQuestions[index].querySelectorAll('input[type="radio"]');
-      return Array.from(currentQuestionRadios).some(radio => radio.checked);
+      var currentQuestionRadios = personalityQuestions[index].querySelectorAll('input[type="radio"]');
+      return Array.from(currentQuestionRadios).some(function(radio) { return radio.checked; });
     }
 
     function showNextQuestion() {
@@ -160,10 +160,10 @@
       }
     }
 
-    personalityQuestions.forEach((question, index) => {
-      const radioButtons = question.querySelectorAll('input[type="radio"]');
-      radioButtons.forEach(radio => {
-        radio.addEventListener('change', () => {
+    personalityQuestions.forEach(function(question, index) {
+      var radioButtons = question.querySelectorAll('input[type="radio"]');
+      radioButtons.forEach(function(radio) {
+        radio.addEventListener('change', function() {
           nextButton.disabled = false;
           setTimeout(showNextQuestion, 300); // Delay to show the selection before moving to next question
         });
@@ -192,7 +192,7 @@
 
     // Show the welcome modal if it's the first time the user has signed up
     if (localStorage.getItem('showWelcomeModal') !== 'false') {
-      const welcomeModal = new bootstrap.Modal(document.getElementById('welcomeModal'));
+      var welcomeModal = new bootstrap.Modal(document.getElementById('welcomeModal'));
       welcomeModal.show();
       localStorage.setItem('showWelcomeModal', 'false'); // Ensure it only shows once
     }
