@@ -10,4 +10,8 @@
 #
 class SurveyQuestion < ApplicationRecord
   has_many :survey_responses, foreign_key: "survey_question_id"
+
+  
+  validates :question_text, uniqueness: { scope: :question_type }, presence: true
+  validates :question_type, presence: true
 end

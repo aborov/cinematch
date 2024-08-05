@@ -8,8 +8,7 @@
 
 # User.create!(name: "John Doe", email: "john@example.com", password: "password", gender: "Male", dob: "1990-01-01")
 
-SurveyQuestion.destroy_all
-SurveyQuestion.create!([
+SurveyQuestion.create([
   { question_text: "I enjoy trying new things.", question_type: "openness" },
   { question_text: "I am imaginative and creative.", question_type: "openness" },
   { question_text: "I enjoy thinking about abstract concepts.", question_type: "openness" },
