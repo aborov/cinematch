@@ -3,7 +3,7 @@
 <div class="row">
   <% @recommendations.each do |recommendation| %>
     <div class="col-md-6 col-lg-4 mb-4">
-      <div class="card h-100">
+      <div class="card h-100 stretched-link show-details" data-id="<%= recommendation[:id] %>" data-type="<%= recommendation[:type] %>">
         <div class="row no-gutters">
           <div class="col-4">
             <%= image_tag "https://image.tmdb.org/t/p/w154#{recommendation[:poster_path]}", class: "card-img" %>
@@ -12,13 +12,13 @@
             <div class="card-body position-relative">
               <h5 class="card-title d-flex justify-content-between align-items-start">
                 <span class="title-text"><%= recommendation[:title] %></span>
-                      <span class="badge bg-warning text-danger ms-2"><%= recommendation[:match_score].round(2) %>%</span>
+                <span class="badge bg-warning text-danger ms-2"><%= recommendation[:match_score].round(2) %>%</span>
               </h5>
               <div class="card-text-small text-muted mb-1"><%= [recommendation[:country], recommendation[:release_year]].compact.join(', ') %>
-              <strong>TMDb:</strong> <%= recommendation[:rating] %>
+                <strong>TMDb:</strong> <%= recommendation[:rating] %>
               </div>
               <div class="card-text-small text-muted"><%= (recommendation[:genres] || []).join(', ') %></div>
-              <a href="#" class="stretched-link show-details" data-id="<%= recommendation[:id] %>" data-type="<%= recommendation[:type] %>"></a>
+              <div class="stretched-link show-details" data-id="<%= recommendation[:id] %>" data-type="<%= recommendation[:type] %>"></div>
             </div>
           </div>
         </div>
@@ -53,3 +53,58 @@
     </div>
   </div>
 </div>
+
+<script>
+  document.querySelectorAll('.show-details').forEach(function(element) {
+    element.addEventListener('click', function(e) {
+      e.preventDefault();
+      console.log('Card clicked');
+      var id = this.dataset.id;
+      var type = this.dataset.type;
+      var matchScore = this.closest('.card').querySelector('.badge').textContent;
+      console.log('Details:', id, type, matchScore);
+      showDetails(id, type, matchScore);
+    });
+  });
+
+  window.showDetails = function(id, type, matchScore) {
+    console.log('Fetching details for', id, type);
+    fetch(`/recommendations/${id}?type=${type}`)
+      .then(response => response.json())
+      .then(data => {
+        console.log('Data fetched:', data);
+        var country = data.production_countries.map(c => c.name === 'United States of America' ? 'USA' : c.name).join(', ');
+        var details = `
+          <div class="row">
+            <div class="col-md-4">
+              <img src="https://image.tmdb.org/t/p/w500${data.poster_path}" class="img-fluid rounded" alt="${data.title || data.name}">
+            </div>
+            <div class="col-md-8">
+              <h2 class="text-warning d-flex justify-content-between align-items-start mb-3">
+                <span>${data.title || data.name}</span>
+                <span class="badge badge-large">${matchScore}</span>
+              </h2>
+              <p><strong>Runtime:</strong> ${data.runtime || data.episode_run_time[0]} minutes</p>
+              <p><strong>Release Year:</strong> ${(data.release_date || data.first_air_date).substring(0, 4)}</p>
+              <p><strong>Country:</strong> ${country}</p>
+              <p><strong>TMDb Rating:</strong> ${data.vote_average}</p>
+              <p><strong>Description:</strong> ${data.overview}</p>
+              <p><strong>Director(s):</strong> ${data.credits.crew.filter(c => c.job === 'Director').map(d => d.name).join(', ')}</p>
+              <p><strong>Cast:</strong> ${data.credits.cast.slice(0, 5).map(c => c.name).join(', ')}</p>
+              ${data.videos && data.videos.results && data.videos.results.length > 0 ?
+                `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${data.videos.results[0].key}" frameborder="0" allowfullscreen></iframe>` :
+                '<p>No video available</p>'}
+            </div>
+          </div>
+        `;
+        document.getElementById('popup-details').innerHTML = details;
+        var modalElement = document.getElementById('detailsModal');
+        var modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+        console.log('Showing modal');
+        modal.show();
+      })
+      .catch(error => {
+        console.error('Error fetching details:', error);
+      });
+  }
+</script>
