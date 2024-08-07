@@ -1,9 +1,18 @@
 import { Application } from "@hotwired/stimulus"
+import "@hotwired/turbo-rails"
+import "controllers"
+import jquery from "jquery"
+window.jQuery = jquery
+window.$ = jquery
+
+// Bootstrap JS
+import * as bootstrap from "bootstrap"
+window.bootstrap = bootstrap
 
 const application = Application.start()
 
 // Configure Stimulus development experience
 application.debug = false
-window.Stimulus   = application
+window.Stimulus = application
 
 export { application }
