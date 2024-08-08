@@ -30,7 +30,10 @@
             <div class="accordion-body">
               <% if @user.user_preference.present? %>
                 <% if @user.user_preference.personality_profiles.present? %>
-                  <% personality_profiles = eval(@user.user_preference.personality_profiles) %>
+                  <% personality_profiles = @user.user_preference.personality_profiles %>
+                  <% if personality_profiles.is_a?(String) %>
+                    <% personality_profiles = eval(personality_profiles) %>
+                  <% end %>
                   <h3>Your Big Five Personality Profile</h3>
                   <ul class="list-group list-group-flush">
                     <% personality_profiles.each do |trait, score| %>
