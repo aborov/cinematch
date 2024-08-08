@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Cinematch - Personalized Content Recommendations</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <%= stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track': 'reload' %>
+    <%= javascript_include_tag 'application', 'data-turbolinks-track': 'reload' %>
+  </head>
+
+  <body>
+    <%= render 'shared/navbar' %>
+
+    <section class="hero bg-light text-center py-5">
+      <div class="container">
+        <h1>Discover Content That Resonates with You</h1>
+        <p>Personalized movie and TV show recommendations based on your unique personality and preferences.</p>
+        <a class="btn btn-primary btn-lg" href="#signup">Get Started</a>
+        <img src="<%= asset_path 'hero-image.jpg' %>" alt="App Preview" class="img-fluid mt-4">
+      </div>
+    </section>
+
+    <section id="features" class="features py-5">
+      <div class="container">
+        <h2 class="text-center">Features</h2>
+        <div class="row">
+          <div class="col-md-4 text-center">
+            <img src="<%= asset_path 'feature-icon1.png' %>" alt="Feature 1" class="mb-3">
+            <h4>Personalized Recommendations</h4>
+            <p>Get recommendations tailored to your personality and preferences.</p>
+          </div>
+          <div class="col-md-4 text-center">
+            <img src="<%= asset_path 'feature-icon2.png' %>" alt="Feature 2" class="mb-3">
+            <h4>Extensive Database</h4>
+            <p>Access a vast library of movies and TV shows from around the world.</p>
+          </div>
+          <div class="col-md-4 text-center">
+            <img src="<%= asset_path 'feature-icon3.png' %>" alt="Feature 3" class="mb-3">
+            <h4>Easy-to-Use Interface</h4>
+            <p>Navigate effortlessly through a sleek and intuitive design.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="about" class="about bg-dark text-light py-5">
+      <div class="container">
+        <h2 class="text-center">About Cinematch</h2>
+        <p class="text-center">Cinematch is dedicated to providing you with content that truly resonates with you. Leveraging advanced algorithms and user data, we ensure that you always find something you'll love to watch.</p>
+      </div>
+    </section>
+
+    <section id="testimonials" class="testimonials py-5">
+      <div class="container">
+        <h2 class="text-center">What Users Say</h2>
+        <div class="row">
+          <div class="col-md-4 text-center">
+            <blockquote>
+              <p>"Cinematch always gets my mood right. The recommendations are spot on!"</p>
+              <footer>— Jane Doe</footer>
+            </blockquote>
+          </div>
+          <div class="col-md-4 text-center">
+            <blockquote>
+              <p>"A game-changer for binge-watchers. I never run out of great shows to watch."</p>
+              <footer>— John Smith</footer>
+            </blockquote>
+          </div>
+          <div class="col-md-4 text-center">
+            <blockquote>
+              <p>"The personalized recommendations have introduced me to so many new favorites."</p>
+              <footer>— Emily Clark</footer>
+            </blockquote>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="demo" class="demo py-5 bg-light text-center">
+      <div class="container">
+        <h2>See Cinematch in Action</h2>
+        <iframe width="560" height="315" src="https://www.youtube.com/embed/demo-video" frameborder="0" allowfullscreen></iframe>
+      </div>
+    </section>
+
+    <section id="getstarted" class="cta py-5 bg-primary text-light text-center">
+      <div class="container">
+        <h2>Ready to Find Your Next Favorite Show?</h2>
+        <a class="btn btn-lg btn-light" href="#signup">Get Started</a>
+      </div>
+    </section>
+
+    <footer class="footer bg-dark text-light py-3">
+      <div class="container text-center">
+        <p>© 2024 Cinematch. All Rights Reserved.</p>
+        <p>
+          <a href="mailto:info@cinematch.com" class="text-light">info@cinematch.com</a> |
+          <a href="tel:+1234567890" class="text-light">+1 234 567 890</a> |
+          <a href="privacy.html" class="text-light">Privacy Policy</a> |
+          <a href="terms.html" class="text-light">Terms of Service</a>
+        </p>
+        <div>
+          <a href="#" class="text-light mx-2"><i class="fab fa-facebook"></i></a>
+          <a href="#" class="text-light mx-2"><i class="fab fa-twitter"></i></a>
+          <a href="#" class="text-light mx-2"><i class="fab fa-instagram"></i></a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
