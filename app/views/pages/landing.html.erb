@@ -1,0 +1,726 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="/">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cinematch</title>
+    <meta name="description" content="Personalized Content Recommendations" />
+    <link rel="icon" href="26387fa4f5b1e3f7b6217b27d79bf264.png" type="image/png" sizes="16x16">
+    <link rel="icon" href="2d0b56e7e51cf11036ad8734bdb67e2d.png" type="image/png" sizes="32x32">
+    <link rel="apple-touch-icon" href="725b756a69a7d4c235070e51acd85560.png" sizes="180x180">
+    <link rel="stylesheet" type="text/css" href="landing.css">
+        <noscript>
+          <style>
+                @keyframes pulse {}.animated {  animation-play-state: running !important;}  
+          </style>
+        </noscript>
+      <script nonce='b8b3753f-a4f4-4285-aa28-734c6968092c'>
+        !function() {
+          "use strict";
+          
+          function t(t, n) {
+            let e;
+            return (...o) => {
+              clearTimeout(e),
+              e = setTimeout(() => {
+                t(...o)
+              }, n)
+            }
+          }
+          
+          class n {
+            constructor() {
+              this.callbacks = [],
+              window.addEventListener("DOMContentLoaded", () => this.onDOMContentLoaded())
+            }
+            onDOMContentLoaded() {
+              this.callbacks.sort((t, n) => t.priority - n.priority).forEach(({ callback: t }) => t())
+            }
+            runOnLoad(t) {
+              "loading" === document.readyState ? this.callbacks.push(t) : t.callback()
+            }
+          }
+          
+          function e(t, e = Number.MAX_VALUE) {
+            var o;
+            (window.canva_scriptExecutor = null !== (o = window.canva_scriptExecutor) && void 0 !== o ? o : new n).runOnLoad({ callback: t, priority: e })
+          }
+          
+          class o {
+            constructor(t) {
+              this.items = [],
+              this.previousWidth = document.documentElement.clientWidth,
+              this.previousHeight = window.innerHeight;
+              const n = t(() => this.onWindowResize(), 100);
+              window.addEventListener("resize", n)
+            }
+            onWindowResize() {
+              const t = document.documentElement.clientWidth,
+                    n = window.innerHeight,
+                    e = this.previousWidth !== t,
+                    o = this.previousHeight !== n;
+              this.items.forEach(t => {
+                const n = () => {
+                  t.callback(),
+                  t.executed = !0
+                };
+                (!t.executed || e && t.options.runOnWidthChange || o && t.options.runOnHeightChange) && n()
+              }),
+              this.previousWidth = t,
+              this.previousHeight = n
+            }
+            runOnResize(t, n) {
+              this.items.push({ callback: t, options: n, executed: n.runOnLoad }),
+              this.items.sort((t, n) => t.options.priority - n.options.priority),
+              n.runOnLoad && e(t, n.priority)
+            }
+          }
+          
+          function i(n, e, i = t) {
+            var r;
+            (window.canva_debounceResize = null !== (r = window.canva_debounceResize) && void 0 !== r ? r : new o(i)).runOnResize(n, { runOnLoad: !1, runOnWidthChange: !0, runOnHeightChange: !1, priority: Number.MAX_VALUE, ...e })
+          }
+          
+          const r = "--minfs",
+                c = "--rzf",
+                a = "--rfso",
+                s = "--bfso";
+          
+          function u(t, n, e = .001) {
+            return Math.abs(t - n) < e
+          }
+          
+          function d(t, n) {
+            return window.getComputedStyle(t).getPropertyValue(n)
+          }
+          
+          function l(t, n, e) {
+            t.style.setProperty(n, e)
+          }
+          
+          function m(t, n) {
+            const e = document.createElement("div");
+            e.style.setProperty(t, n),
+            document.body.append(e);
+            const o = d(e, t);
+            return e.remove(), o
+          }
+          
+          function f() {
+            const t = function() {
+              const t = parseFloat(m("font-size", "0.1px"));
+              return t > 1 ? t : 0
+            }(),
+            n = function(t) {
+              const n = 2 * Math.max(t, 1);
+              return n / parseFloat(m("font-size", `${n}px`))
+            }(t);
+            if (function(t) {
+              if (0 === t) return;
+              l(document.documentElement, r, `${t}px`),
+              i(() => {
+                const n = 100 * t,
+                      { clientWidth: e } = document.documentElement;
+                l(document.documentElement, c, n > e ? (e / n).toPrecision(4) : null)
+              }, { runOnLoad: !0 })
+            }(t * Math.max(1, n)), u(n, 1)) return;
+            const e = u(parseFloat(d(document.documentElement, "font-size")), parseFloat(m("grid-template-columns", "1rem")));
+            l(document.documentElement, e ? a : s, n.toPrecision(4))
+          }
+          
+          function h() {
+            document.querySelectorAll("img, image, video, svg").forEach(t => t.addEventListener("contextmenu", t => t.preventDefault()))
+          }
+          
+          const p = t => {
+            const n = { type: "CLICKED_LINK", link: t.currentTarget.getAttribute("href") };
+            navigator.sendBeacon("_api/analytics/events", JSON.stringify(n))
+          };
+          
+          function g() {
+            [...document.querySelectorAll("a[href][data-interstitial-link]")].forEach(t => {
+              t.addEventListener("click", p)
+            })
+          }
+          
+          const v = "--sbw",
+                w = "--inner1Vh";
+          
+          function y(t, n, e) {
+            t.style.setProperty(n, e)
+          }
+          
+          function E() {
+            y(document.documentElement, w, window.innerHeight / 100 + "px"),
+            function() {
+              const t = window.innerWidth - document.documentElement.clientWidth;
+              y(document.documentElement, v, t >= 0 ? `${t}px` : null)
+            }()
+          }
+          
+          var b;
+          const O = "undefined" != typeof window ? null === (b = window.navigator) || void 0 === b ? void 0 : b.userAgent : void 0;
+          const L = !(!O || (A = O, !A.match(/AppleWebKit\//) || A.match(/Chrome\//) || A.match(/Chromium\//)));
+          var A;
+          
+          function x() {
+            document.querySelectorAll("svg").forEach(t => t.style.background = "url('data:image/png;base64,')")
+          }
+          
+          let C;
+          
+          function W() {
+            C || (C = Array.from(document.querySelectorAll("foreignObject")).filter(t => 0 === t.getBoundingClientRect().width));
+            const t = function() {
+              const t = document.createElement("div");
+              t.style.fontSize = "100vw",
+              document.body.append(t);
+              const n = parseFloat(window.getComputedStyle(t).fontSize);
+              return t.remove(), n / window.innerWidth
+            }();
+            Array.from(C).forEach(n => function(t) {
+              return new Promise((n, e) => {
+                const o = t.querySelector("img");
+                o && !o.complete ? (o.addEventListener("load", () => n()), o.addEventListener("error", () => e())) : n()
+              })
+            }(n).finally(() => function(t, n) {
+              const e = Array.from(t.children);
+              e.forEach((t, n) => {
+                if (t.hasAttribute("data-foreign-object-container")) t.style.transformOrigin = "", t.style.transform = "";
+                else {
+                  const o = document.createElement("div");
+                  o.setAttribute("data-foreign-object-container", ""),
+                  t.insertAdjacentElement("beforebegin", o),
+                  t.remove(),
+                  o.append(t),
+                  e[n] = o
+                }
+              });
+              const o = t.getScreenCTM();
+              if (!o) return;
+              const { a: i, b: r, c: c, d: a } = o.scale(n);
+              e.forEach(t => {
+                if (!t.hasAttribute("data-foreign-object-container")) return;
+                const { style: n } = t;
+                n.transformOrigin = "0px 0px",
+                n.transform = `matrix(${i}, ${r}, ${c}, ${a}, 0, 0)`
+              })
+            }(n, t)))
+          }
+          
+          [function() { e(f) },
+           function() { i(E, { runOnLoad: !0, runOnHeightChange: !0, priority: 1 }) },
+           function() { L && i(W, { runOnLoad: !0 }) },
+           function() { L && e(x) },
+           function() { e(h) },
+           function() { e(g) }
+          ].forEach(t => t())
+        }();
+      </script>
+    <script nonce="b8b3753f-a4f4-4285-aa28-734c6968092c">
+      window.C_CAPTCHA_IMPLEMENTATION = 'RECAPTCHA';
+    </script>
+    <script nonce="b8b3753f-a4f4-4285-aa28-734c6968092c">
+      window.C_CAPTCHA_KEY = '6Ldk59waAAAAAMPqkICbJjfMivZLCGtTpa6Wn6zO';
+    </script>
+  </head>
+  <body>
+    <div id="root">
+      <a id="home" aria-hidden="true" style="visibility:hidden;"></a>
+      <section id="fiLWd6QhEzc9YQdP" style="position:relative;overflow:hidden;display:grid;align-items:center;grid-template-columns:auto 100rem auto;z-index:0;">
+        <div id="KQtZ0QywVFMH8OLw" style="grid-area:1 / 1 / 2 / 4;display:grid;position:absolute;min-height:100%;min-width:100%;">
+          <div id="pLdNgLDmVmrGhl69" style="z-index:0;">
+            <div id="ekwYfuT5pOhIi2mR" style="box-sizing:border-box;width:100%;height:100%;transform:rotate(0deg);">
+              <div id="W2VyWwjATmwDqciV" style="width:100%;height:100%;opacity:1.0;">
+                <div id="Y7WzS4lqCVB1qDP8" style="background-color:#2b2d42;opacity:1.0;transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="jGMrImNvPihinaJw" style="display:grid;position:relative;grid-area:1 / 2 / 2 / 3;">
+          <div id="Zw4g0I3wgWLH4r4G" style="z-index:1;">
+            <div id="IHjsE14XzNcIXaBd" style="padding-top:26.63043478%;">
+              <div id="TJvqizVUSjYP3Brc" style="position:absolute;top:0px;left:0px;width:100%;height:100%;">
+                <div class="animation_container" style="width:100%;height:100%;">
+                  <div class="animated" style="width:100%;height:100%;animation:fade-LEFT-52d7a19f-a699-4da9-a76c-016c3799e270 500ms 100ms both paused;">
+                    <div id="mVeyL6qMX2FnpAOH" style="width:100%;height:100%;opacity:1.0;">
+                      <div id="qnNYjBWSiiS2nMab" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;">
+                        <div id="gEXbx8FSenf6gOvF" style="width:calc(100% * max(1, var(--scale-fill, 1)));height:calc(100% / min(1, var(--scale-fill, 1)));position:absolute;top:50%;left:50%;opacity:1.0;animation:pulse 1.5s ease-in-out infinite;">
+                          <img src="images/7fa018de2746fdf6d7f46a73da8724e8.svg" loading="lazy" style="width:100%;height:100%;display:block;object-fit:cover;object-position:50% 50%;transform:translate(-50%, -50%) rotate(0deg);">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="RrU4Q75L4RZKK2ec">
+            <div id="lAgurEPWI4kr5pIF" style="display:grid;position:relative;grid-area:4 / 3 / 5 / 5;">
+              <div id="NYzNxDth6qylMJp9" style="z-index:2;">
+                <div id="szZAoVkyiyjQ3E83" style="box-sizing:border-box;width:100%;height:100%;transform:rotate(0deg);">
+                  <div id="UEpeUSQlGI4E8Fjt" style="width:100%;height:100%;opacity:1.0;">
+                    <div id="o2rQFXfj1EXb9T1w" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;">
+                      <div id="FaDfhDJaG5569UQS" class="scale_rotated_fill_v2" data-aspect-ratio="0.5275" style="width:calc(101.32726453% * max(1, var(--scale-fill, 1)));height:calc(101.32726453% / min(1, var(--scale-fill, 1)));position:absolute;top:50%;left:50%;opacity:1.0;animation:pulse 1.5s ease-in-out infinite;">
+                        <img src="images/2c3859877d455431b5dcb950642ec157.jpg" alt="woman cry while watching movie" loading="lazy" srcset="images/c1c75d8adacfb32080ad02a3f0f419ca.jpg 1138w, images/2c3859877d455431b5dcb950642ec157.jpg 1897w" sizes="(max-width: 375px) 92.68067129vw, (min-width: 375.05px) and (max-width: 480px) 94.57211357vw, (min-width: 480.05px) and (max-width: 768px) 92.88332582vw, (min-width: 768.05px) and (max-width: 1024px) 94.9943105vw, (min-width: 1024.05px) 95.16474406vw" style="width:100%;height:100%;display:block;object-fit:cover;object-position:49.38996361% 49.51027001%;transform:translate(-49.38996361%, -49.51027001%) rotate(-0.1deg);">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div id="o6X9WylllyNb83FJ" style="z-index:4;">
+                <div id="ajhIPdeU71P07p3N" style="box-sizing:border-box;width:100%;height:100%;">
+                  <div class="animation_container" style="width:100%;height:100%;">
+                    <div style="width:100%;height:100%;transform:rotate(0deg);overflow:hidden;">
+                      <div class="animated" style="width:100%;height:100%;animation:baseline-LEFT-5767d77c-7be8-4825-b1d6-1d61aac8f807 862ms 100ms both paused;">
+                        <div id="f1AJnlz8K6lf10uU" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
+                          <p id="OiB04vhVyFU2n0H9" style="color:#efc81a;font-family:YAFdJoYMYSc-0;line-height:1.199992em;letter-spacing:-0.03em;text-shadow:0em 0.0375em 0.28125em rgba(0, 0, 0, 0.600000);">
+                            <span id="mZgBsHb1vNlJ1UEZ" style="color:#efc81a;font-weight:700;">
+                              Discover Content ​That Resonates ​with You
+                            </span>
+                            <br>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div id="CLRWNNkIzqbf9kRf" style="z-index:5;">
+                <div id="DqxnTIwGAPC5pzCw" style="box-sizing:border-box;width:100%;height:100%;">
+                  <div class="animation_container" style="width:100%;height:100%;">
+                    <div style="width:100%;height:100%;transform:rotate(0deg);overflow:hidden;">
+                      <div class="animated" style="width:100%;height:100%;animation:baseline-LEFT-f6dad0c7-beef-49fb-86f1-4c92305ab175 862ms 100ms both paused;">
+                        <div id="oFQZLaneGucrtJoj" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
+                          <p id="AOXumhDL6XUEvNjl" style="color:#e9fff9;font-family:YAFdJoYMYSc-0;line-height:1.1875em;letter-spacing:-0.03em;text-shadow:0em 0.0375em 0.159375em rgba(0, 0, 0, 0.325000);">
+                            <span id="fkItJdtS553lIQye" style="color:#e9fff9;">
+                              Personalized movie and 
+                            </span>
+                            <br>
+                          </p>
+                          <p id="Y0Ay3ArjfTF9bo46" style="color:#e9fff9;font-family:YAFdJoYMYSc-0;line-height:1.1875em;letter-spacing:-0.03em;text-shadow:0em 0.0375em 0.159375em rgba(0, 0, 0, 0.325000);">
+                            <span id="QFe3nLcljjSo3CiS" style="color:#e9fff9;">
+                              TV show recommendations
+                            </span>
+                            <br>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div id="Esxgz7ARQfrvwqFL" style="display:grid;position:relative;grid-area:7 / 5 / 8 / 6;">
+                <div id="TgLn3RxPNG0sfYED" style="z-index:3;">
+                  <div id="xQtUMZ0xoYty5sNQ" style="padding-top:24.875%;">
+                    <div id="aUeXIjXVEmk62WNN" style="position:absolute;top:0px;left:0px;width:100%;height:100%;">
+                      <div class="animation_container" style="width:100%;height:100%;">
+                        <div class="animated" style="width:100%;height:100%;animation:fade-LEFT-3f679306-b562-41f6-83c2-cdd5bf4ceccc 500ms 100ms both paused;">
+                          <div id="GPb8SZB1lCxN1o3B" style="width:100%;height:100%;opacity:1.0;">
+                            <div id="OQZq3xO8C1UC3fZ2" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;">
+                              <div id="MKzJYdRydRK6xR51" style="width:calc(100% * max(1, var(--scale-fill, 1)));height:calc(100% / min(1, var(--scale-fill, 1)));position:absolute;top:50%;left:50%;opacity:1.0;animation:pulse 1.5s ease-in-out infinite;">
+                                <img src="images/af9b5e980a6cac7744ee8ca36aa417ac.svg" alt="CTA Button" loading="lazy" style="width:100%;height:100%;display:block;object-fit:cover;object-position:50% 50%;transform:translate(-50%, -50%) rotate(0deg);">
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div id="PgkYPhjiAGg0IZNP" style="z-index:6;">
+                  <div id="JN2SvNTwuxVMlA2I" style="box-sizing:border-box;width:100%;height:100%;">
+                    <div class="animation_container" style="width:100%;height:100%;">
+                      <div class="animated" style="width:100%;height:100%;animation:fade-LEFT-0ff980d6-daec-4df3-b49a-7b20b2fc8b61 500ms 100ms both paused;">
+                        <div id="rbgk9AfHtjdLA51M" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
+                          <p id="s45qGPY3XWRyZpZ6" style="color:#ba2d0b;font-family:YAFdJoYMYSc-0;line-height:1.1785567em;text-align:center;text-transform:uppercase;letter-spacing:0.04em;">
+                            <span id="rBA8AWXNi6UvsMpT" style="color:#ba2d0b;font-weight:700;">Get Started</span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <a id="about" aria-hidden="true" style="visibility:hidden;"></a>
+      <section id="FslDVpO0RsEmphHE" style="position:relative;overflow:hidden;display:grid;align-items:center;grid-template-columns:auto 100rem auto;z-index:0;margin-top:-1px;">
+        <div id="Iy4nnxzq926z7HNU" style="grid-area:1 / 1 / 2 / 4;display:grid;position:absolute;min-height:100%;min-width:100%;">
+          <div id="sXXA9s6XHTvuNsHO" style="z-index:0;">
+            <div id="AicbLG5wcoufdbTt" style="box-sizing:border-box;width:100%;height:100%;transform:rotate(0deg);">
+              <div id="XcHWIvrDW3Ur5cKo" style="width:100%;height:100%;opacity:1.0;">
+                <div id="mAcUIjKv7ul0q42s" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;">
+                  <svg id="XXGRkYfeskaQaPwv" viewBox="0 0 1366.0 768.0" preserveAspectRatio="none" style="width:100%;height:100%;position:absolute;top:0%;left:0%;background:url(&#x27;data:image/png;base64,&#x27;);">
+                    <defs>
+                      <lineargradient id="M16AmAfTI87rcVAX" gradientUnits="userSpaceOnUse" x1="0" y1="384" x2="1366" y2="384">
+                        <stop offset="0%" stop-color="#000000" stop-opacity="1">
+                        </stop>
+                        <stop offset="100%" stop-color="#3533cd" stop-opacity="1"></stop>
+                      </lineargradient>
+                    </defs>
+                    <rect id="MKrCUJlUTckCTAQS" width="1366" height="768" style="fill:url(#M16AmAfTI87rcVAX);"></rect>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="nSUrhjLb2ulLxWGa" style="display:grid;position:relative;grid-area:1 / 2 / 2 / 3;">
+          <div id="YFQoJ8vuZKbk5yGN" style="z-index:1;">
+            <div id="JUglTStCW8KNKP6I" style="padding-top:26.76311031%;">
+              <div id="TkuLG9kJsfAxeLwK" style="position:absolute;top:0px;left:0px;width:100%;height:100%;">
+                <div class="animation_container" style="width:100%;height:100%;">
+                  <div style="width:100%;height:100%;transform:rotate(0deg);overflow:hidden;">
+                    <div class="animated" style="width:100%;height:100%;animation:baseline-LEFT-af7c7f92-5e1f-480b-9ff8-c709372e72a4 375ms 100ms both paused;">
+                      <div id="e1i8mwiCXjes73yP" style="width:100%;height:100%;opacity:1.0;">
+                        <div id="f1LrnKF7JTBlaZSw" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;">
+                          <div id="FN5u2uFNvTNkMIKk" style="width:calc(100% * max(1, var(--scale-fill, 1)));height:calc(100% / min(1, var(--scale-fill, 1)));position:absolute;top:50%;left:50%;opacity:1.0;animation:pulse 1.5s ease-in-out infinite;">
+                            <img src="images/d5fdf6cce907cb46a1b93445ca12bc34.svg" loading="lazy" style="width:100%;height:100%;display:block;object-fit:cover;object-position:50% 50%;transform:translate(-50%, -50%) rotate(0deg);">
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="rg9UUdMuMxdzcoiF">
+            <div id="h81iIzLAouqEotF8" style="display:grid;position:relative;">
+              <div id="CoWm41JiXWCPlyuz" style="z-index:3;">
+                <div id="HeniNnUkTlLYZjnB" style="box-sizing:border-box;width:100%;height:100%;">
+                  <div class="animation_container" style="width:100%;height:100%;">
+                    <div class="animated" style="width:100%;height:100%;animation:fade-LEFT-b162af9b-7a0f-4c38-9d7c-c358a2a7d158 500ms 100ms both paused;">
+                      <div id="B93jo6B40SjqLtIh" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
+                        <p id="MjbmMlccW4xYF4C8" style="color:#efc81a;direction:ltr;font-family:YAFdJoYMYSc-0;margin-left:0em;line-height:1.28570969em;text-align:center;text-transform:none;letter-spacing:0em;">
+                          <span id="FL61V5z0Q0heLVPA" style="color:#efc81a;font-weight:700;">Personalized Recommendations</span>
+                          <br>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div id="BDAqwqfoegk0YmlA" style="z-index:4;">
+                <div id="ubQmYSjwzqQsSa9X" style="box-sizing:border-box;width:100%;height:100%;">
+                  <div class="animation_container" style="width:100%;height:100%;">
+                    <div class="animated" style="width:100%;height:100%;animation:fade-LEFT-2b8667ee-c555-4f25-a2be-2ce4d32f3313 500ms 100ms both paused;">
+                      <div id="VwUpSds3p9bQcnFj" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
+                        <p id="SwvDezRfbEHJ9AaD" style="color:#e9fff9;direction:ltr;font-family:YAFdJoYMYSc-0;margin-left:0em;line-height:1.26560918em;text-align:center;text-transform:none;letter-spacing:0em;">
+                          <span id="e1dn1HoFLl4wJf1a" style="color:#e9fff9;white-space:pre-wrap;">        </span>
+                          <span id="USb68QfIpYjSsbrG" style="color:#e9fff9;">Get recommendations tailored to your personality and ​preferences, ensuring a viewing experience that aligns with your ​unique tastes and interests.</span>
+                          <br>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="BeuhVbFoHGOXB2dS">
+            <div id="u3FouwscylxBBa4Q" style="display:grid;position:relative;">
+              <div id="Dkb4Mdq7z2WIIT9i" style="z-index:6;">
+                <div id="C8aPUACLqwEZ78tM" style="box-sizing:border-box;width:100%;height:100%;">
+                  <div class="animation_container" style="width:100%;height:100%;">
+                    <div class="animated" style="width:100%;height:100%;animation:fade-LEFT-ff2a6cb0-c8bc-4fdc-bb79-e5598c287fba 500ms 100ms both paused;">
+                      <div id="PDfaY9uUX6ev6b3p" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
+                        <p id="o9xEidymnk3laGDQ" style="color:#efc81a;direction:ltr;font-family:YAFdJoYMYSc-0;margin-left:0em;line-height:1.28570969em;text-align:center;text-transform:none;letter-spacing:0em;">
+                          <span id="OdoTGE8hkFE4plTU" style="color:#efc81a;font-weight:700;">Discover Hi​dden Gems</span>
+                          <br>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div id="o94x71sMNoZxksAw" style="z-index:7;">
+                <div id="TsxWECqHVuYOB5ZF" style="box-sizing:border-box;width:100%;height:100%;">
+                  <div class="animation_container" style="width:100%;height:100%;">
+                    <div class="animated" style="width:100%;height:100%;animation:fade-LEFT-c69197fd-cb12-4c19-a439-ded7a64421a8 500ms 100ms both paused;">
+                      <div id="VrIR8WBZPP5CYgWA" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
+                        <p id="C8GQRTs6jgFRaiYA" style="color:#e9fff9;direction:ltr;font-family:YAFdJoYMYSc-0;margin-left:0em;line-height:1.26560918em;text-align:center;text-transform:none;letter-spacing:0em;">
+                          <span id="cqoRoPn5NIPN9YKu" style="color:#e9fff9;white-space:pre-wrap;">     </span>
+                          <span id="Y3UZCOarC2L7m9FZ" style="color:#e9fff9;">Uncover titles that often go unnoticed amidst the marketing ​noise. Our platform ensures you don&#x27;t miss out on under-​discovered gems, providing a diverse selection for you to explore.</span>
+                          <br>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        <div id="PiZK8o2Ul9AZfpCk">
+          <div id="MhQV2zW2dL4cK9c3" style="display:grid;position:relative;">
+            <div id="TgUNCLuIyHfRSOEb" style="z-index:9;">
+              <div id="zFf3XxIkebZgu9QP" style="box-sizing:border-box;width:100%;height:100%;">
+                <div class="animation_container" style="width:100%;height:100%;">
+                  <div class="animated" style="width:100%;height:100%;animation:fade-LEFT-f97792f8-84c9-4186-95bd-0e84444d86c9 500ms 100ms both paused;">
+                    <div id="LkkB5Uj5ddd05su7" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
+                      <p id="zUipeZ1YHATXn3po" style="color:#efc81a;direction:ltr;font-family:YAFdJoYMYSc-0;margin-left:0em;line-height:1.28570969em;text-align:center;text-transform:none;letter-spacing:0em;">
+                        <span id="tCoQLdhEuqshArYv" style="color:#efc81a;font-weight:700;">Easy-to-Use Interface</span>
+                        <br>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div id="gGTsmGP7OhpGUjwv" style="z-index:10;">
+              <div id="w1p93k9fzc6OpAM0" style="box-sizing:border-box;width:100%;height:100%;">
+                <div class="animation_container" style="width:100%;height:100%;">
+                  <div class="animated" style="width:100%;height:100%;animation:fade-LEFT-4b56184b-e293-41e6-a7d7-f84c0ed2720f 500ms 100ms both paused;">
+                    <div id="eY4HvnguOufAZkOH" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
+                      <p id="EJAF6WGBJczG6OlK" style="color:#e9fff9;direction:ltr;font-family:YAFdJoYMYSc-0;margin-left:0em;line-height:1.26560918em;text-align:center;text-transform:none;letter-spacing:0em;">
+                        <span id="z207jxYCohV6xpYF" style="color:#e9fff9;white-space:pre-wrap;">        </span>
+                        <span id="igAQywsHTFKcFTSK" style="color:#e9fff9;">Navigate effortlessly through a sleek and intuitive design, mak​ing it simple to find, save, and enjoy your next favorite film or sho​w without any hassle.</span>
+                        <br>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <a id="page-3" aria-hidden="true" style="visibility:hidden;"></a>
+    <section id="BpaIJf3d3y696i2e" style="position:relative;overflow:hidden;display:grid;align-items:center;grid-template-columns:auto 100rem auto;z-index:0;margin-top:-1px;">
+      <div id="uSOhhw0hotRJgTGj" style="grid-area:1 / 1 / 2 / 4;display:grid;position:absolute;min-height:100%;min-width:100%;"><div id="qlHJZY6LvZGVqA3B" style="z-index:0;">
+        <div id="i1s4tnnv9ajCyONV" style="box-sizing:border-box;width:100%;height:100%;transform:rotate(0deg);">
+          <div id="GVwFXJj3jB3BjpQT" style="width:100%;height:100%;opacity:1.0;">
+            <div id="V4y6ozZSWnCgPZ53" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;">
+              <svg id="A7WSyFBMBR691FDu" viewBox="0 0 1366.0 768.0" preserveAspectRatio="none" style="width:100%;height:100%;position:absolute;top:0%;left:0%;background:url(&#x27;data:image/png;base64,&#x27;);">
+                <defs>
+                  <lineargradient id="a0TicFcWOJBufwUk" gradientUnits="userSpaceOnUse" x1="0" y1="384" x2="1366" y2="384">
+                    <stop offset="0%" stop-color="#5de0e6" stop-opacity="1"></stop>
+                    <stop offset="100%" stop-color="#004aad" stop-opacity="1"></stop>
+                  </lineargradient>
+                </defs>
+                <rect id="mx5rfAEBfPCjfgtx" width="1366" height="768" style="fill:url(#a0TicFcWOJBufwUk);"></rect>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="omwL92SjLP6RFKhW" style="display:grid;position:relative;grid-area:1 / 2 / 2 / 3;">
+      <div id="kKtYxUbvWFii3IZY" style="z-index:8;">
+        <div id="zYigUpF3YR41H4wZ" style="box-sizing:border-box;width:100%;height:100%;">
+          <div class="animation_container" style="width:100%;height:100%;">
+            <div style="width:100%;height:100%;transform:rotate(0deg);overflow:hidden;">
+              <div class="animated" style="width:100%;height:100%;animation:baseline-LEFT-e1814143-5aa9-49bc-95fc-838fe72b8749 980ms 100ms both paused;">
+                <div id="tf3AXBNYjSwuUaWp" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
+                  <p id="bsiFFjOWmadtXMtW" style="color:#e9fff9;direction:ltr;font-family:YAFdJoYMYSc-0;margin-left:0em;line-height:1em;letter-spacing:-0.03em;text-shadow:0em 0.0375em 0.159375em rgba(0, 0, 0, 0.325000);">
+                    <span id="HS3rhxC4j6AYGd8A" style="color:#e9fff9;">Entertainment ​Made Personal</span><br>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="s31r8UnqsEQl6Dzi">
+        <div id="ISSF7rAJApSvsRDv" style="display:grid;position:relative;">
+          <div id="VWyt5xZrJOGS2our" style="display:grid;position:relative;grid-area:2 / 2 / 3 / 3;">
+            <div id="DbdEJ5Fx5ucOG2nh" style="z-index:3;">
+              <div id="wBBJY8zThevvFQxi" style="box-sizing:border-box;width:100%;height:100%;">
+                <div class="animation_container" style="width:100%;height:100%;">
+                  <div class="animated" style="width:100%;height:100%;animation:pan-LEFT-845e936d-19c5-4f33-8e8b-10f1c9042ad5 1000ms 100ms both paused, linear_fade 400ms linear both paused;">
+                    <div id="cFy3f2xHKa9VSEQW" style="width:100%;height:100%;opacity:1.0;">
+                      <div id="ICgWmneywvGp3WQS" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;">
+                        <div id="fDUGKboz24aR9l5k" style="width:calc(100% * max(1, var(--scale-fill, 1)));height:calc(100% / min(1, var(--scale-fill, 1)));position:absolute;top:50%;left:50%;opacity:1.0;animation:pulse 1.5s ease-in-out infinite;">
+                          <img src="images/75111f89e489db7b76657774af4f861d.png" alt="Computer Laptop " loading="lazy" srcset="images/c68022513fdb011bea8262620d1d0f3d.png 914w, images/75111f89e489db7b76657774af4f861d.png 1371w" sizes="(max-width: 375px) 91.46666667vw, (min-width: 375.05px) and (max-width: 480px) 93.33333333vw, (min-width: 480.05px) and (max-width: 768px) 75.88086204vw, (min-width: 768.05px) and (max-width: 1024px) 56.91064653vw, (min-width: 1024.05px) 42.66215377vw" style="width:100%;height:100%;display:block;object-fit:cover;object-position:50% 50%;transform:translate(-50%, -50%) rotate(0deg);">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script nonce="b8b3753f-a4f4-4285-aa28-734c6968092c">
+      const lang = navigator.language ? navigator.language : 'en';
+      const loaded = new Promise((resolve) => { 
+        if (document.readyState === 'loading') {
+          window.addEventListener('DOMContentLoaded', resolve);
+          return;
+        }
+        resolve();
+      });
+
+      Promise.all([fetch('_footer?lang=' + encodeURIComponent(lang)), loaded]).then(([response]) => {
+        if (response.status !== 200) {
+          return;
+        }
+        response.text().then(footerStr => {
+          const div = document.createElement('div');
+          div.innerHTML = footerStr;
+          for (const child of [...div.children]) {
+            if (child.tagName.toLowerCase() !== 'script') {
+              document.body.append(child);
+            }
+          }
+
+          (() => {
+            !function(e) {
+              "use strict";
+              const t = document.getElementById("modal_backdrop"),
+                    n = document.getElementById("modal"),
+                    o = document.getElementById("captcha-form"),
+                    c = document.getElementById("report_button"),
+                    d = document.getElementById("form_report"),
+                    s = document.getElementById("form_cancel"),
+                    l = document.getElementById("form_submit_reason"),
+                    a = document.getElementById("form_go_back"),
+                    r = document.getElementById("form_submit_captcha"),
+                    m = document.getElementById("form_close"),
+                    i = document.getElementById("form_close_initial"),
+                    u = document.getElementById("report_reason_0"),
+                    p = document.getElementById("error_message"),
+                    _ = document.getElementById("error_message_captcha"),
+                    y = new Map;
+              y.set(0, document.getElementById("form_step_terms"));
+              y.set(1, document.getElementById("form_step_report_reason"));
+              y.set(4, document.getElementById("form_step_report_other"));
+              const E = document.getElementById("form_step_report_ip");
+              E && y.set(5, E);
+              y.set(2, document.getElementById("form_step_captcha"));
+              y.set(3, document.getElementById("form_step_success"));
+              const f = document.getElementById("report_reason_4"),
+                    g = document.getElementById("form_close_ip"),
+                    h = document.getElementById("form_go_back_ip"),
+                    I = document.getElementById("report_reason_other"),
+                    k = document.getElementById("form_close_other"),
+                    w = document.getElementById("form_go_back_other");
+
+              function v() {
+                t.classList.remove("active");
+                n.classList.remove("active");
+                c.classList.remove("active");
+                c.focus();
+              }
+
+              function B(e) {
+                y.forEach(((t, n) => {
+                  n === e ? (t.style.display = "block", L(t)) : t.style.display = "none";
+                }));
+              }
+
+              let b, C = !1;
+              const T = "NETEASE" === window.C_CAPTCHA_IMPLEMENTATION ? () => b : () => {
+                const e = o.elements.namedItem("g-recaptcha-response");
+                return null == e ? void 0 : e.value;
+              };
+              t.onclick = v;
+              s.onclick = v;
+              m.onclick = v;
+              i.onclick = v;
+              g && (g.onclick = v);
+              k.onclick = v;
+              c.onclick = function() {
+                y.forEach(((e, t) => {
+                  e.style.display = 0 === t ? "block" : "none";
+                }));
+                t.classList.add("active");
+                n.classList.add("active");
+                c.classList.add("active");
+                u.checked = !0;
+                setTimeout((() => {
+                  L(y.get(0));
+                }), 350);
+              };
+              d.onclick = d.dataset.reportUrl ? function() {
+                const { origin: e, pathname: t } = window.location,
+                      n = e + t,
+                      o = d.dataset.reportUrl + encodeURIComponent(n);
+                window.open(o);
+              } : () => B(1);
+              l.onclick = () => {
+                null != E && f.checked ? B(5) : I.checked ? B(4) : (B(2), function() {
+                  if (C) return;
+                  const e = document.createElement("script");
+                  e.src = "NETEASE" === window.C_CAPTCHA_IMPLEMENTATION ? "https://cstaticdun.126.net/load.min.js" : "https://www.google.com/recaptcha/api.js";
+                  e.async = !0;
+                  e.defer = !0;
+                  document.head.appendChild(e);
+                  C = !0;
+                  e.onload = "NETEASE" === window.C_CAPTCHA_IMPLEMENTATION ? () => {
+                    var e;
+                    null === (e = window.initNECaptcha) || void 0 === e || e.call(window, {
+                      captchaId: window.C_CAPTCHA_KEY,
+                      element: "#netease-captcha",
+                      protocol: "https",
+                      width: "auto",
+                      onVerify: (e, t) => {
+                        b = t.validate;
+                      }
+                    });
+                  } : () => {};
+                }());
+              };
+              a.onclick = () => B(1);
+              h && (h.onclick = () => B(1));
+              w.onclick = () => B(1);
+              o.addEventListener("submit", (function(e) {
+                e.preventDefault();
+                p.style.display = "none";
+                _.style.display = "none";
+                const t = function() {
+                  let e = "";
+                  const t = document.getElementsByName("report_reason");
+                  for (let n = 0; n < t.length; n++) {
+                    const o = t[n];
+                    o.checked && (e = o.value);
+                  }
+                  return e;
+                }(),
+                      n = T();
+                if (!n) return void (_.style.display = "block");
+                const o = { reason: t, challenge: n },
+                      c = window.location.origin + window.location.pathname + "/_api/report";
+                r.classList.add("loading");
+                fetch(c, {
+                  method: "POST",
+                  body: JSON.stringify(o),
+                  headers: { "Content-Type": "application/json; charset=utf-8" }
+                }).then((e => {
+                  r.classList.remove("loading");
+                  e.ok ? B(3) : p.style.display = "block";
+                }));
+              }));
+              const A = new Map,
+                    L = e => {
+                      const t = A.get(e);
+                      null != t && document.removeEventListener("keydown", t);
+                      const n = e.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'),
+                            o = e,
+                            c = n[n.length - 1],
+                            d = function(e) {
+                              ("Tab" === e.key || 9 === e.keyCode) && (e.shiftKey ? document.activeElement === o && (c.focus(), e.preventDefault()) : document.activeElement === c && (o.focus(), e.preventDefault()));
+                            };
+                      A.set(e, d);
+                      document.addEventListener("keydown", d);
+                      o.focus();
+                    };
+              e.keepFocus = L;
+              Object.defineProperty(e, "__esModule", { value: !0 });
+            }({});
+          })();
+          window.dispatchEvent(new Event('resize'));
+        });
+      });
+    </script>
+</body>
+</html>
