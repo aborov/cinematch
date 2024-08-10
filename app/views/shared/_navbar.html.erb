@@ -27,7 +27,32 @@
         <% else %>
           <% if current_page?(root_path) %>
             <li class="nav-item">
-              <%= link_to "Sign In", new_user_session_path, class: 'btn btn-outline-mint btn-rounded me-2' %>
+              <%= link_to '#features', class: 'nav-link', title: 'Features' do %>
+                Features
+              <% end %>
+            </li>
+            <li class="nav-item">
+              <%= link_to '#why', class: 'nav-link', title: 'Why Cinematch' do %>
+                Why Cinematch
+              <% end %>
+            </li>
+            <li class="nav-item">
+              <%= link_to '#testimonials', class: 'nav-link', title: 'Testimonials' do %>
+                Testimonials
+              <% end %>
+            </li>
+            <li class="nav-item">
+              <%= link_to '#demo', class: 'nav-link', title: 'Demo' do %>
+                Demo
+              <% end %>
+            </li>
+            <li class="nav-item">
+              <%= link_to '#contact', class: 'nav-link', title: 'Contact Us' do %>
+                Contact Us
+              <% end %>
+            </li>
+            <li class="nav-item">
+              <%= link_to "Sign In", new_user_session_path, class: 'btn btn-outline-mint btn-rounded ms-2 me-2' %>
             </li>
             <li class="nav-item">
               <%= link_to "Sign Up", new_user_registration_path, class: 'btn btn-jonquil btn-rounded' %>
