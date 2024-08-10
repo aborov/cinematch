@@ -1,544 +1,375 @@
+<div id="root">
+<a id="home" aria-hidden="true" style="visibility:hidden;"></a>
+<section id="fiLWd6QhEzc9YQdP" style="position:relative; overflow:hidden; display:grid; align-items:center; grid-template-columns:auto 100rem auto; z-index:0;">
+    <!-- Background Image Container -->
+    <div id="KQtZ0QywVFMH8OLw" style="grid-area:1 / 1 / 2 / 4; position:relative; width:100%; aspect-ratio:16/9; z-index:0;">
+        <div id="FaDfhDJaG5569UQS" style="width:100%; height:100%; animation:fadeIn 1s ease-out;">
+            <img src="<%= asset_path("landing/2c3859877d455431b5dcb950642ec157.jpg") %>" alt="woman cry while watching movie" loading="lazy" style="width:100%; height:100%; object-fit:cover; object-position:center;">
+        </div>
+    </div>
+    
+    <!-- Content Container -->
+    <div id="jGMrImNvPihinaJw" style="grid-area:1 / 2 / 2 / 3; position:relative; z-index:1; width:100%; padding:5% 40% 5% 5%; display:flex; flex-direction:column; justify-content:center;">
+        <!-- Main Heading -->
+        <div id="o6X9WylllyNb83FJ" style="margin-bottom:1rem; animation:fadeInLeft 862ms 100ms both;">
+            <h1 id="OiB04vhVyFU2n0H9" style="color:#efc81a; font-family:var(--bs-font-sans-serif); font-size:4rem; line-height:1.2; letter-spacing:-0.03em; text-shadow:0 0.0375em 0.28125em rgba(0,0,0,0.6); margin:0;">
+                <span id="mZgBsHb1vNlJ1UEZ" style="font-weight:700;">
+                    Discover Content That Resonates with You
+                </span>
+            </h1>
+        </div>
+        
+        <!-- Subheading (Increased font size) -->
+        <div id="CLRWNNkIzqbf9kRf" style="margin-bottom:3rem; animation:fadeInLeft 862ms 300ms both;">
+            <p id="AOXumhDL6XUEvNjl" style="color:#e9fff9; font-family:var(--bs-font-sans-serif); font-size:2.5rem; line-height:1.3; letter-spacing:-0.03em; text-shadow:0 0.0375em 0.159375em rgba(0,0,0,0.325); margin:0;">
+                <span id="fkItJdtS553lIQye">
+                    Personalized movie and<br>TV show recommendations
+                </span>
+            </p>
+        </div>
+        
+        <!-- CTA Button -->
+        <div id="Esxgz7ARQfrvwqFL" style="width:200px; animation:fadeInLeft 500ms 500ms both;">
+            <a href="<%= new_user_registration_path %>" style="text-decoration:none; display:block; width:100%; position:relative;">
+                <div id="TgLn3RxPNG0sfYED" style="width:100%;">
+                    <div id="xQtUMZ0xoYty5sNQ" style="padding-top:24.875%;">
+                        <div id="aUeXIjXVEmk62WNN" style="position:absolute; top:0; left:0; width:100%; height:100%;">
+                            <img src="<%= asset_path("landing/af9b5e980a6cac7744ee8ca36aa417ac.svg") %>" alt="CTA Button" loading="lazy" style="width:100%; height:100%; display:block; object-fit:contain;">
+                        </div>
+                    </div>
+                </div>
+                <div id="PgkYPhjiAGg0IZNP" style="position:absolute; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
+                    <p id="s45qGPY3XWRyZpZ6" style="color:#ba2d0b; font-family:var(--bs-font-sans-serif); font-size:1.2em; line-height:1.1785567em; text-align:center; text-transform:uppercase; letter-spacing:0.04em; margin:0;">
+                        <span id="rBA8AWXNi6UvsMpT" style="font-weight:700;">Get Started</span>
+                    </p>
+                </div>
+            </a>
+        </div>
+    </div>
+</section>
 
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <base href="/">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cinematch</title>
-    <meta name="description" content="Personalized Content Recommendations" />
-    <link rel="icon" href="26387fa4f5b1e3f7b6217b27d79bf264.png" type="image/png" sizes="16x16">
-    <link rel="icon" href="2d0b56e7e51cf11036ad8734bdb67e2d.png" type="image/png" sizes="32x32">
-    <link rel="apple-touch-icon" href="725b756a69a7d4c235070e51acd85560.png" sizes="180x180">
-    <link rel="stylesheet" type="text/css" href="landing.css">
-        <noscript>
-          <style>
-                @keyframes pulse {}.animated {  animation-play-state: running !important;}  
-          </style>
-        </noscript>
-      <script nonce='b8b3753f-a4f4-4285-aa28-734c6968092c'>
-        !function() {
-          "use strict";
-          
-          function t(t, n) {
-            let e;
-            return (...o) => {
-              clearTimeout(e),
-              e = setTimeout(() => {
-                t(...o)
-              }, n)
-            }
-          }
-          
-          class n {
-            constructor() {
-              this.callbacks = [],
-              window.addEventListener("DOMContentLoaded", () => this.onDOMContentLoaded())
-            }
-            onDOMContentLoaded() {
-              this.callbacks.sort((t, n) => t.priority - n.priority).forEach(({ callback: t }) => t())
-            }
-            runOnLoad(t) {
-              "loading" === document.readyState ? this.callbacks.push(t) : t.callback()
-            }
-          }
-          
-          function e(t, e = Number.MAX_VALUE) {
-            var o;
-            (window.canva_scriptExecutor = null !== (o = window.canva_scriptExecutor) && void 0 !== o ? o : new n).runOnLoad({ callback: t, priority: e })
-          }
-          
-          class o {
-            constructor(t) {
-              this.items = [],
-              this.previousWidth = document.documentElement.clientWidth,
-              this.previousHeight = window.innerHeight;
-              const n = t(() => this.onWindowResize(), 100);
-              window.addEventListener("resize", n)
-            }
-            onWindowResize() {
-              const t = document.documentElement.clientWidth,
-                    n = window.innerHeight,
-                    e = this.previousWidth !== t,
-                    o = this.previousHeight !== n;
-              this.items.forEach(t => {
-                const n = () => {
-                  t.callback(),
-                  t.executed = !0
-                };
-                (!t.executed || e && t.options.runOnWidthChange || o && t.options.runOnHeightChange) && n()
-              }),
-              this.previousWidth = t,
-              this.previousHeight = n
-            }
-            runOnResize(t, n) {
-              this.items.push({ callback: t, options: n, executed: n.runOnLoad }),
-              this.items.sort((t, n) => t.options.priority - n.options.priority),
-              n.runOnLoad && e(t, n.priority)
-            }
-          }
-          
-          function i(n, e, i = t) {
-            var r;
-            (window.canva_debounceResize = null !== (r = window.canva_debounceResize) && void 0 !== r ? r : new o(i)).runOnResize(n, { runOnLoad: !1, runOnWidthChange: !0, runOnHeightChange: !1, priority: Number.MAX_VALUE, ...e })
-          }
-          
-          const r = "--minfs",
-                c = "--rzf",
-                a = "--rfso",
-                s = "--bfso";
-          
-          function u(t, n, e = .001) {
-            return Math.abs(t - n) < e
-          }
-          
-          function d(t, n) {
-            return window.getComputedStyle(t).getPropertyValue(n)
-          }
-          
-          function l(t, n, e) {
-            t.style.setProperty(n, e)
-          }
-          
-          function m(t, n) {
-            const e = document.createElement("div");
-            e.style.setProperty(t, n),
-            document.body.append(e);
-            const o = d(e, t);
-            return e.remove(), o
-          }
-          
-          function f() {
-            const t = function() {
-              const t = parseFloat(m("font-size", "0.1px"));
-              return t > 1 ? t : 0
-            }(),
-            n = function(t) {
-              const n = 2 * Math.max(t, 1);
-              return n / parseFloat(m("font-size", `${n}px`))
-            }(t);
-            if (function(t) {
-              if (0 === t) return;
-              l(document.documentElement, r, `${t}px`),
-              i(() => {
-                const n = 100 * t,
-                      { clientWidth: e } = document.documentElement;
-                l(document.documentElement, c, n > e ? (e / n).toPrecision(4) : null)
-              }, { runOnLoad: !0 })
-            }(t * Math.max(1, n)), u(n, 1)) return;
-            const e = u(parseFloat(d(document.documentElement, "font-size")), parseFloat(m("grid-template-columns", "1rem")));
-            l(document.documentElement, e ? a : s, n.toPrecision(4))
-          }
-          
-          function h() {
-            document.querySelectorAll("img, image, video, svg").forEach(t => t.addEventListener("contextmenu", t => t.preventDefault()))
-          }
-          
-          const p = t => {
-            const n = { type: "CLICKED_LINK", link: t.currentTarget.getAttribute("href") };
-            navigator.sendBeacon("_api/analytics/events", JSON.stringify(n))
-          };
-          
-          function g() {
-            [...document.querySelectorAll("a[href][data-interstitial-link]")].forEach(t => {
-              t.addEventListener("click", p)
-            })
-          }
-          
-          const v = "--sbw",
-                w = "--inner1Vh";
-          
-          function y(t, n, e) {
-            t.style.setProperty(n, e)
-          }
-          
-          function E() {
-            y(document.documentElement, w, window.innerHeight / 100 + "px"),
-            function() {
-              const t = window.innerWidth - document.documentElement.clientWidth;
-              y(document.documentElement, v, t >= 0 ? `${t}px` : null)
-            }()
-          }
-          
-          var b;
-          const O = "undefined" != typeof window ? null === (b = window.navigator) || void 0 === b ? void 0 : b.userAgent : void 0;
-          const L = !(!O || (A = O, !A.match(/AppleWebKit\//) || A.match(/Chrome\//) || A.match(/Chromium\//)));
-          var A;
-          
-          function x() {
-            document.querySelectorAll("svg").forEach(t => t.style.background = "url('data:image/png;base64,')")
-          }
-          
-          let C;
-          
-          function W() {
-            C || (C = Array.from(document.querySelectorAll("foreignObject")).filter(t => 0 === t.getBoundingClientRect().width));
-            const t = function() {
-              const t = document.createElement("div");
-              t.style.fontSize = "100vw",
-              document.body.append(t);
-              const n = parseFloat(window.getComputedStyle(t).fontSize);
-              return t.remove(), n / window.innerWidth
-            }();
-            Array.from(C).forEach(n => function(t) {
-              return new Promise((n, e) => {
-                const o = t.querySelector("img");
-                o && !o.complete ? (o.addEventListener("load", () => n()), o.addEventListener("error", () => e())) : n()
-              })
-            }(n).finally(() => function(t, n) {
-              const e = Array.from(t.children);
-              e.forEach((t, n) => {
-                if (t.hasAttribute("data-foreign-object-container")) t.style.transformOrigin = "", t.style.transform = "";
-                else {
-                  const o = document.createElement("div");
-                  o.setAttribute("data-foreign-object-container", ""),
-                  t.insertAdjacentElement("beforebegin", o),
-                  t.remove(),
-                  o.append(t),
-                  e[n] = o
-                }
-              });
-              const o = t.getScreenCTM();
-              if (!o) return;
-              const { a: i, b: r, c: c, d: a } = o.scale(n);
-              e.forEach(t => {
-                if (!t.hasAttribute("data-foreign-object-container")) return;
-                const { style: n } = t;
-                n.transformOrigin = "0px 0px",
-                n.transform = `matrix(${i}, ${r}, ${c}, ${a}, 0, 0)`
-              })
-            }(n, t)))
-          }
-          
-          [function() { e(f) },
-           function() { i(E, { runOnLoad: !0, runOnHeightChange: !0, priority: 1 }) },
-           function() { L && i(W, { runOnLoad: !0 }) },
-           function() { L && e(x) },
-           function() { e(h) },
-           function() { e(g) }
-          ].forEach(t => t())
-        }();
-      </script>
-    <script nonce="b8b3753f-a4f4-4285-aa28-734c6968092c">
-      window.C_CAPTCHA_IMPLEMENTATION = 'RECAPTCHA';
-    </script>
-    <script nonce="b8b3753f-a4f4-4285-aa28-734c6968092c">
-      window.C_CAPTCHA_KEY = '6Ldk59waAAAAAMPqkICbJjfMivZLCGtTpa6Wn6zO';
-    </script>
-  </head>
-  <body>
-    <div id="root">
-      <a id="home" aria-hidden="true" style="visibility:hidden;"></a>
-      <section id="fiLWd6QhEzc9YQdP" style="position:relative;overflow:hidden;display:grid;align-items:center;grid-template-columns:auto 100rem auto;z-index:0;">
-        <div id="KQtZ0QywVFMH8OLw" style="grid-area:1 / 1 / 2 / 4;display:grid;position:absolute;min-height:100%;min-width:100%;">
-          <div id="pLdNgLDmVmrGhl69" style="z-index:0;">
-            <div id="ekwYfuT5pOhIi2mR" style="box-sizing:border-box;width:100%;height:100%;transform:rotate(0deg);">
-              <div id="W2VyWwjATmwDqciV" style="width:100%;height:100%;opacity:1.0;">
-                <div id="Y7WzS4lqCVB1qDP8" style="background-color:#2b2d42;opacity:1.0;transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;">
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div id="jGMrImNvPihinaJw" style="display:grid;position:relative;grid-area:1 / 2 / 2 / 3;">
-          <div id="Zw4g0I3wgWLH4r4G" style="z-index:1;">
-            <div id="IHjsE14XzNcIXaBd" style="padding-top:26.63043478%;">
-              <div id="TJvqizVUSjYP3Brc" style="position:absolute;top:0px;left:0px;width:100%;height:100%;">
-                <div class="animation_container" style="width:100%;height:100%;">
-                  <div class="animated" style="width:100%;height:100%;animation:fade-LEFT-52d7a19f-a699-4da9-a76c-016c3799e270 500ms 100ms both paused;">
-                    <div id="mVeyL6qMX2FnpAOH" style="width:100%;height:100%;opacity:1.0;">
-                      <div id="qnNYjBWSiiS2nMab" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;">
-                        <div id="gEXbx8FSenf6gOvF" style="width:calc(100% * max(1, var(--scale-fill, 1)));height:calc(100% / min(1, var(--scale-fill, 1)));position:absolute;top:50%;left:50%;opacity:1.0;animation:pulse 1.5s ease-in-out infinite;">
-                          <img src="images/7fa018de2746fdf6d7f46a73da8724e8.svg" loading="lazy" style="width:100%;height:100%;display:block;object-fit:cover;object-position:50% 50%;transform:translate(-50%, -50%) rotate(0deg);">
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div id="RrU4Q75L4RZKK2ec">
-            <div id="lAgurEPWI4kr5pIF" style="display:grid;position:relative;grid-area:4 / 3 / 5 / 5;">
-              <div id="NYzNxDth6qylMJp9" style="z-index:2;">
-                <div id="szZAoVkyiyjQ3E83" style="box-sizing:border-box;width:100%;height:100%;transform:rotate(0deg);">
-                  <div id="UEpeUSQlGI4E8Fjt" style="width:100%;height:100%;opacity:1.0;">
-                    <div id="o2rQFXfj1EXb9T1w" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;">
-                      <div id="FaDfhDJaG5569UQS" class="scale_rotated_fill_v2" data-aspect-ratio="0.5275" style="width:calc(101.32726453% * max(1, var(--scale-fill, 1)));height:calc(101.32726453% / min(1, var(--scale-fill, 1)));position:absolute;top:50%;left:50%;opacity:1.0;animation:pulse 1.5s ease-in-out infinite;">
-                        <img src="images/2c3859877d455431b5dcb950642ec157.jpg" alt="woman cry while watching movie" loading="lazy" srcset="images/c1c75d8adacfb32080ad02a3f0f419ca.jpg 1138w, images/2c3859877d455431b5dcb950642ec157.jpg 1897w" sizes="(max-width: 375px) 92.68067129vw, (min-width: 375.05px) and (max-width: 480px) 94.57211357vw, (min-width: 480.05px) and (max-width: 768px) 92.88332582vw, (min-width: 768.05px) and (max-width: 1024px) 94.9943105vw, (min-width: 1024.05px) 95.16474406vw" style="width:100%;height:100%;display:block;object-fit:cover;object-position:49.38996361% 49.51027001%;transform:translate(-49.38996361%, -49.51027001%) rotate(-0.1deg);">
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div id="o6X9WylllyNb83FJ" style="z-index:4;">
-                <div id="ajhIPdeU71P07p3N" style="box-sizing:border-box;width:100%;height:100%;">
-                  <div class="animation_container" style="width:100%;height:100%;">
-                    <div style="width:100%;height:100%;transform:rotate(0deg);overflow:hidden;">
-                      <div class="animated" style="width:100%;height:100%;animation:baseline-LEFT-5767d77c-7be8-4825-b1d6-1d61aac8f807 862ms 100ms both paused;">
-                        <div id="f1AJnlz8K6lf10uU" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
-                          <p id="OiB04vhVyFU2n0H9" style="color:#efc81a;font-family:YAFdJoYMYSc-0;line-height:1.199992em;letter-spacing:-0.03em;text-shadow:0em 0.0375em 0.28125em rgba(0, 0, 0, 0.600000);">
-                            <span id="mZgBsHb1vNlJ1UEZ" style="color:#efc81a;font-weight:700;">
-                              Discover Content ​That Resonates ​with You
-                            </span>
-                            <br>
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div id="CLRWNNkIzqbf9kRf" style="z-index:5;">
-                <div id="DqxnTIwGAPC5pzCw" style="box-sizing:border-box;width:100%;height:100%;">
-                  <div class="animation_container" style="width:100%;height:100%;">
-                    <div style="width:100%;height:100%;transform:rotate(0deg);overflow:hidden;">
-                      <div class="animated" style="width:100%;height:100%;animation:baseline-LEFT-f6dad0c7-beef-49fb-86f1-4c92305ab175 862ms 100ms both paused;">
-                        <div id="oFQZLaneGucrtJoj" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
-                          <p id="AOXumhDL6XUEvNjl" style="color:#e9fff9;font-family:YAFdJoYMYSc-0;line-height:1.1875em;letter-spacing:-0.03em;text-shadow:0em 0.0375em 0.159375em rgba(0, 0, 0, 0.325000);">
-                            <span id="fkItJdtS553lIQye" style="color:#e9fff9;">
-                              Personalized movie and 
-                            </span>
-                            <br>
-                          </p>
-                          <p id="Y0Ay3ArjfTF9bo46" style="color:#e9fff9;font-family:YAFdJoYMYSc-0;line-height:1.1875em;letter-spacing:-0.03em;text-shadow:0em 0.0375em 0.159375em rgba(0, 0, 0, 0.325000);">
-                            <span id="QFe3nLcljjSo3CiS" style="color:#e9fff9;">
-                              TV show recommendations
-                            </span>
-                            <br>
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div id="Esxgz7ARQfrvwqFL" style="display:grid;position:relative;grid-area:7 / 5 / 8 / 6;">
-                <div id="TgLn3RxPNG0sfYED" style="z-index:3;">
-                  <div id="xQtUMZ0xoYty5sNQ" style="padding-top:24.875%;">
-                    <div id="aUeXIjXVEmk62WNN" style="position:absolute;top:0px;left:0px;width:100%;height:100%;">
-                      <div class="animation_container" style="width:100%;height:100%;">
-                        <div class="animated" style="width:100%;height:100%;animation:fade-LEFT-3f679306-b562-41f6-83c2-cdd5bf4ceccc 500ms 100ms both paused;">
-                          <div id="GPb8SZB1lCxN1o3B" style="width:100%;height:100%;opacity:1.0;">
-                            <div id="OQZq3xO8C1UC3fZ2" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;">
-                              <div id="MKzJYdRydRK6xR51" style="width:calc(100% * max(1, var(--scale-fill, 1)));height:calc(100% / min(1, var(--scale-fill, 1)));position:absolute;top:50%;left:50%;opacity:1.0;animation:pulse 1.5s ease-in-out infinite;">
-                                <img src="images/af9b5e980a6cac7744ee8ca36aa417ac.svg" alt="CTA Button" loading="lazy" style="width:100%;height:100%;display:block;object-fit:cover;object-position:50% 50%;transform:translate(-50%, -50%) rotate(0deg);">
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div id="PgkYPhjiAGg0IZNP" style="z-index:6;">
-                  <div id="JN2SvNTwuxVMlA2I" style="box-sizing:border-box;width:100%;height:100%;">
-                    <div class="animation_container" style="width:100%;height:100%;">
-                      <div class="animated" style="width:100%;height:100%;animation:fade-LEFT-0ff980d6-daec-4df3-b49a-7b20b2fc8b61 500ms 100ms both paused;">
-                        <div id="rbgk9AfHtjdLA51M" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
-                          <p id="s45qGPY3XWRyZpZ6" style="color:#ba2d0b;font-family:YAFdJoYMYSc-0;line-height:1.1785567em;text-align:center;text-transform:uppercase;letter-spacing:0.04em;">
-                            <span id="rBA8AWXNi6UvsMpT" style="color:#ba2d0b;font-weight:700;">Get Started</span>
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-      <a id="about" aria-hidden="true" style="visibility:hidden;"></a>
-      <section id="FslDVpO0RsEmphHE" style="position:relative;overflow:hidden;display:grid;align-items:center;grid-template-columns:auto 100rem auto;z-index:0;margin-top:-1px;">
-        <div id="Iy4nnxzq926z7HNU" style="grid-area:1 / 1 / 2 / 4;display:grid;position:absolute;min-height:100%;min-width:100%;">
-          <div id="sXXA9s6XHTvuNsHO" style="z-index:0;">
+<style>
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+</style>
+<a id="about" aria-hidden="true" style="visibility:hidden;"></a>
+<section id="FslDVpO0RsEmphHE" style="position:relative;overflow:hidden;display:grid;align-items:center;grid-template-columns:auto 100rem auto;z-index:0;margin-top:-1px;">
+    <div id="Iy4nnxzq926z7HNU" style="grid-area:1 / 1 / 2 / 4;display:grid;position:absolute;min-height:100%;min-width:100%;">
+        <div id="sXXA9s6XHTvuNsHO" style="z-index:0;">
             <div id="AicbLG5wcoufdbTt" style="box-sizing:border-box;width:100%;height:100%;transform:rotate(0deg);">
-              <div id="XcHWIvrDW3Ur5cKo" style="width:100%;height:100%;opacity:1.0;">
-                <div id="mAcUIjKv7ul0q42s" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;">
-                  <svg id="XXGRkYfeskaQaPwv" viewBox="0 0 1366.0 768.0" preserveAspectRatio="none" style="width:100%;height:100%;position:absolute;top:0%;left:0%;background:url(&#x27;data:image/png;base64,&#x27;);">
-                    <defs>
-                      <lineargradient id="M16AmAfTI87rcVAX" gradientUnits="userSpaceOnUse" x1="0" y1="384" x2="1366" y2="384">
-                        <stop offset="0%" stop-color="#000000" stop-opacity="1">
-                        </stop>
-                        <stop offset="100%" stop-color="#3533cd" stop-opacity="1"></stop>
-                      </lineargradient>
-                    </defs>
-                    <rect id="MKrCUJlUTckCTAQS" width="1366" height="768" style="fill:url(#M16AmAfTI87rcVAX);"></rect>
-                  </svg>
+                <div id="XcHWIvrDW3Ur5cKo" style="width:100%;height:100%;opacity:1.0;">
+                    <div id="mAcUIjKv7ul0q42s" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;">
+                        <svg id="XXGRkYfeskaQaPwv" viewBox="0 0 1366.0 768.0" preserveAspectRatio="none" style="width:100%;height:100%;position:absolute;top:0%;left:0%;">
+                            <defs>
+                                <linearGradient id="brandGradient" gradientUnits="userSpaceOnUse" x1="683" y1="0" x2="1024.5" y2="768">
+                                    <stop offset="0%" stop-color="#1a8fe3" />
+                                    <stop offset="20%" stop-color="#1a4a7a" />
+                                    <stop offset="40%" stop-color="#2b2d42" />
+                                    <stop offset="100%" stop-color="#2b2d42" />
+                                </linearGradient>
+                            </defs>
+                            <rect id="MKrCUJlUTckCTAQS" width="1366" height="768" style="fill:url(#brandGradient);"></rect>
+                        </svg>
+                    </div>
                 </div>
-              </div>
             </div>
-          </div>
         </div>
-        <div id="nSUrhjLb2ulLxWGa" style="display:grid;position:relative;grid-area:1 / 2 / 2 / 3;">
-          <div id="YFQoJ8vuZKbk5yGN" style="z-index:1;">
+    </div>
+    <div id="nSUrhjLb2ulLxWGa" style="display:grid;position:relative;grid-area:1 / 2 / 2 / 3;">
+        <div id="YFQoJ8vuZKbk5yGN" style="z-index:1;">
             <div id="JUglTStCW8KNKP6I" style="padding-top:26.76311031%;">
-              <div id="TkuLG9kJsfAxeLwK" style="position:absolute;top:0px;left:0px;width:100%;height:100%;">
-                <div class="animation_container" style="width:100%;height:100%;">
-                  <div style="width:100%;height:100%;transform:rotate(0deg);overflow:hidden;">
-                    <div class="animated" style="width:100%;height:100%;animation:baseline-LEFT-af7c7f92-5e1f-480b-9ff8-c709372e72a4 375ms 100ms both paused;">
-                      <div id="e1i8mwiCXjes73yP" style="width:100%;height:100%;opacity:1.0;">
-                        <div id="f1LrnKF7JTBlaZSw" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;">
-                          <div id="FN5u2uFNvTNkMIKk" style="width:calc(100% * max(1, var(--scale-fill, 1)));height:calc(100% / min(1, var(--scale-fill, 1)));position:absolute;top:50%;left:50%;opacity:1.0;animation:pulse 1.5s ease-in-out infinite;">
-                            <img src="images/d5fdf6cce907cb46a1b93445ca12bc34.svg" loading="lazy" style="width:100%;height:100%;display:block;object-fit:cover;object-position:50% 50%;transform:translate(-50%, -50%) rotate(0deg);">
-                          </div>
+                <div id="TkuLG9kJsfAxeLwK" style="position:absolute;top:0px;left:0px;width:100%;height:100%;">
+                    <div class="animation_container" style="width:100%;height:100%;">
+                        <div style="width:100%;height:100%;transform:rotate(0deg);overflow:hidden;">
+                            <div class="animated" style="width:100%;height:100%;animation:baseline-LEFT-af7c7f92-5e1f-480b-9ff8-c709372e72a4 500ms 100ms both paused;">
+                                <div id="e1i8mwiCXjes73yP" style="width:100%;height:100%;opacity:1.0;">
+                                    <div id="f1LrnKF7JTBlaZSw" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;">
+                                        <div id="FN5u2uFNvTNkMIKk" style="width:calc(100% * max(1, var(--scale-fill, 1)));height:calc(100% / min(1, var(--scale-fill, 1)));position:absolute;top:50%;left:50%;opacity:1.0;">
+                                            <img src="<%= asset_path("logos/cm_logo1_glare1.svg") %>" loading="lazy" style="width:100%;height:100%;display:block;object-fit:cover;object-position:50% 50%;transform:translate(-50%, -50%) rotate(0deg);">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                      </div>
                     </div>
-                  </div>
                 </div>
-              </div>
             </div>
-          </div>
-          <div id="rg9UUdMuMxdzcoiF">
+        </div>
+        <div id="rg9UUdMuMxdzcoiF">
             <div id="h81iIzLAouqEotF8" style="display:grid;position:relative;">
-              <div id="CoWm41JiXWCPlyuz" style="z-index:3;">
-                <div id="HeniNnUkTlLYZjnB" style="box-sizing:border-box;width:100%;height:100%;">
-                  <div class="animation_container" style="width:100%;height:100%;">
-                    <div class="animated" style="width:100%;height:100%;animation:fade-LEFT-b162af9b-7a0f-4c38-9d7c-c358a2a7d158 500ms 100ms both paused;">
-                      <div id="B93jo6B40SjqLtIh" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
-                        <p id="MjbmMlccW4xYF4C8" style="color:#efc81a;direction:ltr;font-family:YAFdJoYMYSc-0;margin-left:0em;line-height:1.28570969em;text-align:center;text-transform:none;letter-spacing:0em;">
-                          <span id="FL61V5z0Q0heLVPA" style="color:#efc81a;font-weight:700;">Personalized Recommendations</span>
-                          <br>
-                        </p>
-                      </div>
+                <div id="CoWm41JiXWCPlyuz" style="z-index:3;">
+                    <div id="HeniNnUkTlLYZjnB" style="box-sizing:border-box;width:100%;height:100%;">
+                        <div class="animation_container" style="width:100%;height:100%;">
+                            <div class="animated" style="width:100%;height:100%;animation:fade-LEFT-b162af9b-7a0f-4c38-9d7c-c358a2a7d158 700ms 100ms both paused;">
+                                <div id="B93jo6B40SjqLtIh" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
+                                    <p id="MjbmMlccW4xYF4C8" style="color:#efc81a;direction:ltr;font-family:var(--bs-font-sans-serif);margin-left:0em;line-height:1.28570969em;text-align:center;text-transform:none;letter-spacing:0em;">
+                                        <span id="FL61V5z0Q0heLVPA" style="color:#efc81a;font-weight:700;">Personalized Recommendations</span>
+                                        <br>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                  </div>
                 </div>
-              </div>
-              <div id="BDAqwqfoegk0YmlA" style="z-index:4;">
-                <div id="ubQmYSjwzqQsSa9X" style="box-sizing:border-box;width:100%;height:100%;">
-                  <div class="animation_container" style="width:100%;height:100%;">
-                    <div class="animated" style="width:100%;height:100%;animation:fade-LEFT-2b8667ee-c555-4f25-a2be-2ce4d32f3313 500ms 100ms both paused;">
-                      <div id="VwUpSds3p9bQcnFj" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
-                        <p id="SwvDezRfbEHJ9AaD" style="color:#e9fff9;direction:ltr;font-family:YAFdJoYMYSc-0;margin-left:0em;line-height:1.26560918em;text-align:center;text-transform:none;letter-spacing:0em;">
-                          <span id="e1dn1HoFLl4wJf1a" style="color:#e9fff9;white-space:pre-wrap;">        </span>
-                          <span id="USb68QfIpYjSsbrG" style="color:#e9fff9;">Get recommendations tailored to your personality and ​preferences, ensuring a viewing experience that aligns with your ​unique tastes and interests.</span>
-                          <br>
-                        </p>
-                      </div>
+                <div id="BDAqwqfoegk0YmlA" style="z-index:4;">
+                    <div id="ubQmYSjwzqQsSa9X" style="box-sizing:border-box;width:100%;height:100%;">
+                        <div class="animation_container" style="width:100%;height:100%;">
+                            <div class="animated" style="width:100%;height:100%;animation:fade-LEFT-2b8667ee-c555-4f25-a2be-2ce4d32f3313 700ms 200ms both paused;">
+                                <div id="VwUpSds3p9bQcnFj" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
+                                    <p id="SwvDezRfbEHJ9AaD" style="color:#e9fff9;direction:ltr;font-family:var(--bs-font-sans-serif);margin-left:0em;line-height:1.26560918em;text-align:center;text-transform:none;letter-spacing:0em;">
+                                        <span id="e1dn1HoFLl4wJf1a" style="color:#e9fff9;white-space:pre-wrap;">        </span>
+                                        <span id="USb68QfIpYjSsbrG" style="color:#e9fff9;">Get recommendations tailored to your personality and ​preferences, ensuring a viewing experience that aligns with your ​unique tastes and interests.</span>
+                                        <br>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                  </div>
                 </div>
-              </div>
             </div>
-          </div>
-          <div id="BeuhVbFoHGOXB2dS">
-            <div id="u3FouwscylxBBa4Q" style="display:grid;position:relative;">
-              <div id="Dkb4Mdq7z2WIIT9i" style="z-index:6;">
-                <div id="C8aPUACLqwEZ78tM" style="box-sizing:border-box;width:100%;height:100%;">
-                  <div class="animation_container" style="width:100%;height:100%;">
-                    <div class="animated" style="width:100%;height:100%;animation:fade-LEFT-ff2a6cb0-c8bc-4fdc-bb79-e5598c287fba 500ms 100ms both paused;">
-                      <div id="PDfaY9uUX6ev6b3p" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
-                        <p id="o9xEidymnk3laGDQ" style="color:#efc81a;direction:ltr;font-family:YAFdJoYMYSc-0;margin-left:0em;line-height:1.28570969em;text-align:center;text-transform:none;letter-spacing:0em;">
-                          <span id="OdoTGE8hkFE4plTU" style="color:#efc81a;font-weight:700;">Discover Hi​dden Gems</span>
-                          <br>
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div id="o94x71sMNoZxksAw" style="z-index:7;">
-                <div id="TsxWECqHVuYOB5ZF" style="box-sizing:border-box;width:100%;height:100%;">
-                  <div class="animation_container" style="width:100%;height:100%;">
-                    <div class="animated" style="width:100%;height:100%;animation:fade-LEFT-c69197fd-cb12-4c19-a439-ded7a64421a8 500ms 100ms both paused;">
-                      <div id="VrIR8WBZPP5CYgWA" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
-                        <p id="C8GQRTs6jgFRaiYA" style="color:#e9fff9;direction:ltr;font-family:YAFdJoYMYSc-0;margin-left:0em;line-height:1.26560918em;text-align:center;text-transform:none;letter-spacing:0em;">
-                          <span id="cqoRoPn5NIPN9YKu" style="color:#e9fff9;white-space:pre-wrap;">     </span>
-                          <span id="Y3UZCOarC2L7m9FZ" style="color:#e9fff9;">Uncover titles that often go unnoticed amidst the marketing ​noise. Our platform ensures you don&#x27;t miss out on under-​discovered gems, providing a diverse selection for you to explore.</span>
-                          <br>
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        <div id="PiZK8o2Ul9AZfpCk">
-          <div id="MhQV2zW2dL4cK9c3" style="display:grid;position:relative;">
-            <div id="TgUNCLuIyHfRSOEb" style="z-index:9;">
-              <div id="zFf3XxIkebZgu9QP" style="box-sizing:border-box;width:100%;height:100%;">
-                <div class="animation_container" style="width:100%;height:100%;">
-                  <div class="animated" style="width:100%;height:100%;animation:fade-LEFT-f97792f8-84c9-4186-95bd-0e84444d86c9 500ms 100ms both paused;">
-                    <div id="LkkB5Uj5ddd05su7" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
-                      <p id="zUipeZ1YHATXn3po" style="color:#efc81a;direction:ltr;font-family:YAFdJoYMYSc-0;margin-left:0em;line-height:1.28570969em;text-align:center;text-transform:none;letter-spacing:0em;">
-                        <span id="tCoQLdhEuqshArYv" style="color:#efc81a;font-weight:700;">Easy-to-Use Interface</span>
-                        <br>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div id="gGTsmGP7OhpGUjwv" style="z-index:10;">
-              <div id="w1p93k9fzc6OpAM0" style="box-sizing:border-box;width:100%;height:100%;">
-                <div class="animation_container" style="width:100%;height:100%;">
-                  <div class="animated" style="width:100%;height:100%;animation:fade-LEFT-4b56184b-e293-41e6-a7d7-f84c0ed2720f 500ms 100ms both paused;">
-                    <div id="eY4HvnguOufAZkOH" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
-                      <p id="EJAF6WGBJczG6OlK" style="color:#e9fff9;direction:ltr;font-family:YAFdJoYMYSc-0;margin-left:0em;line-height:1.26560918em;text-align:center;text-transform:none;letter-spacing:0em;">
-                        <span id="z207jxYCohV6xpYF" style="color:#e9fff9;white-space:pre-wrap;">        </span>
-                        <span id="igAQywsHTFKcFTSK" style="color:#e9fff9;">Navigate effortlessly through a sleek and intuitive design, mak​ing it simple to find, save, and enjoy your next favorite film or sho​w without any hassle.</span>
-                        <br>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
-      </div>
-    </section>
-    <a id="page-3" aria-hidden="true" style="visibility:hidden;"></a>
-    <section id="BpaIJf3d3y696i2e" style="position:relative;overflow:hidden;display:grid;align-items:center;grid-template-columns:auto 100rem auto;z-index:0;margin-top:-1px;">
-      <div id="uSOhhw0hotRJgTGj" style="grid-area:1 / 1 / 2 / 4;display:grid;position:absolute;min-height:100%;min-width:100%;"><div id="qlHJZY6LvZGVqA3B" style="z-index:0;">
-        <div id="i1s4tnnv9ajCyONV" style="box-sizing:border-box;width:100%;height:100%;transform:rotate(0deg);">
-          <div id="GVwFXJj3jB3BjpQT" style="width:100%;height:100%;opacity:1.0;">
-            <div id="V4y6ozZSWnCgPZ53" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;">
-              <svg id="A7WSyFBMBR691FDu" viewBox="0 0 1366.0 768.0" preserveAspectRatio="none" style="width:100%;height:100%;position:absolute;top:0%;left:0%;background:url(&#x27;data:image/png;base64,&#x27;);">
-                <defs>
-                  <lineargradient id="a0TicFcWOJBufwUk" gradientUnits="userSpaceOnUse" x1="0" y1="384" x2="1366" y2="384">
-                    <stop offset="0%" stop-color="#5de0e6" stop-opacity="1"></stop>
-                    <stop offset="100%" stop-color="#004aad" stop-opacity="1"></stop>
-                  </lineargradient>
-                </defs>
-                <rect id="mx5rfAEBfPCjfgtx" width="1366" height="768" style="fill:url(#a0TicFcWOJBufwUk);"></rect>
-              </svg>
+        <div id="BeuhVbFoHGOXB2dS">
+            <div id="u3FouwscylxBBa4Q" style="display:grid;position:relative;">
+                <div id="Dkb4Mdq7z2WIIT9i" style="z-index:6;">
+                    <div id="C8aPUACLqwEZ78tM" style="box-sizing:border-box;width:100%;height:100%;">
+                        <div class="animation_container" style="width:100%;height:100%;">
+                            <div class="animated" style="width:100%;height:100%;animation:fade-LEFT-ff2a6cb0-c8bc-4fdc-bb79-e5598c287fba 700ms 300ms both paused;">
+                                <div id="PDfaY9uUX6ev6b3p" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
+                                    <p id="o9xEidymnk3laGDQ" style="color:#efc81a;direction:ltr;font-family:var(--bs-font-sans-serif);margin-left:0em;line-height:1.28570969em;text-align:center;text-transform:none;letter-spacing:0em;">
+                                        <span id="OdoTGE8hkFE4plTU" style="color:#efc81a;font-weight:700;">Discover Hi​dden Gems</span>
+                                        <br>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="o94x71sMNoZxksAw" style="z-index:7;">
+                    <div id="TsxWECqHVuYOB5ZF" style="box-sizing:border-box;width:100%;height:100%;">
+                        <div class="animation_container" style="width:100%;height:100%;">
+                            <div class="animated" style="width:100%;height:100%;animation:fade-LEFT-c69197fd-cb12-4c19-a439-ded7a64421a8 700ms 400ms both paused;">
+                                <div id="VrIR8WBZPP5CYgWA" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
+                                    <p id="C8GQRTs6jgFRaiYA" style="color:#e9fff9;direction:ltr;font-family:var(--bs-font-sans-serif);margin-left:0em;line-height:1.26560918em;text-align:center;text-transform:none;letter-spacing:0em;">
+                                        <span id="cqoRoPn5NIPN9YKu" style="color:#e9fff9;white-space:pre-wrap;">     </span>
+                                        <span id="Y3UZCOarC2L7m9FZ" style="color:#e9fff9;">Uncover titles that often go unnoticed amidst the marketing ​noise. Our platform ensures you don't miss out on under-​discovered gems, providing a diverse selection for you to explore.</span>
+                                        <br>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
+        </div>
+        <div id="PiZK8o2Ul9AZfpCk">
+            <div id="MhQV2zW2dL4cK9c3" style="display:grid;position:relative;">
+                <div id="TgUNCLuIyHfRSOEb" style="z-index:9;">
+                    <div id="zFf3XxIkebZgu9QP" style="box-sizing:border-box;width:100%;height:100%;">
+                        <div class="animation_container" style="width:100%;height:100%;">
+                            <div class="animated" style="width:100%;height:100%;animation:fade-LEFT-f97792f8-84c9-4186-95bd-0e84444d86c9 700ms 500ms both paused;">
+                                <div id="LkkB5Uj5ddd05su7" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
+                                    <p id="zUipeZ1YHATXn3po" style="color:#efc81a;direction:ltr;font-family:var(--bs-font-sans-serif);margin-left:0em;line-height:1.28570969em;text-align:center;text-transform:none;letter-spacing:0em;">
+                                        <span id="tCoQLdhEuqshArYv" style="color:#efc81a;font-weight:700;">Easy-to-Use Interface</span>
+                                        <br>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="gGTsmGP7OhpGUjwv" style="z-index:10;">
+                    <div id="w1p93k9fzc6OpAM0" style="box-sizing:border-box;width:100%;height:100%;">
+                        <div class="animation_container" style="width:100%;height:100%;">
+                            <div class="animated" style="width:100%;height:100%;animation:fade-LEFT-4b56184b-e293-41e6-a7d7-f84c0ed2720f 700ms 600ms both paused;">
+                                <div id="eY4HvnguOufAZkOH" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
+                                    <p id="EJAF6WGBJczG6OlK" style="color:#e9fff9;direction:ltr;font-family:var(--bs-font-sans-serif);margin-left:0em;line-height:1.26560918em;text-align:center;text-transform:none;letter-spacing:0em;">
+                                        <span id="z207jxYCohV6xpYF" style="color:#e9fff9;white-space:pre-wrap;">        </span>
+                                        <span id="igAQywsHTFKcFTSK" style="color:#e9fff9;">Navigate effortlessly through a sleek and intuitive design, mak​ing it simple to find, save, and enjoy your next favorite film or sho​w without any hassle.</span>
+                                        <br>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<a id="page-3" aria-hidden="true" style="visibility:hidden;"></a>
+<section class="entertainment-section">
+  <div class="content-wrapper">
+    <h2 class="heading">
+      Entertainment<br>Made Personal
+    </h2>
+    <img src="<%= asset_path('landing/laptop.png') %>" alt="Laptop showcasing entertainment" class="laptop-image">
+    <img src="<%= asset_path('landing/iphone.png') %>" alt="iPhone showcasing entertainment" class="iphone-image">
+    <p class="description">
+      Leveraging advanced algorithms and<br>
+      user data, we ensure that you always<br>
+      find something you'll love to watch.
+    </p>
+  </div>
+</section>
+
+<style>
+  .entertainment-section {
+    background: linear-gradient(to bottom left, #efc81a, #ba2d0b);
+    aspect-ratio: 16 / 9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    overflow: hidden;
+  }
+
+  .content-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    max-width: 1200px;
+  }
+
+  .heading {
+    position: absolute;
+    top: 10%;
+    left: 10%;
+    font-size: clamp(2rem, 5vw, 4rem);
+    line-height: 1.2;
+    color: #e9fff9;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .laptop-image {
+    position: absolute;
+    bottom: 5%;
+    left: 5%;
+    width: 50%;
+    max-width: 600px;
+  }
+
+  .iphone-image {
+    position: absolute;
+    top: 10%;
+    right: 15%;
+    width: 18%;
+    max-width: 250px;
+  }
+
+  .description {
+    position: absolute;
+    bottom: 5%;
+    right: 10%;
+    font-size: clamp(1rem, 1.75vw, 1.5rem);
+    line-height: 1.5;
+    color: #e9fff9;
+    text-align: left;
+    max-width: 30%;
+  }
+
+  @media (max-width: 1024px) {
+    .entertainment-section {
+      aspect-ratio: auto;
+      height: auto;
+      min-height: 100vh;
+      padding: 4rem 2rem;
+    }
+
+    .content-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: auto;
+    }
+
+    .heading, .laptop-image, .iphone-image, .description {
+      position: static;
+      margin: 1rem 0;
+    }
+
+    .heading {
+      text-align: center;
+      font-size: clamp(2rem, 8vw, 3.5rem);
+    }
+
+    .laptop-image {
+      width: 80%;
+      max-width: 500px;
+    }
+
+    .iphone-image {
+      width: 40%;
+      max-width: 200px;
+    }
+
+    .description {
+      text-align: center;
+      max-width: 100%;
+      font-size: clamp(1rem, 3vw, 1.25rem);
+    }
+  }
+</style>
+    
+    <!--<section id="b2n9tHi2xH43AAzO" style="position:relative;overflow:hidden;display:grid;align-items:center;grid-template-columns:auto 100rem auto;z-index:0;margin-top:-1px;">
+    <div id="ComZ3gGGHLZtHLMO" style="grid-area:1 / 1 / 2 / 4;display:grid;position:absolute;min-height:100%;min-width:100%;">
+    <div id="Yv90Wp3MgJbKPnjn" style="z-index:0;">
+      <div id="PVsNCg9Y73mcgveA" style="box-sizing:border-box;width:100%;height:100%;transform:rotate(0deg);">
+        <div id="LDVKaeNtYW7qmF98" style="width:100%;height:100%;opacity:1.0;">
+          <div id="rFHzvNTwpWfs70Sb" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;">
+            <svg id="sYwSRzvthgstsgEg" viewBox="0 0 1366.0 768.0" preserveAspectRatio="none" style="width:100%;height:100%;position:absolute;top:0%;left:0%;">
+              <defs>
+                <lineargradient id="MYaULE25DhJOFod2" gradientUnits="userSpaceOnUse" x1="0" y1="384" x2="1366" y2="384">
+                  <stop offset="0%" stop-color="#5de0e6" stop-opacity="1"></stop>
+                  <stop offset="100%" stop-color="#004aad" stop-opacity="1"></stop>
+                </lineargradient>
+              </defs>
+              <rect id="jKBk9BUROcsyFWJl" width="1366" height="768" style="fill:url(#MYaULE25DhJOFod2);"></rect>
+            </svg>
           </div>
         </div>
       </div>
     </div>
-    <div id="omwL92SjLP6RFKhW" style="display:grid;position:relative;grid-area:1 / 2 / 2 / 3;">
-      <div id="kKtYxUbvWFii3IZY" style="z-index:8;">
-        <div id="zYigUpF3YR41H4wZ" style="box-sizing:border-box;width:100%;height:100%;">
-          <div class="animation_container" style="width:100%;height:100%;">
-            <div style="width:100%;height:100%;transform:rotate(0deg);overflow:hidden;">
-              <div class="animated" style="width:100%;height:100%;animation:baseline-LEFT-e1814143-5aa9-49bc-95fc-838fe72b8749 980ms 100ms both paused;">
-                <div id="tf3AXBNYjSwuUaWp" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
-                  <p id="bsiFFjOWmadtXMtW" style="color:#e9fff9;direction:ltr;font-family:YAFdJoYMYSc-0;margin-left:0em;line-height:1em;letter-spacing:-0.03em;text-shadow:0em 0.0375em 0.159375em rgba(0, 0, 0, 0.325000);">
-                    <span id="HS3rhxC4j6AYGd8A" style="color:#e9fff9;">Entertainment ​Made Personal</span><br>
-                  </p>
-                </div>
+  </div>
+  <div id="tzkPtQAVYnK1q6kt" style="display:grid;position:relative;grid-area:1 / 2 / 2 / 3;">
+    <div id="GPw34bmfq2ouWT2K" style="z-index:8;">
+      <div id="zI4LIxjNRRebZuCO" style="box-sizing:border-box;width:100%;height:100%;">
+        <div class="animation_container" style="width:100%;height:100%;">
+          <div style="width:100%;height:100%;transform:rotate(0deg);overflow:hidden;">
+            <div class="animated" style="width:100%;height:100%;animation:baseline-LEFT-07773dbc-69ba-41bd-aa1b-90c84cf0607e 980ms 100ms both paused;">
+              <div id="EfPU4ZCMzkMtjTRO" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
+                <p id="Lr5gtx9nrcwqngUi" style="color:#e9fff9;direction:ltr;font-family:var(--bs-font-sans-serif);margin-left:0em;line-height:1em;letter-spacing:-0.03em;text-shadow:0em 0.0375em 0.159375em rgba(0, 0, 0, 0.325000);">
+                  <span id="Uw45ixPhfZfr7Idn" style="color:#e9fff9;">Entertainment ​Made Personal</span><br>
+                </p>
               </div>
             </div>
           </div>
         </div>
       </div>
-      <div id="s31r8UnqsEQl6Dzi">
-        <div id="ISSF7rAJApSvsRDv" style="display:grid;position:relative;">
-          <div id="VWyt5xZrJOGS2our" style="display:grid;position:relative;grid-area:2 / 2 / 3 / 3;">
-            <div id="DbdEJ5Fx5ucOG2nh" style="z-index:3;">
-              <div id="wBBJY8zThevvFQxi" style="box-sizing:border-box;width:100%;height:100%;">
+      <div id="Zxra0GiyXnTV2aqg">
+        <div id="SnEeZLjCjFNrN2kt" style="display:grid;position:relative;">
+          <div id="KdwqcCiF05b3ys4u" style="display:grid;position:relative;grid-area:2 / 2 / 3 / 3;">
+            <div id="sP4afGWMol7R0s3d" style="z-index:3;">
+              <div id="cLO3VpM3ctBDSBFU" style="box-sizing:border-box;width:100%;height:100%;">
                 <div class="animation_container" style="width:100%;height:100%;">
-                  <div class="animated" style="width:100%;height:100%;animation:pan-LEFT-845e936d-19c5-4f33-8e8b-10f1c9042ad5 1000ms 100ms both paused, linear_fade 400ms linear both paused;">
-                    <div id="cFy3f2xHKa9VSEQW" style="width:100%;height:100%;opacity:1.0;">
-                      <div id="ICgWmneywvGp3WQS" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;">
-                        <div id="fDUGKboz24aR9l5k" style="width:calc(100% * max(1, var(--scale-fill, 1)));height:calc(100% / min(1, var(--scale-fill, 1)));position:absolute;top:50%;left:50%;opacity:1.0;animation:pulse 1.5s ease-in-out infinite;">
-                          <img src="images/75111f89e489db7b76657774af4f861d.png" alt="Computer Laptop " loading="lazy" srcset="images/c68022513fdb011bea8262620d1d0f3d.png 914w, images/75111f89e489db7b76657774af4f861d.png 1371w" sizes="(max-width: 375px) 91.46666667vw, (min-width: 375.05px) and (max-width: 480px) 93.33333333vw, (min-width: 480.05px) and (max-width: 768px) 75.88086204vw, (min-width: 768.05px) and (max-width: 1024px) 56.91064653vw, (min-width: 1024.05px) 42.66215377vw" style="width:100%;height:100%;display:block;object-fit:cover;object-position:50% 50%;transform:translate(-50%, -50%) rotate(0deg);">
+                  <div class="animated" style="width:100%;height:100%;animation:pan-LEFT-3a97a2c9-70ba-418c-8f44-bdbb5feeafbe 1000ms 100ms both paused, linear_fade 400ms linear both paused;">
+                    <div id="gElmPCuYVWb0i5MP" style="width:100%;height:100%;opacity:1.0;">
+                      <div id="JIrcQSvxYJOy1xqj" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;">
+                        <div id="OllBzLlp9tSTonso" style="width:calc(100% * max(1, var(--scale-fill, 1)));height:calc(100% / min(1, var(--scale-fill, 1)));position:absolute;top:50%;left:50%;opacity:1.0;animation:pulse 1.5s ease-in-out infinite;">
+                          <img src="<%#= asset_path('landing/75111f89e489db7b76657774af4f861d.png') %>" alt="Computer Laptop" loading="lazy" srcset="<%= asset_path('landing/c68022513fdb011bea8262620d1d0f3d.png') %> 914w, <%= asset_path('landing/75111f89e489db7b76657774af4f861d.png') %> 1371w" sizes="(max-width: 375px) 91.46666667vw, (min-width: 375.05px) and (max-width: 480px) 93.33333333vw, (min-width: 480.05px) and (max-width: 768px) 75.88086204vw, (min-width: 768.05px) and (max-width: 1024px) 56.91064653vw, (min-width: 1024.05px) 42.66215377vw" style="width:100%;height:100%;display:block;object-fit:cover;object-position:50% 50%;transform:translate(-50%, -50%) rotate(0deg);">
                         </div>
                       </div>
                     </div>
@@ -546,181 +377,72 @@
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <script nonce="b8b3753f-a4f4-4285-aa28-734c6968092c">
-      const lang = navigator.language ? navigator.language : 'en';
-      const loaded = new Promise((resolve) => { 
-        if (document.readyState === 'loading') {
-          window.addEventListener('DOMContentLoaded', resolve);
-          return;
-        }
-        resolve();
-      });
-
-      Promise.all([fetch('_footer?lang=' + encodeURIComponent(lang)), loaded]).then(([response]) => {
-        if (response.status !== 200) {
-          return;
-        }
-        response.text().then(footerStr => {
-          const div = document.createElement('div');
-          div.innerHTML = footerStr;
-          for (const child of [...div.children]) {
-            if (child.tagName.toLowerCase() !== 'script') {
-              document.body.append(child);
-            }
-          }
-
-          (() => {
-            !function(e) {
-              "use strict";
-              const t = document.getElementById("modal_backdrop"),
-                    n = document.getElementById("modal"),
-                    o = document.getElementById("captcha-form"),
-                    c = document.getElementById("report_button"),
-                    d = document.getElementById("form_report"),
-                    s = document.getElementById("form_cancel"),
-                    l = document.getElementById("form_submit_reason"),
-                    a = document.getElementById("form_go_back"),
-                    r = document.getElementById("form_submit_captcha"),
-                    m = document.getElementById("form_close"),
-                    i = document.getElementById("form_close_initial"),
-                    u = document.getElementById("report_reason_0"),
-                    p = document.getElementById("error_message"),
-                    _ = document.getElementById("error_message_captcha"),
-                    y = new Map;
-              y.set(0, document.getElementById("form_step_terms"));
-              y.set(1, document.getElementById("form_step_report_reason"));
-              y.set(4, document.getElementById("form_step_report_other"));
-              const E = document.getElementById("form_step_report_ip");
-              E && y.set(5, E);
-              y.set(2, document.getElementById("form_step_captcha"));
-              y.set(3, document.getElementById("form_step_success"));
-              const f = document.getElementById("report_reason_4"),
-                    g = document.getElementById("form_close_ip"),
-                    h = document.getElementById("form_go_back_ip"),
-                    I = document.getElementById("report_reason_other"),
-                    k = document.getElementById("form_close_other"),
-                    w = document.getElementById("form_go_back_other");
-
-              function v() {
-                t.classList.remove("active");
-                n.classList.remove("active");
-                c.classList.remove("active");
-                c.focus();
-              }
-
-              function B(e) {
-                y.forEach(((t, n) => {
-                  n === e ? (t.style.display = "block", L(t)) : t.style.display = "none";
-                }));
-              }
-
-              let b, C = !1;
-              const T = "NETEASE" === window.C_CAPTCHA_IMPLEMENTATION ? () => b : () => {
-                const e = o.elements.namedItem("g-recaptcha-response");
-                return null == e ? void 0 : e.value;
-              };
-              t.onclick = v;
-              s.onclick = v;
-              m.onclick = v;
-              i.onclick = v;
-              g && (g.onclick = v);
-              k.onclick = v;
-              c.onclick = function() {
-                y.forEach(((e, t) => {
-                  e.style.display = 0 === t ? "block" : "none";
-                }));
-                t.classList.add("active");
-                n.classList.add("active");
-                c.classList.add("active");
-                u.checked = !0;
-                setTimeout((() => {
-                  L(y.get(0));
-                }), 350);
-              };
-              d.onclick = d.dataset.reportUrl ? function() {
-                const { origin: e, pathname: t } = window.location,
-                      n = e + t,
-                      o = d.dataset.reportUrl + encodeURIComponent(n);
-                window.open(o);
-              } : () => B(1);
-              l.onclick = () => {
-                null != E && f.checked ? B(5) : I.checked ? B(4) : (B(2), function() {
-                  if (C) return;
-                  const e = document.createElement("script");
-                  e.src = "NETEASE" === window.C_CAPTCHA_IMPLEMENTATION ? "https://cstaticdun.126.net/load.min.js" : "https://www.google.com/recaptcha/api.js";
-                  e.async = !0;
-                  e.defer = !0;
-                  document.head.appendChild(e);
-                  C = !0;
-                  e.onload = "NETEASE" === window.C_CAPTCHA_IMPLEMENTATION ? () => {
-                    var e;
-                    null === (e = window.initNECaptcha) || void 0 === e || e.call(window, {
-                      captchaId: window.C_CAPTCHA_KEY,
-                      element: "#netease-captcha",
-                      protocol: "https",
-                      width: "auto",
-                      onVerify: (e, t) => {
-                        b = t.validate;
-                      }
-                    });
-                  } : () => {};
-                }());
-              };
-              a.onclick = () => B(1);
-              h && (h.onclick = () => B(1));
-              w.onclick = () => B(1);
-              o.addEventListener("submit", (function(e) {
-                e.preventDefault();
-                p.style.display = "none";
-                _.style.display = "none";
-                const t = function() {
-                  let e = "";
-                  const t = document.getElementsByName("report_reason");
-                  for (let n = 0; n < t.length; n++) {
-                    const o = t[n];
-                    o.checked && (e = o.value);
-                  }
-                  return e;
-                }(),
-                      n = T();
-                if (!n) return void (_.style.display = "block");
-                const o = { reason: t, challenge: n },
-                      c = window.location.origin + window.location.pathname + "/_api/report";
-                r.classList.add("loading");
-                fetch(c, {
-                  method: "POST",
-                  body: JSON.stringify(o),
-                  headers: { "Content-Type": "application/json; charset=utf-8" }
-                }).then((e => {
-                  r.classList.remove("loading");
-                  e.ok ? B(3) : p.style.display = "block";
-                }));
-              }));
-              const A = new Map,
-                    L = e => {
-                      const t = A.get(e);
-                      null != t && document.removeEventListener("keydown", t);
-                      const n = e.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'),
-                            o = e,
-                            c = n[n.length - 1],
-                            d = function(e) {
-                              ("Tab" === e.key || 9 === e.keyCode) && (e.shiftKey ? document.activeElement === o && (c.focus(), e.preventDefault()) : document.activeElement === c && (o.focus(), e.preventDefault()));
-                            };
-                      A.set(e, d);
-                      document.addEventListener("keydown", d);
-                      o.focus();
-                    };
-              e.keepFocus = L;
-              Object.defineProperty(e, "__esModule", { value: !0 });
-            }({});
-          })();
-          window.dispatchEvent(new Event('resize'));
-        });
-      });
-    </script>
-</body>
-</html>
+                            <div id="y7iehti4L656BVB1" style="z-index:2;">
+                                <div id="hctnWqI2JTClJJI0" style="padding-top:64.33333333%;">
+                                    <div id="hth40MhtfjpAVUUp" style="position:absolute;top:0px;left:0px;width:100%;height:100%;">
+                                        <div class="animation_container" style="width:100%;height:100%;">
+                                            <div class="animated" style="width:100%;height:100%;animation:pan-LEFT-f65cf0b2-a55b-402c-b806-0da8f17e68dc 1000ms 100ms both paused, linear_fade 400ms linear both paused;">
+                                                <div id="sgprWnHVts6gFQ2o" style="width:100%;height:100%;opacity:1.0;">
+                                                    <div id="vJUOwKbfriLPtYbE" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;">
+                                                        <div id="dVxRSjfsOcS9o2iq" style="width:calc(100% * max(1, var(--scale-fill, 1)));height:calc(100% / min(1, var(--scale-fill, 1)));position:absolute;top:50%;left:50%;opacity:1.0;animation:pulse 1.5s ease-in-out infinite;">
+                                <img src="<%#= asset_path('landing/370195dc9d72fe0e7217b9d5810284cd.png') %>" loading="lazy" srcset="<%= asset_path('landing/c7d1b4798d0d689c71434eda91f47b19.png') %> 588w, <%= asset_path('landing/370195dc9d72fe0e7217b9d5810284cd.png') %> 881w" sizes="(max-width: 375px) 78.66666667vw, (min-width: 375.05px) and (max-width: 480px) 83.33333333vw, (min-width: 480.05px) and (max-width: 768px) 54.17171488vw, (min-width: 768.05px) and (max-width: 1024px) 40.62878616vw, (min-width: 1024.05px) 30.45671818vw" style="width:100%;height:100%;display:block;object-fit:cover;object-position:50% 50%;transform:translate(-50%, -50%) rotate(0deg);">
+</div></div></div></div></div></div></div></div></div></div></div>
+<div id="lAlXMsKFf1L8RKFk"><div id="AManvtmrZ5awcwRW" style="display:grid;position:relative;"><div id="GVWmXXLE1ELmGXLK" style="display:grid;position:relative;grid-area:2 / 2 / 3 / 3;"><div id="CkYf3fRC8g3BDVxo" style="z-index:7;"><div id="L1BnG6UQtHjs1vqN" style="padding-top:199.50124688%;"><div id="tAgpQSsxe0YIZ9Py" style="position:absolute;top:0px;left:0px;width:100%;height:100%;"><div class="animation_container" style="width:100%;height:100%;"><div class="animated" style="width:100%;height:100%;animation:pan-RIGHT-426d13fe-5d5d-4627-b55e-188c447fe329 1000ms 100ms both paused, linear_fade 400ms linear both paused;"><div id="SZxxt5Wy8gyuYKGc" style="width:100%;height:100%;opacity:1.0;"><div id="t7d48eOmkwx2gHHN" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;"><div id="D1AptoSXM4ppHSbz" style="width:calc(100% * max(1, var(--scale-fill, 1)));height:calc(100% / min(1, var(--scale-fill, 1)));position:absolute;top:50%;left:50%;opacity:1.0;animation:pulse 1.5s ease-in-out infinite;">
+    <img src="<%#= asset_path('landing/7a5482a84882e89bedf02b933e5a70a7.svg') %>" alt="Realistic smartphone mockup. Realistic phone illustration. Realistic templates of modern smartphone. Vector phone mockup set. Smart device mockup. Vector" loading="lazy" style="width:100%;height:100%;display:block;object-fit:cover;object-position:50% 50%;transform:translate(-50%, -50%) rotate(0deg);">
+</div></div></div></div></div></div></div></div>
+<div id="QceViyM9pRztZ17t" style="z-index:5;">
+    <div id="WPFFxeEz11jl78EX" style="padding-top:36.83772109%;">
+        <div id="sfRuX8mkgFDk1OYr" style="position:absolute;top:0px;left:0px;width:100%;height:100%;"><div class="animation_container" style="width:100%;height:100%;"><div class="animated" style="width:100%;height:100%;animation:pan-RIGHT-69475b10-3101-4ae0-aa93-66fa494f1988 1000ms 100ms both paused, linear_fade 400ms linear both paused;">
+    <svg id="PqZBIY0ykoMXo6ro" viewBox="0 0 58.9978 21.7334" style="width:100%;height:100%;opacity:1.0;overflow:hidden;position:absolute;top:0%;left:0%;background:url(&#x27;data:image/png;base64,&#x27;);">
+        <g id="ykL1kFLphqkVYdUc" style="transform:scale(1, 1);">
+            <path id="VBiM2OLfOTm2pHQa" d="M10.00000119,0 L48.9977901,0 C54.52063826,0 58.99779129,4.47715304 58.99779129,10.00000119 L58.99779129,11.73344112 C58.99779129,14.38560633 57.94422276,16.92914576 56.06885875,18.80450977 54.19349475,20.67987378 51.64995531,21.73344231 48.9977901,21.73344231 L10.00000119,21.73344231 C4.47715303,21.73344231 0,17.25628927 0,11.73344112 L0,10.00000119 C0,4.47715303 4.47715304,0 10.00000119,0 Z" style="fill:#2b2d42;opacity:1.0;"></path>
+            </g>
+            </svg></div></div></div></div></div>
+            <div id="cP6MLYosppHyC1Fh" style="z-index:6;">
+                <div id="XL6O6zH3IIDdmb0w" style="padding-top:206.6325145%;">
+                    <div id="fZw7oVyykzZXPHYp" style="position:absolute;top:0px;left:0px;width:100%;height:100%;"><div class="animation_container" style="width:100%;height:100%;"><div class="animated" style="width:100%;height:100%;animation:pan-RIGHT-55774bc1-231d-4100-8c58-2c14537e7eaa 1000ms 100ms both paused, linear_fade 400ms linear both paused;"><div id="JB7hKc4GLKEqAMMU" style="width:100%;height:100%;opacity:1.0;"><div id="bFSN1yt9egXchKYI" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;"><div id="zjV1luk8rSSa7uDs" style="width:calc(100% * max(1, var(--scale-fill, 1)));height:calc(105.39653243% / min(1, var(--scale-fill, 1)));position:absolute;top:50%;left:50%;opacity:1.0;animation:pulse 1.5s ease-in-out infinite;">
+                        <img src="<%#= asset_path('landing/21f6aa65444a85d941fd8d268671d0fd.png') %>" loading="lazy" style="width:100%;height:100%;display:block;object-fit:cover;object-position:50% 47.4398909%;transform:translate(-50%, -47.4398909%) rotate(0deg);">
+                        </div></div></div></div></div></div></div></div></div></div></div>
+                        <div id="V03KviLe998mlSA1" style="z-index:9;"><div id="nSIZ5cdp7o84WSEb" style="box-sizing:border-box;width:100%;height:100%;"><div class="animation_container" style="width:100%;height:100%;"><div class="animated" style="width:100%;height:100%;animation:fade-RIGHT-7d8fbc3a-34a6-433b-9734-a06232c2c228 500ms 100ms both paused;"><div id="CmPtqwxuEKlbOeuJ" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;"><p id="l0D4L2DqoSes2VIl" style="color:#e9fff9;font-family:var(--bs-font-sans-serif);line-height:1.28570969em;text-shadow:0em 0.0375em 0.159375em rgba(0, 0, 0, 0.325000);"><span id="KE2M0DC0p56FV1v6" style="color:#e9fff9;">Leveraging advanced algorithms and ​user data, we ensure that you always ​find something you&#x27;ll love to watch.</span></p><p id="ozWfrfu1hFn62OZC" style="color:#e9fff9;direction:ltr;font-family:var(--bs-font-sans-serif);margin-left:0em;line-height:1.28570969em;text-transform:none;letter-spacing:0em;text-shadow:0em 0.0375em 0.159375em rgba(0, 0, 0, 0.325000);white-space:pre;"><br></p></div></div></div></div></div></div></section>-->
+                <a id="feedback" aria-hidden="true" style="visibility:hidden;"></a>
+                <section id="vTKcwKjIpmwyhG3V" style="position:relative;overflow:hidden;display:grid;align-items:center;grid-template-columns:auto 100rem auto;z-index:0;margin-top:-1px;"><div id="AP6PoH0kI04jTMpO" style="grid-area:1 / 1 / 2 / 4;display:grid;position:absolute;min-height:100%;min-width:100%;"><div id="A4G57gcwG2pxLbG7" style="z-index:0;"><div id="wNCqZihu7zy4xixy" style="box-sizing:border-box;width:100%;height:100%;transform:rotate(0deg);"><div id="Fm0TvVRvsTE5xx7M" style="width:100%;height:100%;opacity:1.0;"><div id="ZaRMHeZdbPtXkSyF" style="background-color:#ba2d0b;opacity:1.0;transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;"></div></div></div></div><div id="HP1pZUhLmHyfARNO" style="z-index:1;"><div id="LKKxqKNZtbxT3rQc" style="box-sizing:border-box;width:100%;height:100%;transform:rotate(0deg);"><div id="PdfLPnC7WIVZtiin" style="width:100%;height:100%;opacity:1.0;"><div id="ING87c3lROIWoOOO" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;"><div id="dg365Dc14lahHBIG" style="width:calc(100% * max(1, var(--scale-fill, 1)));height:calc(100% / min(1, var(--scale-fill, 1)));position:absolute;top:50%;left:50%;opacity:1.0;animation:pulse 1.5s ease-in-out infinite;">
+                    <img src="<%= asset_path('landing/6ca309dffd8311f9efcf03dedf9e1623.png') %>" loading="lazy" style="width:100%;height:100%;display:block;object-fit:cover;object-position:50% 50%;transform:translate(-50%, -50%) rotate(0deg);">
+</div></div></div></div></div></div>
+<div id="EABLS2v4Hhv6nA6A" style="display:grid;position:relative;grid-area:1 / 2 / 2 / 3;"><div id="PMhrGJAJ2PDdN6Lu" style="z-index:5;"><div id="pZ1ilJkiYvAWgpgm" style="box-sizing:border-box;width:100%;height:100%;"><div class="animation_container" style="width:100%;height:100%;"><div style="width:100%;height:100%;transform:rotate(0deg);overflow:hidden;"><div class="animated" style="width:100%;height:100%;animation:baseline-LEFT-2d35e589-feac-41fe-b9b2-8406aac8ac0e 961ms 100ms both paused;"><div id="CaOOQLXUBN51P9xV" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;"><p id="MxSDqfDOedWVFQaO" style="color:#efc81a;direction:ltr;font-family:var(--bs-font-sans-serif);margin-left:0em;line-height:1.08333333em;text-align:center;text-transform:none;letter-spacing:-0.03em;text-shadow:0em 0.0375em 0.159375em rgba(0, 0, 0, 0.325000);"><span id="dBON1pd5zOOGhEoX" style="color:#efc81a;">What Users Say</span><br></p></div></div></div></div></div></div><div id="ei466ZAeccwZCjtS" style="z-index:3;"><div id="rdNXs1ES3B0QoolU" style="padding-top:87.54597475%;"><div id="q8mXQCNyk7Sfoa3f" style="position:absolute;top:0px;left:0px;width:100%;height:100%;"><div class="animation_container" style="width:100%;height:100%;"><div style="width:100%;height:100%;transform:rotate(0deg);overflow:hidden;"><div class="animated" style="width:100%;height:100%;animation:baseline-LEFT-8138155e-a59d-403b-8ddb-0f5d9a523b99 373ms 100ms both paused;"><div id="W6Rse17Tf0gRGwhU" style="width:100%;height:100%;opacity:1.0;"><div id="ds6G04UYKRGDYqvc" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;"><div id="hd3edw4uFopSczj0" style="width:calc(100% * max(1, var(--scale-fill, 1)));height:calc(171.33854576% / min(1, var(--scale-fill, 1)));position:absolute;top:50%;left:50%;opacity:1.0;animation:pulse 1.5s ease-in-out infinite;">
+    <img src="<%= asset_path('landing/56381ebfc97d164a0c9b128e5f82816e.jpg') %>" alt="Business Portrait of Young Woman" loading="lazy" style="width:100%;height:100%;display:block;object-fit:cover;object-position:50% 50%;transform:translate(-50%, -50%) rotate(0deg);">
+    </div></div></div></div></div></div></div></div></div>
+    <div id="jjivxUQfBDyCNn58"><div id="vSqIjHUeu7K62QIW" style="display:grid;position:relative;"><div id="c2xp2zs0RxfABod3" style="z-index:7;"><div id="tKXv1skC7OBuQGus" style="box-sizing:border-box;width:100%;height:100%;"><div class="animation_container" style="width:100%;height:100%;"><div class="animated" style="width:100%;height:100%;animation:fade-LEFT-5f584226-6a9a-42df-8750-f572b5b0723f 500ms 100ms both paused;"><div id="BusMZU50Don7x9Gq" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;"><p id="LA6LG8Nct9zhNqMd" style="color:#efc81a;direction:ltr;font-family:var(--bs-font-sans-serif);margin-left:0em;line-height:1.28570969em;text-align:center;text-transform:none;letter-spacing:0em;text-shadow:0em 0.0375em 0.208125em rgba(0, 0, 0, 0.435000);"><span id="xUHO1mKAlfvpxcNw" style="color:#efc81a;font-weight:700;">Melissa Sa​nchez</span><br></p></div></div></div></div></div><div id="nPaRB4XLIOPTeuGs" style="z-index:8;"><div id="SgEQOxrxPuFCmL2Q" style="box-sizing:border-box;width:100%;height:100%;"><div class="animation_container" style="width:100%;height:100%;"><div class="animated" style="width:100%;height:100%;animation:fade-LEFT-30270226-26a4-4f79-af52-024f03c1e64c 500ms 100ms both paused;"><div id="rHsypAcMJgTXrLYk" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;"><p id="ukC2T6FHPdYePxQS" style="color:#ffffff;direction:ltr;font-family:var(--bs-font-sans-serif);margin-left:0em;line-height:1.26560918em;text-align:center;text-transform:none;letter-spacing:0em;text-shadow:0em 0.0375em 0.208125em rgba(0, 0, 0, 0.435000);"><span id="Nf4WXhQQKP6vXS3b" style="color:#ffffff;">“Cinematch gets my personality right. ​The recommendations are spot on!”</span><br></p></div></div></div></div></div></div></div><div id="y87WMjlxy5fNiDYr" style="z-index:4;"><div id="OCXkpMtEP56c4oGh" style="padding-top:87.54597475%;"><div id="p0gfQ2100srCWHAP" style="position:absolute;top:0px;left:0px;width:100%;height:100%;"><div class="animation_container" style="width:100%;height:100%;"><div style="width:100%;height:100%;transform:rotate(0deg);overflow:hidden;"><div class="animated" style="width:100%;height:100%;animation:baseline-LEFT-d241bdfd-e303-4aeb-af8a-f6d6656b226a 373ms 100ms both paused;"><div id="EI1GmuudgRWDc8cR" style="width:100%;height:100%;opacity:1.0;"><div id="S99NLD2VRBEbCt1A" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;"><div id="EklFRw3B8aDnioyy" style="width:calc(100% * max(1, var(--scale-fill, 1)));height:calc(171.33854576% / min(1, var(--scale-fill, 1)));position:absolute;top:50%;left:50%;opacity:1.0;animation:pulse 1.5s ease-in-out infinite;">
+        <img src="<%= asset_path('landing/76f32fbbd57f15e9c51b1caf545e180f.jpg') %>" alt="Studio Portrait of a Man" loading="lazy" srcset="<%= asset_path('landing/5f284e5f16fb8dbc21733b5cbdcf7391.jpg') %> 680w, <%= asset_path('landing/76f32fbbd57f15e9c51b1caf545e180f.jpg') %> 1020w" sizes="(max-width: 375px) 91.46666667vw, (min-width: 375.05px) and (max-width: 480px) 75.56473245vw, (min-width: 480.05px) and (max-width: 768px) 47.22795778vw, (min-width: 768.05px) and (max-width: 1024px) 35.42096834vw, (min-width: 1024.05px) 26.55276104vw" style="width:100%;height:100%;display:block;object-fit:cover;object-position:50% 46.07890762%;transform:translate(-50%, -46.07890762%) rotate(0deg);">
+        </div></div></div></div></div></div></div></div></div>
+        <div id="Fwh6jWNaLr8CckbW"><div id="wf2YF1gp1ISF0dTL" style="display:grid;position:relative;"><div id="Wfq3nxCKQL9DKtbc" style="z-index:10;"><div id="JcuU03QsM399pmdA" style="box-sizing:border-box;width:100%;height:100%;"><div class="animation_container" style="width:100%;height:100%;"><div class="animated" style="width:100%;height:100%;animation:fade-LEFT-69738a8d-f937-4983-b05b-61b488164fbe 500ms 100ms both paused;"><div id="tbUUSd3DvOdNkVIZ" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;"><p id="TKkcZFKyRlsIwTjp" style="color:#efc81a;direction:ltr;font-family:var(--bs-font-sans-serif);margin-left:0em;line-height:1.28570969em;text-align:center;text-transform:none;letter-spacing:0em;text-shadow:0em 0.0375em 0.208125em rgba(0, 0, 0, 0.435000);"><span id="otJBovuvxHvEkmYC" style="color:#efc81a;font-weight:700;">Michael Baker</span><br></p></div></div></div></div></div>
+        <div id="Sp9GPrl6pYR8aCah" style="z-index:11;"><div id="XHhzJTgF7tPQyn90" style="box-sizing:border-box;width:100%;height:100%;"><div class="animation_container" style="width:100%;height:100%;"><div class="animated" style="width:100%;height:100%;animation:fade-LEFT-bcd2c689-d24d-477f-b95d-07741483489f 500ms 100ms both paused;"><div id="dnqsVFEHHokoAPGZ" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;"><p id="MmDjOUhS8kyEkrv9" style="color:#ffffff;direction:ltr;font-family:var(--bs-font-sans-serif);margin-left:0em;line-height:1.26560918em;text-align:center;text-transform:none;letter-spacing:0em;text-shadow:0em 0.0375em 0.208125em rgba(0, 0, 0, 0.435000);"><span id="g2RY8IAkUGglvJbM" style="color:#ffffff;">“A game-changer for binge-watchers. ​I never run out of great shows to ​watch.”</span><br></p></div></div></div></div></div></div></div><div id="lmBNstln4JVvvgzX" style="z-index:2;"><div id="Q6EVjVoVJjweR0Fe" style="padding-top:87.54597475%;"><div id="u6O7Y7vEN1PBVz0y" style="position:absolute;top:0px;left:0px;width:100%;height:100%;"><div class="animation_container" style="width:100%;height:100%;"><div style="width:100%;height:100%;transform:rotate(0deg);overflow:hidden;"><div class="animated" style="width:100%;height:100%;animation:baseline-RIGHT-6c6dd0c3-3b1b-4103-8b92-b5b09c15a135 373ms 100ms both paused;"><div id="GXaZES1lCHaKJtIu" style="width:100%;height:100%;opacity:1.0;"><div id="u5kK7UiOPQRJkqSO" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;"><div id="fkieiJNwmqIF4LWl" style="width:calc(161.70816919% * max(1, var(--scale-fill, 1)));height:calc(123.14152243% / min(1, var(--scale-fill, 1)));position:absolute;top:50%;left:50%;opacity:1.0;animation:pulse 1.5s ease-in-out infinite;">
+            <img src="<%= asset_path('landing/8d3a7bcae790dc53d49264f4ce025f43.jpg') %>" alt="Portrait of a Young Professional" loading="lazy" srcset="<%= asset_path('landing/4433d8a0d518d62db6992a95e76aaafe.jpg') %> 864w, <%= asset_path('landing/8d3a7bcae790dc53d49264f4ce025f43.jpg') %> 1296w" sizes="(max-width: 375px) 147.90907208vw, (min-width: 375.05px) and (max-width: 480px) 122.1943454vw, (min-width: 480.05px) and (max-width: 768px) 76.37146587vw, (min-width: 768.05px) and (max-width: 1024px) 57.2785994vw, (min-width: 1024.05px) 42.93798374vw" style="width:100%;height:100%;display:block;object-fit:cover;object-position:69.0801026% 49.84867945%;transform:translate(-69.0801026%, -49.84867945%) rotate(0deg);">
+</div></div></div></div></div></div></div></div></div>
+<div id="binsoA05zffnTwJt"><div id="r2HKlSEgvjAnNlaB" style="display:grid;position:relative;"><div id="g8oSe3Me2PVZk9VZ" style="z-index:13;"><div id="Dzlf9ngzRxVnNS0M" style="box-sizing:border-box;width:100%;height:100%;"><div class="animation_container" style="width:100%;height:100%;"><div class="animated" style="width:100%;height:100%;animation:fade-RIGHT-c36d58a9-1574-4030-b2c6-3daede83eaf8 500ms 100ms both paused;"><div id="S2xxHTshwLzizC7O" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;"><p id="i9bf4PqOpUblPcS7" style="color:#efc81a;direction:ltr;font-family:var(--bs-font-sans-serif);margin-left:0em;line-height:1.28570969em;text-align:center;text-transform:none;letter-spacing:0em;text-shadow:0em 0.0375em 0.208125em rgba(0, 0, 0, 0.435000);"><span id="lXA9DREyIm8nXHhP" style="color:#efc81a;font-weight:700;">Emily Sa​nton</span><br></p></div></div></div></div></div><div id="TEGxJiJpY7pRtErU" style="z-index:14;"><div id="Fn35LPXiAg8yypZi" style="box-sizing:border-box;width:100%;height:100%;"><div class="animation_container" style="width:100%;height:100%;"><div class="animated" style="width:100%;height:100%;animation:fade-RIGHT-7dcda1e3-b699-414d-9bd9-bba58ea23b01 500ms 100ms both paused;"><div id="jHLJIOEnm6lmvwgL" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;"><p id="Y8IV45Ody3ruVaKT" style="color:#ffffff;direction:ltr;font-family:var(--bs-font-sans-serif);margin-left:0em;line-height:1.26560918em;text-align:center;text-transform:none;letter-spacing:0em;text-shadow:0em 0.0375em 0.208125em rgba(0, 0, 0, 0.435000);"><span id="CnlagPujryetVTrh" style="color:#ffffff;">“The personalized recommendations ​have introduced me to so many new ​favorites.”</span><br></p></div></div></div></div></div></div></div></div></section>
+                <a id="join-us" aria-hidden="true" style="visibility:hidden;"></a>
+                <section id="EeAxn2HqIyvLBQ0g" style="position:relative;overflow:hidden;display:grid;align-items:center;grid-template-columns:auto 100rem auto;z-index:0;margin-top:-1px;">
+                    <div id="Xck4zbATEr0i1TEl" style="grid-area:1 / 1 / 2 / 4;display:grid;position:absolute;min-height:100%;min-width:100%;">
+                        <div id="wdQS7CETuaQ2h3yY" style="z-index:0;">
+                            <div id="jHhsSYL7YeU0quwD" style="box-sizing:border-box;width:100%;height:100%;transform:rotate(0deg);">
+                                <div id="RbRm2pyZogFY7AIn" style="width:100%;height:100%;opacity:1.0;">
+                                    <div id="sKHfNxTFIwfvduQM" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;">
+                                        <svg id="RQG2Cbx4W5pPW7tt" viewBox="0 0 1366.0 768.0" preserveAspectRatio="none" style="width:100%;height:100%;position:absolute;top:0%;left:0%;background:url(&#x27;data:image/png;base64,&#x27;);">
+                                            <defs><lineargradient id="jep5hzyv2YpRKljD" gradientUnits="userSpaceOnUse" x1="0" y1="384" x2="1366" y2="384"><stop offset="0%" stop-color="#000000" stop-opacity="1"></stop><stop offset="100%" stop-color="#3533cd" stop-opacity="1"></stop></lineargradient>
+                                            </defs>
+                                            <rect id="HXjvzunym0sSD2dj" width="1366" height="768" style="fill:url(#jep5hzyv2YpRKljD);"></rect>
+                                            </svg></div></div></div></div></div>
+                                            <div id="pBJL7ipJIOAGy9pB" style="display:grid;position:relative;grid-area:1 / 2 / 2 / 3;"><div id="TaEC2WTzQR3yZIBi" style="z-index:2;"><div id="UmRhqJDry6acCyls" style="box-sizing:border-box;width:100%;height:100%;transform:rotate(0deg);"><div id="rS80hXsOdnF0FPnC" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;"><p id="GPv0WKFVDZkgT8fS" style="color:#efc81a;direction:ltr;font-family:var(--bs-font-sans-serif);margin-left:0em;line-height:1.09913983em;text-align:center;text-transform:none;letter-spacing:-0.03em;text-shadow:0em 0.0375em 0.208125em rgba(0, 0, 0, 0.435000);"><span id="S7UTvbzwDjaU8F4a" style="color:#efc81a;">Cinematch in Action</span><br></p></div></div></div><div id="E0PkPz4gaIyXwkko" style="z-index:1;"><div id="IVJeQ4ZM90XmhogB" style="padding-top:56.25%;transform:rotate(0deg);"><div id="v0AkT2etUOAV2iSt" style="position:absolute;top:0px;left:0px;width:100%;height:100%;"><div id="rstkaPVGtpPqfNrI" style="width:100%;height:100%;opacity:1.0;"><div id="IaplmKFaI755WqNM" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;"><div id="ji8gNhkRUnxZeSBX" style="width:calc(100% * max(1, var(--scale-fill, 1)));height:calc(100% / min(1, var(--scale-fill, 1)));position:absolute;top:50%;left:50%;opacity:1.0;animation:pulse 1.5s ease-in-out infinite;">
+                    <img src="<%= asset_path('landing/52a997a4468db039b15fc5c5f4476707.jpg') %>" alt="web video player." loading="lazy" srcset="<%= asset_path('landing/871f5161a7da62c7a3a8649a19761e8f.jpg') %> 1067w, <%= asset_path('landing/52a997a4468db039b15fc5c5f4476707.jpg') %> 1601w" sizes="(max-width: 375px) 91.46666667vw, (min-width: 375.05px) and (max-width: 480px) 93.33333333vw, (min-width: 480.05px) and (max-width: 768px) 91.66666667vw, (min-width: 768.05px) and (max-width: 1024px) 86.74498035vw, (min-width: 1024.05px) 65.02698381vw" style="width:100%;height:100%;display:block;object-fit:cover;object-position:50% 50%;transform:translate(-50%, -50%) rotate(0deg);">
+</div></div></div></div></div></div></div></section>
+                <a id="contact" aria-hidden="true" style="visibility:hidden;"></a>
+                <section id="vZLFUEA2H3dTmUCH" style="position:relative;overflow:hidden;display:grid;align-items:center;grid-template-columns:auto 100rem auto;z-index:0;margin-top:-1px;"><div id="yY77kleyX2EGthR4" style="grid-area:1 / 1 / 2 / 4;display:grid;position:absolute;min-height:100%;min-width:100%;"><div id="nkHbSVeM781YCoKl" style="z-index:0;"><div id="BtbUwpdbbSIlHqDK" style="box-sizing:border-box;width:100%;height:100%;transform:rotate(0deg);"><div id="ErekvCyfjYXDwhzY" style="width:100%;height:100%;opacity:1.0;"><div id="IlKot1sh0UyADJFr" style="background-color:#2b2d42;opacity:1.0;transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;"></div></div></div></div></div><div id="XVPiKyxY8yBjfZKD" style="display:grid;position:relative;grid-area:1 / 2 / 2 / 3;"><div id="MhabO9RNNthzBKCo"><div id="zb0DqvK7l9kV9dst" style="display:grid;position:relative;grid-area:2 / 2 / 3 / 3;"><div id="ioTa0eLLsfrvuGL6" style="z-index:1;"><div id="LaWx8VdHL1ReU0yd" style="box-sizing:border-box;width:100%;height:100%;transform:rotate(0deg);"><div id="fbMs00VXMFyqgndM" style="width:100%;height:100%;opacity:1.0;"><div id="tAg1MY47nbxAPsi6" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;"><div id="hu01N6u5Q07AzVQu" style="width:calc(100% * max(1, var(--scale-fill, 1)));height:calc(100% / min(1, var(--scale-fill, 1)));position:absolute;top:50%;left:50%;opacity:1.0;animation:pulse 1.5s ease-in-out infinite;">
+                    <img src="<%= asset_path('landing/4a2553e5c1a52b8ec93fd54140badd4e.png') %>" loading="lazy" style="width:100%;height:100%;display:block;object-fit:cover;object-position:50% 50%;transform:translate(-50%, -50%) rotate(0deg);">
+                    </div></div></div></div></div>
+                    <div id="AKySoh47WoAA5yvY" style="z-index:9;"><div id="RzsWpS8GBshkHFut" style="box-sizing:border-box;width:100%;height:100%;transform:rotate(0deg);"><div id="ljFOa6CKrET9Gm8q" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;"><p id="kfEYgoJfoh4HQILr" style="color:#efc81a;font-family:var(--bs-font-sans-serif);line-height:1.0991384em;text-align:center;letter-spacing:-0.03em;text-shadow:0em 0.0375em 0.208125em rgba(0, 0, 0, 0.435000);"><span id="fnfuuJ74DivbBsZy" style="color:#efc81a;">Ready to Discover </span></p><p id="AhGKhoNpksahD0zS" style="color:#efc81a;direction:ltr;font-family:var(--bs-font-sans-serif);margin-left:0em;line-height:1.0991384em;text-align:center;text-transform:none;letter-spacing:-0.03em;text-shadow:0em 0.0375em 0.208125em rgba(0, 0, 0, 0.435000);"><span id="TtY8YYqdshfz4jxR" style="color:#efc81a;">Your Next Favorite Movie?</span><br></p></div></div></div><div id="K3xlrcjRsGXjkDbB" style="display:grid;position:relative;"><div id="YVRYCVrbx8HxTGOg" style="display:grid;position:relative;grid-area:2 / 2 / 3 / 3;"><div id="KVHYX6lPxVuceTiz" style="z-index:3;"><div id="V51U1RGrjPtELNDm" style="padding-top:23.27272727%;"><div id="LfMxm9dJEX6dsvY5" style="position:absolute;top:0px;left:0px;width:100%;height:100%;"><div class="animation_container" style="width:100%;height:100%;"><div class="animated" style="width:100%;height:100%;animation:pop-LEFT-bfda37dc-e30e-4139-87c7-ec150eda19f3 500ms 100ms both paused;"><div id="ZL1AETP6xq2XGqLD" style="width:100%;height:100%;opacity:1.0;"><div id="JtliRbFujzmMRbjx" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;"><div id="fZHRYHUsbACAXka5" style="width:calc(100% * max(1, var(--scale-fill, 1)));height:calc(100% / min(1, var(--scale-fill, 1)));position:absolute;top:50%;left:50%;opacity:1.0;animation:pulse 1.5s ease-in-out infinite;">
+                        <img src="<%= asset_path('landing/ca6867c2a1823b985a52bdb229601796.svg') %>" alt="Gradient Button Shape" loading="lazy" style="width:100%;height:100%;display:block;object-fit:cover;object-position:50% 50%;transform:translate(-50%, -50%) rotate(0deg);">
+                        </div></div></div></div></div></div></div></div>
+                        <div id="SxcNNmIZpoZktcvm" style="z-index:4;"><div id="zd9C8CbG13QAl9yy" style="box-sizing:border-box;width:100%;height:100%;"><div class="animation_container" style="width:100%;height:100%;"><div class="animated" style="width:100%;height:100%;animation:pop-RIGHT-d7b77d96-1452-4162-8dc6-490548c1fd7a 806ms 100ms both paused;"><div id="K63aZCMOYIWxqGOI" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;"><p id="onjbUuf9NrcxH7u1" style="color:#ba2d0b;font-family:var(--bs-font-sans-serif);line-height:1.17857248em;text-align:center;text-transform:uppercase;letter-spacing:0.04em;"><span id="SFoUD96UgzimMLyB" style="color:#ba2d0b;font-weight:700;">GET STARTED</span></p></div></div></div></div></div></div></div><div id="ryMerov4qPoH9smb" style="z-index:5;"><div id="skLQiACibMUQUu3t" style="padding-top:26.63043478%;transform:rotate(0deg);"><div id="zzs7FGJD96fQyNUl" style="position:absolute;top:0px;left:0px;width:100%;height:100%;"><div id="p9whqy3GPQO1vumu" style="width:100%;height:100%;opacity:1.0;"><div id="Wcl32OfjEjf2loUq" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;"><div id="FNLXTGpIXRw48WkN" style="width:calc(100% * max(1, var(--scale-fill, 1)));height:calc(100% / min(1, var(--scale-fill, 1)));position:absolute;top:50%;left:50%;opacity:1.0;animation:pulse 1.5s ease-in-out infinite;">
+                            <img src="<%= asset_path('logos/cm_logo1_mint.svg') %>" loading="lazy" style="width:100%;height:100%;display:block;object-fit:cover;object-position:50% 50%;transform:translate(-50%, -50%) rotate(0deg);">
+                            </div></div></div></div></div></div>
+                            <div id="f9U99p4N9Pk58914" style="z-index:10;"><div id="gGFbI1ME12Mf6Y1T" style="box-sizing:border-box;width:100%;height:100%;transform:rotate(0deg);"><div id="CZh48iPmKKJPNLHx" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;"><p id="eQVNLm1uHW4c3HlV" style="color:#e9fff9;direction:ltr;font-family:var(--bs-font-sans-serif);margin-left:0em;line-height:1.28571199em;text-align:left;text-transform:none;letter-spacing:0em;text-shadow:0em 0.0375em 0.208125em rgba(0, 0, 0, 0.435000);"><span id="F5Nm9rxU2SVP013J" style="color:#e9fff9;">© 2024 Cinematch. All Rights Reserved.</span><br></p></div></div></div><div id="ZZ25bO53cpxfJhz5" style="display:grid;position:relative;"><div id="AOTzD7ZV6P8Qe9Qq" style="z-index:7;"><div id="cKuTy7Lu0qj4hNYE" style="box-sizing:border-box;width:100%;height:100%;"><div class="animation_container" style="width:100%;height:100%;"><div style="width:100%;height:100%;transform:rotate(0deg);overflow:hidden;"><div class="animated" style="width:100%;height:100%;animation:baseline-RIGHT-a735ae0c-6d5c-4c5d-a26f-ce37d5b7df5b 925ms 100ms both paused;"><div id="FsEOKhUInVnr5Md1" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;"><p id="VVECFcgAz6khWhWA" style="color:#e9fff9;direction:ltr;font-family:var(--bs-font-sans-serif);margin-left:0em;line-height:1.08333333em;text-transform:none;letter-spacing:-0.03em;text-shadow:0em 0.0375em 0.208125em rgba(0, 0, 0, 0.435000);"><span id="Ap7JKVfWlZmeO7l4" style="color:#e9fff9;">Questions?</span><br></p></div></div></div></div></div></div><div id="O4QxoUheJhWqp1Ij" style="z-index:8;"><div id="qa8R88daDrixJE4s" style="box-sizing:border-box;width:100%;height:100%;"><div class="animation_container" style="width:100%;height:100%;"><div class="animated" style="width:100%;height:100%;animation:fade-RIGHT-c75012dd-17af-48b3-b495-ebeffc414fb0 500ms 100ms both paused;"><div id="eR0nPm0rgrQxgegY" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;"><p id="Tc1S61oLqw4nLH3Q" style="color:#e9fff9;direction:ltr;font-family:var(--bs-font-sans-serif);margin-left:0em;line-height:1.28570969em;text-align:left;text-transform:none;letter-spacing:0em;"><span id="fexi9Zf2wysa61DB" style="color:#e9fff9;">alex@aborovikov.com</span><br></p></div></div></div></div></div></div></div></div></div></section>
+                
