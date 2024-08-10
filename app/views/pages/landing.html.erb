@@ -209,15 +209,15 @@
         </div>
     </div>
 </section>
-<a id="page-3" aria-hidden="true" style="visibility:hidden;"></a>
-<section class="entertainment-section">
+<a id="personal" aria-hidden="true" style="visibility:hidden;"></a>
+<section id="b2n9tHi2xH43AAzO" class="entertainment-section">
   <div class="content-wrapper">
-    <h2 class="heading">
+    <h2 class="heading animate-on-scroll" data-animation="baseline">
       Entertainment<br>Made Personal
     </h2>
-    <img src="<%= asset_path('landing/laptop.png') %>" alt="Laptop showcasing entertainment" class="laptop-image">
-    <img src="<%= asset_path('landing/iphone.png') %>" alt="iPhone showcasing entertainment" class="iphone-image">
-    <p class="description">
+    <img src="<%= asset_path('landing/laptop.png') %>" alt="Laptop showcasing entertainment" class="laptop-image animate-on-scroll" data-animation="slide-right">
+    <img src="<%= asset_path('landing/iphone.png') %>" alt="iPhone showcasing entertainment" class="iphone-image animate-on-scroll" data-animation="slide-left">
+    <p class="description animate-on-scroll" data-animation="slide-left">
       Leveraging advanced algorithms and<br>
       user data, we ensure that you always<br>
       find something you'll love to watch.
@@ -227,13 +227,24 @@
 
 <style>
   .entertainment-section {
-    background: linear-gradient(to bottom left, #efc81a, #ba2d0b);
+    position: relative;
     aspect-ratio: 16 / 9;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 2rem;
     overflow: hidden;
+  }
+
+  .entertainment-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom left, #efc81a, #efc81a 20%, #ba2d0b 40%, #ba2d0b);
+    z-index: -1;
   }
 
   .content-wrapper {
@@ -247,7 +258,7 @@
     position: absolute;
     top: 10%;
     left: 10%;
-    font-size: clamp(2rem, 5vw, 4rem);
+    font-size: clamp(3rem, 5vw, 4rem);
     line-height: 1.2;
     color: #e9fff9;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
@@ -264,7 +275,7 @@
   .iphone-image {
     position: absolute;
     top: 10%;
-    right: 15%;
+    right: 20%;
     width: 18%;
     max-width: 250px;
   }
@@ -272,12 +283,12 @@
   .description {
     position: absolute;
     bottom: 5%;
-    right: 10%;
-    font-size: clamp(1rem, 1.75vw, 1.5rem);
+    left: 60%;
+    font-size: 1.5rem;
     line-height: 1.5;
     color: #e9fff9;
     text-align: left;
-    max-width: 30%;
+    max-width: 45%;
   }
 
   @media (max-width: 1024px) {
@@ -303,7 +314,6 @@
 
     .heading {
       text-align: center;
-      font-size: clamp(2rem, 8vw, 3.5rem);
     }
 
     .laptop-image {
@@ -319,92 +329,59 @@
     .description {
       text-align: center;
       max-width: 100%;
-      font-size: clamp(1rem, 3vw, 1.25rem);
+      font-size: 2.5rem;
     }
   }
+
+  @media (max-width: 768px) {
+    .description {
+      font-size: 2rem;
+    }
+  }
+
+  /* Animation styles */
+  .animate-on-scroll {
+    opacity: 0;
+    transition: opacity 1s ease-out, transform 1s ease-out;
+  }
+
+  .animate-on-scroll.slide-right {
+    transform: translateX(-100px);
+  }
+
+  .animate-on-scroll.slide-left {
+    transform: translateX(100px);
+  }
+
+  .animate-on-scroll.baseline {
+    transform: translateY(20px);
+  }
+
+  .animate-on-scroll.animated {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
 </style>
-    
-    <!--<section id="b2n9tHi2xH43AAzO" style="position:relative;overflow:hidden;display:grid;align-items:center;grid-template-columns:auto 100rem auto;z-index:0;margin-top:-1px;">
-    <div id="ComZ3gGGHLZtHLMO" style="grid-area:1 / 1 / 2 / 4;display:grid;position:absolute;min-height:100%;min-width:100%;">
-    <div id="Yv90Wp3MgJbKPnjn" style="z-index:0;">
-      <div id="PVsNCg9Y73mcgveA" style="box-sizing:border-box;width:100%;height:100%;transform:rotate(0deg);">
-        <div id="LDVKaeNtYW7qmF98" style="width:100%;height:100%;opacity:1.0;">
-          <div id="rFHzvNTwpWfs70Sb" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;">
-            <svg id="sYwSRzvthgstsgEg" viewBox="0 0 1366.0 768.0" preserveAspectRatio="none" style="width:100%;height:100%;position:absolute;top:0%;left:0%;">
-              <defs>
-                <lineargradient id="MYaULE25DhJOFod2" gradientUnits="userSpaceOnUse" x1="0" y1="384" x2="1366" y2="384">
-                  <stop offset="0%" stop-color="#5de0e6" stop-opacity="1"></stop>
-                  <stop offset="100%" stop-color="#004aad" stop-opacity="1"></stop>
-                </lineargradient>
-              </defs>
-              <rect id="jKBk9BUROcsyFWJl" width="1366" height="768" style="fill:url(#MYaULE25DhJOFod2);"></rect>
-            </svg>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div id="tzkPtQAVYnK1q6kt" style="display:grid;position:relative;grid-area:1 / 2 / 2 / 3;">
-    <div id="GPw34bmfq2ouWT2K" style="z-index:8;">
-      <div id="zI4LIxjNRRebZuCO" style="box-sizing:border-box;width:100%;height:100%;">
-        <div class="animation_container" style="width:100%;height:100%;">
-          <div style="width:100%;height:100%;transform:rotate(0deg);overflow:hidden;">
-            <div class="animated" style="width:100%;height:100%;animation:baseline-LEFT-07773dbc-69ba-41bd-aa1b-90c84cf0607e 980ms 100ms both paused;">
-              <div id="EfPU4ZCMzkMtjTRO" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
-                <p id="Lr5gtx9nrcwqngUi" style="color:#e9fff9;direction:ltr;font-family:var(--bs-font-sans-serif);margin-left:0em;line-height:1em;letter-spacing:-0.03em;text-shadow:0em 0.0375em 0.159375em rgba(0, 0, 0, 0.325000);">
-                  <span id="Uw45ixPhfZfr7Idn" style="color:#e9fff9;">Entertainment ​Made Personal</span><br>
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div id="Zxra0GiyXnTV2aqg">
-        <div id="SnEeZLjCjFNrN2kt" style="display:grid;position:relative;">
-          <div id="KdwqcCiF05b3ys4u" style="display:grid;position:relative;grid-area:2 / 2 / 3 / 3;">
-            <div id="sP4afGWMol7R0s3d" style="z-index:3;">
-              <div id="cLO3VpM3ctBDSBFU" style="box-sizing:border-box;width:100%;height:100%;">
-                <div class="animation_container" style="width:100%;height:100%;">
-                  <div class="animated" style="width:100%;height:100%;animation:pan-LEFT-3a97a2c9-70ba-418c-8f44-bdbb5feeafbe 1000ms 100ms both paused, linear_fade 400ms linear both paused;">
-                    <div id="gElmPCuYVWb0i5MP" style="width:100%;height:100%;opacity:1.0;">
-                      <div id="JIrcQSvxYJOy1xqj" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;">
-                        <div id="OllBzLlp9tSTonso" style="width:calc(100% * max(1, var(--scale-fill, 1)));height:calc(100% / min(1, var(--scale-fill, 1)));position:absolute;top:50%;left:50%;opacity:1.0;animation:pulse 1.5s ease-in-out infinite;">
-                          <img src="<%#= asset_path('landing/75111f89e489db7b76657774af4f861d.png') %>" alt="Computer Laptop" loading="lazy" srcset="<%= asset_path('landing/c68022513fdb011bea8262620d1d0f3d.png') %> 914w, <%= asset_path('landing/75111f89e489db7b76657774af4f861d.png') %> 1371w" sizes="(max-width: 375px) 91.46666667vw, (min-width: 375.05px) and (max-width: 480px) 93.33333333vw, (min-width: 480.05px) and (max-width: 768px) 75.88086204vw, (min-width: 768.05px) and (max-width: 1024px) 56.91064653vw, (min-width: 1024.05px) 42.66215377vw" style="width:100%;height:100%;display:block;object-fit:cover;object-position:50% 50%;transform:translate(-50%, -50%) rotate(0deg);">
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-                            <div id="y7iehti4L656BVB1" style="z-index:2;">
-                                <div id="hctnWqI2JTClJJI0" style="padding-top:64.33333333%;">
-                                    <div id="hth40MhtfjpAVUUp" style="position:absolute;top:0px;left:0px;width:100%;height:100%;">
-                                        <div class="animation_container" style="width:100%;height:100%;">
-                                            <div class="animated" style="width:100%;height:100%;animation:pan-LEFT-f65cf0b2-a55b-402c-b806-0da8f17e68dc 1000ms 100ms both paused, linear_fade 400ms linear both paused;">
-                                                <div id="sgprWnHVts6gFQ2o" style="width:100%;height:100%;opacity:1.0;">
-                                                    <div id="vJUOwKbfriLPtYbE" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;">
-                                                        <div id="dVxRSjfsOcS9o2iq" style="width:calc(100% * max(1, var(--scale-fill, 1)));height:calc(100% / min(1, var(--scale-fill, 1)));position:absolute;top:50%;left:50%;opacity:1.0;animation:pulse 1.5s ease-in-out infinite;">
-                                <img src="<%#= asset_path('landing/370195dc9d72fe0e7217b9d5810284cd.png') %>" loading="lazy" srcset="<%= asset_path('landing/c7d1b4798d0d689c71434eda91f47b19.png') %> 588w, <%= asset_path('landing/370195dc9d72fe0e7217b9d5810284cd.png') %> 881w" sizes="(max-width: 375px) 78.66666667vw, (min-width: 375.05px) and (max-width: 480px) 83.33333333vw, (min-width: 480.05px) and (max-width: 768px) 54.17171488vw, (min-width: 768.05px) and (max-width: 1024px) 40.62878616vw, (min-width: 1024.05px) 30.45671818vw" style="width:100%;height:100%;display:block;object-fit:cover;object-position:50% 50%;transform:translate(-50%, -50%) rotate(0deg);">
-</div></div></div></div></div></div></div></div></div></div></div>
-<div id="lAlXMsKFf1L8RKFk"><div id="AManvtmrZ5awcwRW" style="display:grid;position:relative;"><div id="GVWmXXLE1ELmGXLK" style="display:grid;position:relative;grid-area:2 / 2 / 3 / 3;"><div id="CkYf3fRC8g3BDVxo" style="z-index:7;"><div id="L1BnG6UQtHjs1vqN" style="padding-top:199.50124688%;"><div id="tAgpQSsxe0YIZ9Py" style="position:absolute;top:0px;left:0px;width:100%;height:100%;"><div class="animation_container" style="width:100%;height:100%;"><div class="animated" style="width:100%;height:100%;animation:pan-RIGHT-426d13fe-5d5d-4627-b55e-188c447fe329 1000ms 100ms both paused, linear_fade 400ms linear both paused;"><div id="SZxxt5Wy8gyuYKGc" style="width:100%;height:100%;opacity:1.0;"><div id="t7d48eOmkwx2gHHN" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;"><div id="D1AptoSXM4ppHSbz" style="width:calc(100% * max(1, var(--scale-fill, 1)));height:calc(100% / min(1, var(--scale-fill, 1)));position:absolute;top:50%;left:50%;opacity:1.0;animation:pulse 1.5s ease-in-out infinite;">
-    <img src="<%#= asset_path('landing/7a5482a84882e89bedf02b933e5a70a7.svg') %>" alt="Realistic smartphone mockup. Realistic phone illustration. Realistic templates of modern smartphone. Vector phone mockup set. Smart device mockup. Vector" loading="lazy" style="width:100%;height:100%;display:block;object-fit:cover;object-position:50% 50%;transform:translate(-50%, -50%) rotate(0deg);">
-</div></div></div></div></div></div></div></div>
-<div id="QceViyM9pRztZ17t" style="z-index:5;">
-    <div id="WPFFxeEz11jl78EX" style="padding-top:36.83772109%;">
-        <div id="sfRuX8mkgFDk1OYr" style="position:absolute;top:0px;left:0px;width:100%;height:100%;"><div class="animation_container" style="width:100%;height:100%;"><div class="animated" style="width:100%;height:100%;animation:pan-RIGHT-69475b10-3101-4ae0-aa93-66fa494f1988 1000ms 100ms both paused, linear_fade 400ms linear both paused;">
-    <svg id="PqZBIY0ykoMXo6ro" viewBox="0 0 58.9978 21.7334" style="width:100%;height:100%;opacity:1.0;overflow:hidden;position:absolute;top:0%;left:0%;background:url(&#x27;data:image/png;base64,&#x27;);">
-        <g id="ykL1kFLphqkVYdUc" style="transform:scale(1, 1);">
-            <path id="VBiM2OLfOTm2pHQa" d="M10.00000119,0 L48.9977901,0 C54.52063826,0 58.99779129,4.47715304 58.99779129,10.00000119 L58.99779129,11.73344112 C58.99779129,14.38560633 57.94422276,16.92914576 56.06885875,18.80450977 54.19349475,20.67987378 51.64995531,21.73344231 48.9977901,21.73344231 L10.00000119,21.73344231 C4.47715303,21.73344231 0,17.25628927 0,11.73344112 L0,10.00000119 C0,4.47715303 4.47715304,0 10.00000119,0 Z" style="fill:#2b2d42;opacity:1.0;"></path>
-            </g>
-            </svg></div></div></div></div></div>
-            <div id="cP6MLYosppHyC1Fh" style="z-index:6;">
-                <div id="XL6O6zH3IIDdmb0w" style="padding-top:206.6325145%;">
-                    <div id="fZw7oVyykzZXPHYp" style="position:absolute;top:0px;left:0px;width:100%;height:100%;"><div class="animation_container" style="width:100%;height:100%;"><div class="animated" style="width:100%;height:100%;animation:pan-RIGHT-55774bc1-231d-4100-8c58-2c14537e7eaa 1000ms 100ms both paused, linear_fade 400ms linear both paused;"><div id="JB7hKc4GLKEqAMMU" style="width:100%;height:100%;opacity:1.0;"><div id="bFSN1yt9egXchKYI" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;"><div id="zjV1luk8rSSa7uDs" style="width:calc(100% * max(1, var(--scale-fill, 1)));height:calc(105.39653243% / min(1, var(--scale-fill, 1)));position:absolute;top:50%;left:50%;opacity:1.0;animation:pulse 1.5s ease-in-out infinite;">
-                        <img src="<%#= asset_path('landing/21f6aa65444a85d941fd8d268671d0fd.png') %>" loading="lazy" style="width:100%;height:100%;display:block;object-fit:cover;object-position:50% 47.4398909%;transform:translate(-50%, -47.4398909%) rotate(0deg);">
-                        </div></div></div></div></div></div></div></div></div></div></div>
-                        <div id="V03KviLe998mlSA1" style="z-index:9;"><div id="nSIZ5cdp7o84WSEb" style="box-sizing:border-box;width:100%;height:100%;"><div class="animation_container" style="width:100%;height:100%;"><div class="animated" style="width:100%;height:100%;animation:fade-RIGHT-7d8fbc3a-34a6-433b-9734-a06232c2c228 500ms 100ms both paused;"><div id="CmPtqwxuEKlbOeuJ" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;"><p id="l0D4L2DqoSes2VIl" style="color:#e9fff9;font-family:var(--bs-font-sans-serif);line-height:1.28570969em;text-shadow:0em 0.0375em 0.159375em rgba(0, 0, 0, 0.325000);"><span id="KE2M0DC0p56FV1v6" style="color:#e9fff9;">Leveraging advanced algorithms and ​user data, we ensure that you always ​find something you&#x27;ll love to watch.</span></p><p id="ozWfrfu1hFn62OZC" style="color:#e9fff9;direction:ltr;font-family:var(--bs-font-sans-serif);margin-left:0em;line-height:1.28570969em;text-transform:none;letter-spacing:0em;text-shadow:0em 0.0375em 0.159375em rgba(0, 0, 0, 0.325000);white-space:pre;"><br></p></div></div></div></div></div></div></section>-->
-                <a id="feedback" aria-hidden="true" style="visibility:hidden;"></a>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const animatedElements = document.querySelectorAll('.animate-on-scroll');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        setTimeout(() => {
+          entry.target.classList.add('animated');
+        }, 100);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.2 });
+
+  animatedElements.forEach(el => observer.observe(el));
+});
+</script>
+<a id="feedback" aria-hidden="true" style="visibility:hidden;"></a>
                 <section id="vTKcwKjIpmwyhG3V" style="position:relative;overflow:hidden;display:grid;align-items:center;grid-template-columns:auto 100rem auto;z-index:0;margin-top:-1px;"><div id="AP6PoH0kI04jTMpO" style="grid-area:1 / 1 / 2 / 4;display:grid;position:absolute;min-height:100%;min-width:100%;"><div id="A4G57gcwG2pxLbG7" style="z-index:0;"><div id="wNCqZihu7zy4xixy" style="box-sizing:border-box;width:100%;height:100%;transform:rotate(0deg);"><div id="Fm0TvVRvsTE5xx7M" style="width:100%;height:100%;opacity:1.0;"><div id="ZaRMHeZdbPtXkSyF" style="background-color:#ba2d0b;opacity:1.0;transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;"></div></div></div></div><div id="HP1pZUhLmHyfARNO" style="z-index:1;"><div id="LKKxqKNZtbxT3rQc" style="box-sizing:border-box;width:100%;height:100%;transform:rotate(0deg);"><div id="PdfLPnC7WIVZtiin" style="width:100%;height:100%;opacity:1.0;"><div id="ING87c3lROIWoOOO" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;"><div id="dg365Dc14lahHBIG" style="width:calc(100% * max(1, var(--scale-fill, 1)));height:calc(100% / min(1, var(--scale-fill, 1)));position:absolute;top:50%;left:50%;opacity:1.0;animation:pulse 1.5s ease-in-out infinite;">
                     <img src="<%= asset_path('landing/6ca309dffd8311f9efcf03dedf9e1623.png') %>" loading="lazy" style="width:100%;height:100%;display:block;object-fit:cover;object-position:50% 50%;transform:translate(-50%, -50%) rotate(0deg);">
 </div></div></div></div></div></div>
