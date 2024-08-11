@@ -1,9 +1,11 @@
 Rails.application.routes.draw do
+  get 'pages/landing'
   devise_for :users, controllers: {
-            registrations: "users/registrations",
-          }
+                       registrations: "users/registrations",
+                     }
 
-  root to: "recommendations#index"
+  root to: "pages#landing"
+  # root to: "recommendations#index"
 
   resources :users, only: [:show, :edit, :update] do
     member do
@@ -12,7 +14,8 @@ Rails.application.routes.draw do
   end
 
   resources :surveys, only: [:index, :create]
-  # resources :survey_responses, only: [:index, :create]
   resources :user_preferences, only: [:edit, :update]
   resources :recommendations, only: [:index, :show]
+
+
 end

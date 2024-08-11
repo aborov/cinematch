@@ -5,7 +5,6 @@ import jquery from "jquery"
 window.jQuery = jquery
 window.$ = jquery
 
-// Bootstrap JS
 import * as bootstrap from "bootstrap"
 window.bootstrap = bootstrap
 
