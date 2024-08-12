@@ -587,7 +587,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="content-wrapper">
     <h2 class="section-title">Cinematch in Action</h2>
     <div class="video-container">
-      <img src="<%= asset_path('landing/52a997a4468db039b15fc5c5f4476707.jpg') %>" alt="Video placeholder" class="video-placeholder">
+      <iframe width="100%" height="100%" src="https://www.youtube.com/embed/PIfEJnWJzdc?si=rd7bBrzOf7ZYnv_W" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen class="video-placeholder"></iframe>
     </div>
   </div>
 </section>
@@ -621,15 +621,14 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   .video-container {
-    width: 65%;
+    width: 70%;
+    height: 100%;
     max-width: 900px;
-    margin-top: 2rem;
-    margin-bottom: 2rem; /* Adding padding underneath */
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem; /* Adding padding underneath */
   }
 
   .video-placeholder {
-    width: 100%;
-    height: auto;
     display: block;
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.3);
@@ -637,7 +636,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
   @media (max-width: 1024px) {
     .video-container {
-      width: 90%;
+      width: 80%;
+      height: 100%;
     }
   }
 
