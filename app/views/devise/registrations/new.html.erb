@@ -51,9 +51,15 @@
               <small id="passwordConfirmationHelp" class="form-text text-muted"></small>
             </div>
 
-            <div class="d-flex justify-content-between">
-              <%= link_to "Back", new_user_session_path, class: "btn btn-secondary" %>
-              <%= f.submit "Sign Up", class: "btn btn-primary" %>
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="d-flex">
+                <%= link_to "Back", new_user_session_path, class: "btn btn-secondary me-2" %>
+                <%= f.submit "Sign Up", class: "btn btn-primary" %>
+              </div>
+              <div class="d-flex align-items-center">
+                <p class="mb-0 me-2">Already a user?</p>
+                <%= link_to "Sign In", new_user_session_path, class: "btn btn-outline-primary" %>
+              </div>
             </div>
           <% end %>
         </div>
@@ -63,22 +69,24 @@
 </div>
 
 <script>
-  document.addEventListener('turbolinks:load', () => {
+  document.addEventListener('turbo:load', () => {
     const password = document.getElementById('password');
     const passwordConfirmation = document.getElementById('password_confirmation');
     const passwordConfirmationHelp = document.getElementById('passwordConfirmationHelp');
 
     function validatePassword() {
-      if (password.value !== passwordConfirmation.value) {
-        passwordConfirmationHelp.textContent = 'Passwords do not match';
-        passwordConfirmationHelp.style.color = 'red';
-      } else {
-        passwordConfirmationHelp.textContent = 'Passwords match';
-        passwordConfirmationHelp.style.color = 'green';
-      }
+        if (password.value !== passwordConfirmation.value) {
+            passwordConfirmationHelp.textContent = 'Passwords do not match';
+            passwordConfirmationHelp.style.color = 'red';
+        } else {
+            passwordConfirmationHelp.textContent = 'Passwords match';
+            passwordConfirmationHelp.style.color = 'green';
+        }
     }
 
-    password.addEventListener('input', validatePassword);
-    passwordConfirmation.addEventListener('input', validatePassword);
-  });
+    if (password && passwordConfirmation) {
+        password.addEventListener('input', validatePassword);
+        passwordConfirmation.addEventListener('input', validatePassword);
+    }
+});
 </script>
