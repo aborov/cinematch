@@ -24,6 +24,7 @@ class UserPreferencesController < ApplicationController
 
   def set_user_preference
     @user_preference = current_user.user_preference || current_user.build_user_preference
+    authorize @user_preference, :manage?
   end
 
   def user_preference_params
