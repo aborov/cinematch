@@ -1,7 +1,7 @@
 :root {
   --ffsd: 0px;
-  --1vw: calc((100vw - var(--sbw, 0px)) / 100);
-  --1vh: var(--inner1Vh, 1vh);
+  --one-vw: calc((100vw - var(--sbw, 0px)) / 100);
+  --one-vh: var(--inner1Vh, 1vh);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -12,7 +12,7 @@
 
 html {
   zoom: var(--rzf, 1);
-  font-size: max(calc(min(var(--1vw, 1vw), 13.66px) * var(--rfso, 1)), var(--minfs, 0px));
+  font-size: max(calc(min(var(--one-vw, 1vw), 13.66px) * var(--rfso, 1)), var(--minfs, 0px));
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
 }
@@ -413,7 +413,7 @@ img {
   }
 
   #fiLWd6QhEzc9YQdP {
-    min-height: calc(13.22236093 * var(--1vh, 1vh));
+    min-height: calc(13.22236093 * var(--one-vh, 1vh));
   }
 
   #sXXA9s6XHTvuNsHO {
@@ -591,7 +591,7 @@ img {
   }
 
   #FslDVpO0RsEmphHE {
-    min-height: calc(11.87849322 * var(--1vh, 1vh));
+    min-height: calc(11.87849322 * var(--one-vh, 1vh));
   }
 
   #qlHJZY6LvZGVqA3B {
@@ -712,7 +712,7 @@ img {
   }
 
   #BpaIJf3d3y696i2e {
-    min-height: calc(22.16279904 * var(--1vh, 1vh));
+    min-height: calc(22.16279904 * var(--one-vh, 1vh));
   }
 
   #wBvUKO7E5FZCKqXC {
@@ -931,7 +931,7 @@ img {
   }
 
   #pqbo2joFeIg7NxIJ {
-    min-height: calc(30.0900718 * var(--1vh, 1vh));
+    min-height: calc(30.0900718 * var(--one-vh, 1vh));
   }
 
   #WHMs96BZ5rdLwHCc {
@@ -977,7 +977,7 @@ img {
   }
 
   #jo0WXGTH75afaB8h {
-    min-height: calc(8.46354049 * var(--1vh, 1vh));
+    min-height: calc(8.46354049 * var(--one-vh, 1vh));
   }
 
   #REzSOYimeq6lu8Ud {
@@ -1150,7 +1150,7 @@ img {
   }
 
   #jhj47RR5nleJUggU {
-    min-height: calc(14.18273452 * var(--1vh, 1vh));
+    min-height: calc(14.18273452 * var(--one-vh, 1vh));
   }
 }
 
@@ -1262,7 +1262,7 @@ img {
   }
 
   #fiLWd6QhEzc9YQdP {
-    min-height: calc(13.17886883 * var(--1vh, 1vh));
+    min-height: calc(13.17886883 * var(--one-vh, 1vh));
   }
 
   #sXXA9s6XHTvuNsHO {
@@ -1440,7 +1440,7 @@ img {
   }
 
   #FslDVpO0RsEmphHE {
-    min-height: calc(12.31740081 * var(--1vh, 1vh));
+    min-height: calc(12.31740081 * var(--one-vh, 1vh));
   }
 
   #qlHJZY6LvZGVqA3B {
@@ -1561,7 +1561,7 @@ img {
   }
 
   #BpaIJf3d3y696i2e {
-    min-height: calc(22.41302519 * var(--1vh, 1vh));
+    min-height: calc(22.41302519 * var(--one-vh, 1vh));
   }
 
   #wBvUKO7E5FZCKqXC {
@@ -1780,7 +1780,7 @@ img {
   }
 
   #pqbo2joFeIg7NxIJ {
-    min-height: calc(28.73734194 * var(--1vh, 1vh));
+    min-height: calc(28.73734194 * var(--one-vh, 1vh));
   }
 
   #WHMs96BZ5rdLwHCc {
@@ -1826,7 +1826,7 @@ img {
   }
 
   #jo0WXGTH75afaB8h {
-    min-height: calc(8.9686495 * var(--1vh, 1vh));
+    min-height: calc(8.9686495 * var(--one-vh, 1vh));
   }
 
   #REzSOYimeq6lu8Ud {
@@ -1999,7 +1999,7 @@ img {
   }
 
   #jhj47RR5nleJUggU {
-    min-height: calc(14.38471373 * var(--1vh, 1vh));
+    min-height: calc(14.38471373 * var(--one-vh, 1vh));
   }
 }
 
@@ -2111,7 +2111,7 @@ img {
   }
 
   #fiLWd6QhEzc9YQdP {
-    min-height: calc(13.6558622 * var(--1vh, 1vh));
+    min-height: calc(13.6558622 * var(--one-vh, 1vh));
   }
 
   #sXXA9s6XHTvuNsHO {
@@ -2289,7 +2289,7 @@ img {
   }
 
   #FslDVpO0RsEmphHE {
-    min-height: calc(13.1600625 * var(--1vh, 1vh));
+    min-height: calc(13.1600625 * var(--one-vh, 1vh));
   }
 
   #qlHJZY6LvZGVqA3B {
@@ -2410,7 +2410,7 @@ img {
   }
 
   #BpaIJf3d3y696i2e {
-    min-height: calc(21.48801289 * var(--1vh, 1vh));
+    min-height: calc(21.48801289 * var(--one-vh, 1vh));
   }
 
   #wBvUKO7E5FZCKqXC {
@@ -2629,7 +2629,7 @@ img {
   }
 
   #pqbo2joFeIg7NxIJ {
-    min-height: calc(26.82714906 * var(--1vh, 1vh));
+    min-height: calc(26.82714906 * var(--one-vh, 1vh));
   }
 
   #WHMs96BZ5rdLwHCc {
@@ -2675,7 +2675,7 @@ img {
   }
 
   #jo0WXGTH75afaB8h {
-    min-height: calc(11.18259031 * var(--1vh, 1vh));
+    min-height: calc(11.18259031 * var(--one-vh, 1vh));
   }
 
   #REzSOYimeq6lu8Ud {
@@ -2848,7 +2848,7 @@ img {
   }
 
   #jhj47RR5nleJUggU {
-    min-height: calc(13.68632304 * var(--1vh, 1vh));
+    min-height: calc(13.68632304 * var(--one-vh, 1vh));
   }
 }
 
@@ -2960,7 +2960,7 @@ img {
   }
 
   #fiLWd6QhEzc9YQdP {
-    min-height: calc(13.34170658 * var(--1vh, 1vh));
+    min-height: calc(13.34170658 * var(--one-vh, 1vh));
   }
 
   #sXXA9s6XHTvuNsHO {
@@ -3138,7 +3138,7 @@ img {
   }
 
   #FslDVpO0RsEmphHE {
-    min-height: calc(12.85731284 * var(--1vh, 1vh));
+    min-height: calc(12.85731284 * var(--one-vh, 1vh));
   }
 
   #qlHJZY6LvZGVqA3B {
@@ -3259,7 +3259,7 @@ img {
   }
 
   #BpaIJf3d3y696i2e {
-    min-height: calc(20.9936772 * var(--1vh, 1vh));
+    min-height: calc(20.9936772 * var(--one-vh, 1vh));
   }
 
   #wBvUKO7E5FZCKqXC {
@@ -3478,7 +3478,7 @@ img {
   }
 
   #pqbo2joFeIg7NxIJ {
-    min-height: calc(26.2953827 * var(--1vh, 1vh));
+    min-height: calc(26.2953827 * var(--one-vh, 1vh));
   }
 
   #WHMs96BZ5rdLwHCc {
@@ -3524,7 +3524,7 @@ img {
   }
 
   #jo0WXGTH75afaB8h {
-    min-height: calc(12.85731284 * var(--1vh, 1vh));
+    min-height: calc(12.85731284 * var(--one-vh, 1vh));
   }
 
   #REzSOYimeq6lu8Ud {
@@ -3697,7 +3697,7 @@ img {
   }
 
   #jhj47RR5nleJUggU {
-    min-height: calc(13.65460783 * var(--1vh, 1vh));
+    min-height: calc(13.65460783 * var(--one-vh, 1vh));
   }
 }
 
@@ -3808,7 +3808,7 @@ img {
   }
 
   #fiLWd6QhEzc9YQdP {
-    min-height: calc(16.66666667 * var(--1vh, 1vh));
+    min-height: calc(16.66666667 * var(--one-vh, 1vh));
   }
 
   #sXXA9s6XHTvuNsHO {
@@ -3985,7 +3985,7 @@ img {
   }
 
   #FslDVpO0RsEmphHE {
-    min-height: calc(16.66666667 * var(--1vh, 1vh));
+    min-height: calc(16.66666667 * var(--one-vh, 1vh));
   }
 
   #qlHJZY6LvZGVqA3B {
@@ -4105,7 +4105,7 @@ img {
   }
 
   #BpaIJf3d3y696i2e {
-    min-height: calc(16.66666667 * var(--1vh, 1vh));
+    min-height: calc(16.66666667 * var(--one-vh, 1vh));
   }
 
   #wBvUKO7E5FZCKqXC {
@@ -4323,7 +4323,7 @@ img {
   }
 
   #pqbo2joFeIg7NxIJ {
-    min-height: calc(16.66666667 * var(--1vh, 1vh));
+    min-height: calc(16.66666667 * var(--one-vh, 1vh));
   }
 
   #WHMs96BZ5rdLwHCc {
@@ -4368,7 +4368,7 @@ img {
   }
 
   #jo0WXGTH75afaB8h {
-    min-height: calc(16.66666667 * var(--1vh, 1vh));
+    min-height: calc(16.66666667 * var(--one-vh, 1vh));
   }
 
   #REzSOYimeq6lu8Ud {
@@ -4540,7 +4540,7 @@ img {
   }
 
   #jhj47RR5nleJUggU {
-    min-height: calc(16.66666667 * var(--1vh, 1vh));
+    min-height: calc(16.66666667 * var(--one-vh, 1vh));
   }
 }
 
