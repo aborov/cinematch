@@ -86,6 +86,10 @@ gem "rails-ujs"
 gem "turbolinks", '~> 5'
 gem "jquery-rails"
 gem "kaminari"
+gem "activeadmin"
+gem "pundit"
+gem "sassc-rails"
+gem "openssl"
 
 group :development do
   gem "annotate"

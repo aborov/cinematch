@@ -3,6 +3,7 @@
 # Table name: users
 #
 #  id                     :integer          not null, primary key
+#  admin                  :boolean
 #  dob                    :date
 #  email                  :string           default(""), not null
 #  encrypted_password     :string           default(""), not null
@@ -34,9 +35,20 @@ class User < ApplicationRecord
 
   after_create :create_user_preference
 
+  scope :admins, -> { where(admin: true) }
+
+  def admin?
+    self.admin
+  end
+  
+  def ensure_user_preference
+    self.create_user_preference if user_preference.nil?
+  end
+  
   private
 
   def create_user_preference
     self.create_user_preference!
   end
+
 end
