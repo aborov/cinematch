@@ -90,6 +90,9 @@ gem "activeadmin"
 gem "pundit"
 gem "sassc-rails"
 gem "openssl"
+gem "rack-attack"
+gem "devise-two-factor"
+gem "devise-security"
 
 group :development do
   gem "annotate"
