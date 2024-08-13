@@ -9,7 +9,7 @@
         </div>
         <div class="modal-body">
           <div class="text-center p-3">
-            <img src="<%= asset_path 'cm_logo1_glare1.svg' %>" alt="Welcome to Cinematch" class="img-fluid w-80" style="max-height: 150px; object-fit: cover;">
+            <img src="<%= asset_path "cm_logo1_glare1.svg" %>" alt="Welcome to Cinematch" class="img-fluid w-80" style="max-height: 150px; object-fit: cover;">
           </div>
           <div>Hello, <%= current_user.name %>! We're excited to have you join us.</div>
           <div class="mt-3">Cinematch helps you find the perfect movies and TV shows based on your personality and preferences. Here's how it works:</div>
@@ -70,7 +70,7 @@
           <h3 class="mb-3">Select your favorite genres</h3>
           <div class="btn-group-toggle d-flex flex-wrap" data-toggle="buttons">
             <% @genres.each do |genre| %>
-              <%= form.check_box :genre_preferences, { multiple: true, class: 'btn-check', id: genre['name'].parameterize }, genre['name'], nil %>
+              <%= form.check_box :favorite_genres, { multiple: true, class: 'btn-check', id: genre['name'].parameterize }, genre['name'], nil %>
               <%= form.label genre['name'].parameterize, genre['name'], class: 'btn btn-outline-primary m-1' %>
             <% end %>
           </div>
@@ -90,101 +90,96 @@
 
 <script>
   function initializeSurvey() {
-    const form = document.getElementById('survey-form');
-    const personalityQuestions = document.querySelectorAll('#personality-questions .question-container');
-    const genreSelection = document.getElementById('genre-selection');
-    const submitButton = document.getElementById('submit-button');
-    const prevButton = document.getElementById('prev-button');
-    const nextButton = document.getElementById('next-button');
-    const progressBar = document.getElementById('survey-progress');
-    const personalityInstructions = document.getElementById('personality-instructions');
-    const totalQuestions = <%= @total_questions %>;
-    let currentQuestion = 0;
+  const form = document.getElementById('survey-form');
+  const personalityQuestions = document.querySelectorAll('#personality-questions .question-container');
+  const genreSelection = document.getElementById('genre-selection');
+  const submitButton = document.getElementById('submit-button');
+  const prevButton = document.getElementById('prev-button');
+  const nextButton = document.getElementById('next-button');
+  const progressBar = document.getElementById('survey-progress');
+  const totalQuestions = <%= @total_questions %>;
+  let currentQuestion = 0;
 
-    function updateProgress() {
-      const progress = ((currentQuestion + 1) / totalQuestions) * 100;
-      progressBar.style.width = `${progress}%`;
-      progressBar.setAttribute('aria-valuenow', progress);
-      progressBar.textContent = `${Math.round(progress)}%`;
-    }
+  function updateProgress() {
+    const progress = ((currentQuestion + 1) / totalQuestions) * 100;
+    progressBar.style.width = `${progress}%`;
+    progressBar.textContent = `${Math.round(progress)}%`;
+  }
 
-    function showQuestion(index) {
-      personalityQuestions.forEach((q, i) => {
-        q.style.display = i === index ? 'block' : 'none';
-      });
-
-      prevButton.style.display = index > 0 ? 'inline-block' : 'none';
-      nextButton.style.display = index < personalityQuestions.length ? 'inline-block' : 'none';
-      nextButton.disabled = !isQuestionAnswered(index);
-      submitButton.style.display = 'none';
-      personalityInstructions.style.display = 'block';
-
-      updateProgress();
-    }
-
-    function showGenreSelection() {
-      personalityQuestions.forEach(q => q.style.display = 'none');
-      genreSelection.style.display = 'block';
-      submitButton.style.display = 'inline-block';
-      prevButton.style.display = 'inline-block';
-      nextButton.style.display = 'none';
-      personalityInstructions.style.display = 'none';
-      updateProgress();
-    }
-
-    function isQuestionAnswered(index) {
-      const currentQuestionRadios = personalityQuestions[index].querySelectorAll('input[type="radio"]');
-      return Array.from(currentQuestionRadios).some(radio => radio.checked);
-    }
-
-    function showNextQuestion() {
-      if (currentQuestion < personalityQuestions.length - 1) {
-        currentQuestion++;
-        showQuestion(currentQuestion);
-      } else if (currentQuestion === personalityQuestions.length - 1) {
-        currentQuestion++;
-        showGenreSelection();
-      }
-    }
-
-    personalityQuestions.forEach((question, index) => {
-      const radioButtons = question.querySelectorAll('input[type="radio"]');
-      radioButtons.forEach(radio => {
-        radio.addEventListener('change', () => {
-          nextButton.disabled = false;
-          setTimeout(showNextQuestion, 300); // Delay to show the selection before moving to next question
-        });
-      });
+  function showQuestion(index) {
+    personalityQuestions.forEach((q, i) => {
+      q.style.display = i === index ? 'block' : 'none';
     });
 
-    nextButton.addEventListener('click', showNextQuestion);
+    prevButton.style.display = index > 0 ? 'inline-block' : 'none';
+    nextButton.style.display = index < personalityQuestions.length ? 'inline-block' : 'none';
+    nextButton.disabled = !isQuestionAnswered(index);
+    submitButton.style.display = 'none';
 
-    prevButton.addEventListener('click', function() {
-      if (currentQuestion > 0) {
-        currentQuestion--;
-        if (currentQuestion < personalityQuestions.length) {
-          showQuestion(currentQuestion);
-        } else {
-          showGenreSelection();
-        }
-      }
-    });
+    updateProgress();
+  }
 
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      this.submit();
-    });
+  function showGenreSelection() {
+    personalityQuestions.forEach(q => q.style.display = 'none');
+    genreSelection.style.display = 'block';
+    submitButton.style.display = 'inline-block';
+    prevButton.style.display = 'inline-block';
+    nextButton.style.display = 'none';
+    updateProgress();
+  }
 
-    showQuestion(0);
+  function isQuestionAnswered(index) {
+    const currentQuestionRadios = personalityQuestions[index].querySelectorAll('input[type="radio"]');
+    return Array.from(currentQuestionRadios).some(radio => radio.checked);
+  }
 
-    // Show the welcome modal if it's the first time the user has signed up
-    if (localStorage.getItem('showWelcomeModal') !== 'false') {
-      const welcomeModal = new bootstrap.Modal(document.getElementById('welcomeModal'));
-      welcomeModal.show();
-      localStorage.setItem('showWelcomeModal', 'false'); // Ensure it only shows once
+  function showNextQuestion() {
+    if (currentQuestion < personalityQuestions.length - 1) {
+      currentQuestion++;
+      showQuestion(currentQuestion);
+    } else if (currentQuestion === personalityQuestions.length - 1) {
+      currentQuestion++;
+      showGenreSelection();
     }
   }
 
-  document.addEventListener('DOMContentLoaded', initializeSurvey);
-  document.addEventListener('turbolinks:load', initializeSurvey); // Ensure JavaScript is executed when Turbolinks loads a new page
+  personalityQuestions.forEach((question, index) => {
+    const radioButtons = question.querySelectorAll('input[type="radio"]');
+    radioButtons.forEach(radio => {
+      radio.addEventListener('change', () => {
+        nextButton.disabled = false;
+        setTimeout(showNextQuestion, 300);
+      });
+    });
+  });
+
+  nextButton.addEventListener('click', showNextQuestion);
+
+  prevButton.addEventListener('click', function() {
+    if (currentQuestion > 0) {
+      currentQuestion--;
+      if (currentQuestion < personalityQuestions.length) {
+        showQuestion(currentQuestion);
+      } else {
+        showGenreSelection();
+      }
+    }
+  });
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    form.submit();
+  });
+
+  showQuestion(0);
+
+  if (localStorage.getItem('showWelcomeModal') !== 'false') {
+    const welcomeModal = new bootstrap.Modal(document.getElementById('welcomeModal'));
+    welcomeModal.show();
+    localStorage.setItem('showWelcomeModal', 'false');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', initializeSurvey);
+document.addEventListener('turbo:load', initializeSurvey); // Ensure JavaScript is executed when Turbolinks loads a new page
 </script>
