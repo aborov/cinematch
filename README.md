@@ -79,7 +79,7 @@ git push origin branch-name
 
 **Coding Conventions**
 
-Please follow the [Ruby community Style Guide](https://rubystyle.guide/). Here are a few key conventions:
+Please follow the [Ruby community Style Guide](https://rubystyle.guide/).
 
 **Naming Conventions**
 
