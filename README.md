@@ -78,6 +78,7 @@ git push origin branch-name
 6. Open a pull request with detailed description, referencing the issue it addresses.
 
 **Coding Conventions**
+
 Please follow the [Ruby community Style Guide](https://rubystyle.guide/). Here are a few key conventions:
 
 **Naming Conventions**
@@ -102,9 +103,10 @@ Please follow the [Ruby community Style Guide](https://rubystyle.guide/). Here a
 
 Distributed under the GNU General Public License (GPL). See `LICENSE` for more information.
 
-## Contact
+## Contacts
 
-For user inquiries: info@cinematch.net 
+For user inquiries: info@cinematch.net
+
 For development inquiries: Aleksei Borovikov - alex@aborovikov.com
 
 [Project Link](https://github.com/users/aborov/projects/1)
