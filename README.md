@@ -15,7 +15,7 @@ CineMatch is a personalized content recommendation platform that matches feature
 
 ## Installation
 
-Cinematch uses TMDB API to fetch content data, so launching the app requires setting up API key as `THEMOVIEDB_KEY` in the environment variables. For details on TMDB API go to https://developer.themoviedb.org/docs/getting-started
+Cinematch uses TMDB API to fetch content data, so launching the app requires setting up API key as `THEMOVIEDB_KEY` in the environment variables. [Details on TMDB API](https://developer.themoviedb.org/docs/getting-started)
 
 1. Clone the repository:
 ```bash
