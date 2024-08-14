@@ -77,23 +77,24 @@ git push origin branch-name
 ```
 6. Open a pull request with detailed description, referencing the issue it addresses.
 
-Coding Conventions
+**Coding Conventions**
 Please follow the [Ruby community Style Guide](https://rubystyle.guide/). Here are a few key conventions:
 
-Naming Conventions
+**Naming Conventions**
+
   - Use `snake_case` for variables, methods, and file names.
   - Use `PascalCase` for class and module names.
   - Reflect domain concepts accurately in naming. For instance, if you are working within a financial application, prefer names like `user_account_details` over vague terms like `data`.
 
-Design Principles: Focus on Domain-Driven Design (DDD)
+**Design Principles**: Focus on Domain-Driven Design (DDD)
   - Organize code to reflect the domain model clearly.
   - Use service objects, decorators, and other design patterns that help isolate domain logic from application logic.
 
-Comments and Documentation
+**Comments and Documentation**
 - Comment your code where necessary to explain "why" something is done, not "what" is done—source code should be self-explanatory regarding the "what".
 - Document methods and classes thoroughly, focusing on their roles within the domain model, especially for public APIs.
 
-Version Control Practices
+**Version Control Practices**
 - Commit messages should be clear and follow best practices, such as those outlined in [How to Write a Git Commit Message](https://chris.beams.io/posts/git-commit/).
 - Keep commits focused on a single issue to simplify future maintenance and troubleshooting.
 
