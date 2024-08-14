@@ -162,6 +162,8 @@ GEM
       color_namer
       rspec
     drb (2.2.1)
+    email_validator (2.2.4)
+      activemodel
     erubi (1.12.0)
     faker (3.4.1)
       i18n (>= 1.8.11, < 2)
@@ -488,6 +490,7 @@ DEPENDENCIES
   dotenv-rails
   draft_generators
   draft_matchers
+  email_validator
   faker
   grade_runner
   htmlbeautifier

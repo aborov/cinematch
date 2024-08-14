@@ -93,6 +93,7 @@ gem "openssl"
 gem "rack-attack"
 gem "devise-two-factor"
 gem "devise-security"
+gem 'email_validator'
 
 group :development do
   gem "annotate"

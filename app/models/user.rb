@@ -9,6 +9,7 @@
 #  encrypted_password     :string           default(""), not null
 #  gender                 :string
 #  name                   :string
+#  password_changed_at    :datetime
 #  remember_created_at    :datetime
 #  reset_password_sent_at :datetime
 #  reset_password_token   :string

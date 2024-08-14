@@ -309,5 +309,42 @@ Devise.setup do |config|
 
   # When set to false, does not sign a user in automatically after their password is
   # changed. Defaults to true, so a user is signed in automatically after changing a password.
-  # config.sign_in_after_change_password = true
+  config.sign_in_after_change_password = true
+
+  # ==> Security Extension
+  # Configure security extension for devise
+
+  # Password expires after a certain amount of time, you can set the expiry time in days
+  # config.expire_password_after = 90.days
+
+  # Need 1 char of A-Z, a-z and 0-9
+  config.password_complexity = { digit: 1, lower: 1, symbol: 1, upper: 1 }
+
+  # How many passwords to keep in archive
+  # config.password_archiving_count = 5
+
+  # Deny old passwords (true, false, number_of_old_passwords_to_check)
+  # config.deny_old_passwords = true
+
+  # enable email validation for :secure_validatable. (true, false, validation_options)
+  # dependency: see https://github.com/devise-security/devise-security/blob/master/README.md#e-mail-validation
+  config.email_validation = true
+
+  # captcha integration for recover form
+  # config.captcha_for_recover = true
+
+  # captcha integration for sign up form
+  # config.captcha_for_sign_up = true
+
+  # captcha integration for sign in form
+  # config.captcha_for_sign_in = true
+
+  # captcha integration for unlock form
+  # config.captcha_for_unlock = true
+
+  # captcha integration for confirmation form
+  # config.captcha_for_confirmation = true
+
+  # Time period for account expiry from last_activity_at
+  # config.expire_after = 90.days
 end
