@@ -99,6 +99,9 @@ Please follow the [Ruby community Style Guide](https://rubystyle.guide/).
 - Commit messages should be clear and follow best practices, such as those outlined in [How to Write a Git Commit Message](https://chris.beams.io/posts/git-commit/).
 - Keep commits focused on a single issue to simplify future maintenance and troubleshooting.
 
+## ERD
+<img alt="Cinematch ERD" src="./erd.png">
+
 ## License
 
 Distributed under the GNU General Public License (GPL). See `LICENSE` for more information.
