@@ -6,7 +6,7 @@
 
         <div class="card-body">
           <%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
-            <%= devise_error_messages! %>
+            <%= render "devise/shared/error_messages", resource: resource %>
 
             <div class="mb-3">
               <%= f.label :name, class: "form-label" %>
@@ -42,7 +42,17 @@
 
             <div class="mb-3">
               <%= f.label :password, class: "form-label" %>
-              <%= f.password_field :password, autocomplete: "new-password", class: "form-control", id: "password" %>
+              <%= f.password_field :password, autocomplete: "new-password", class: "form-control", 
+                  data: { 
+                    complexity: { 
+                      digit: 1, 
+                      lower: 1, 
+                      symbol: 1, 
+                      upper: 1 
+                    }.to_json 
+                  } 
+              %>
+              <div id="passwordFeedback" class="invalid-feedback"></div>
             </div>
 
             <div class="mb-3">
@@ -51,9 +61,15 @@
               <small id="passwordConfirmationHelp" class="form-text text-muted"></small>
             </div>
 
-            <div class="d-flex justify-content-between">
-              <%= link_to "Back", new_user_session_path, class: "btn btn-secondary" %>
-              <%= f.submit "Sign Up", class: "btn btn-primary" %>
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="d-flex">
+                <%= link_to "Back", new_user_session_path, class: "btn btn-secondary me-2" %>
+                <%= f.submit "Sign Up", class: "btn btn-primary" %>
+              </div>
+              <div class="d-flex align-items-center">
+                <p class="mb-0 me-2">Already a user?</p>
+                <%= link_to "Sign In", new_user_session_path, class: "btn btn-outline-primary" %>
+              </div>
             </div>
           <% end %>
         </div>
@@ -63,22 +79,64 @@
 </div>
 
 <script>
-  document.addEventListener('turbolinks:load', () => {
-    const password = document.getElementById('password');
-    const passwordConfirmation = document.getElementById('password_confirmation');
+  document.addEventListener('turbo:load', () => {
+    const password = document.getElementById('user_password');
+    const passwordConfirmation = document.getElementById('user_password_confirmation');
+    const passwordFeedback = document.getElementById('passwordFeedback');
     const passwordConfirmationHelp = document.getElementById('passwordConfirmationHelp');
 
-    function validatePassword() {
-      if (password.value !== passwordConfirmation.value) {
-        passwordConfirmationHelp.textContent = 'Passwords do not match';
-        passwordConfirmationHelp.style.color = 'red';
+    function validatePasswordComplexity() {
+      const complexityRequirements = JSON.parse(password.dataset.complexity);
+      const errors = [];
+
+      if (password.value.length < 6) {
+        errors.push('Password must be at least 6 characters long');
+      }
+
+      if ((password.value.match(/[A-Z]/g) || []).length < complexityRequirements.upper) {
+        errors.push('Must contain at least one uppercase letter');
+      }
+
+      if ((password.value.match(/[a-z]/g) || []).length < complexityRequirements.lower) {
+        errors.push('Must contain at least one lowercase letter');
+      }
+
+      if ((password.value.match(/[0-9]/g) || []).length < complexityRequirements.digit) {
+        errors.push('Must contain at least one number');
+      }
+
+      if ((password.value.match(/[^A-Za-z0-9]/g) || []).length < complexityRequirements.symbol) {
+        errors.push('Must contain at least one symbol');
+      }
+
+      if (errors.length > 0) {
+        passwordFeedback.textContent = errors.join('. ');
+        passwordFeedback.style.display = 'block';
+        password.classList.add('is-invalid');
       } else {
-        passwordConfirmationHelp.textContent = 'Passwords match';
-        passwordConfirmationHelp.style.color = 'green';
+        passwordFeedback.style.display = 'none';
+        password.classList.remove('is-invalid');
+        password.classList.add('is-valid');
       }
     }
 
-    password.addEventListener('input', validatePassword);
-    passwordConfirmation.addEventListener('input', validatePassword);
+    function validatePasswordMatch() {
+      if (password.value !== passwordConfirmation.value) {
+        passwordConfirmationHelp.textContent = 'Passwords do not match';
+        passwordConfirmationHelp.style.color = 'red';
+        passwordConfirmation.classList.add('is-invalid');
+      } else {
+        passwordConfirmationHelp.textContent = 'Passwords match';
+        passwordConfirmationHelp.style.color = 'green';
+        passwordConfirmation.classList.remove('is-invalid');
+        passwordConfirmation.classList.add('is-valid');
+      }
+    }
+
+    if (password && passwordConfirmation) {
+      password.addEventListener('input', validatePasswordComplexity);
+      password.addEventListener('input', validatePasswordMatch);
+      passwordConfirmation.addEventListener('input', validatePasswordMatch);
+    }
   });
 </script>

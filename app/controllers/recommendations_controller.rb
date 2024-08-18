@@ -1,5 +1,6 @@
 class RecommendationsController < ApplicationController
   before_action :authenticate_user!
+  before_action :ensure_user_preference
 
   GENRE_MAPPING = {
     openness: %w[Science-Fiction Fantasy Animation],
@@ -10,8 +11,9 @@ class RecommendationsController < ApplicationController
   }.freeze
 
   def index
+    authorize :recommendation, :index?
     @user_preference = current_user.user_preference
-    if @user_preference.personality_profiles.present?
+    if @user_preference.personality_profiles.present? && @user_preference.favorite_genres.present?
       genres = TmdbService.fetch_genres[:all_genres]
       @genres_map = genres.group_by { |g| g["name"] }.transform_values { |g| g.map { |gg| gg["id"] } }
 
@@ -20,15 +22,16 @@ class RecommendationsController < ApplicationController
       content = (movies + tv_shows).uniq { |item| item["id"] }
       @recommendations = calculate_recommendations(content)
       @page = params[:page].present? ? params[:page].to_i : 1
-    per_page = 15
-    @total_pages = (@recommendations.length.to_f / per_page).ceil
-    @recommendations = @recommendations.slice((@page - 1) * per_page, per_page)
+      per_page = 15
+      @total_pages = (@recommendations.length.to_f / per_page).ceil
+      @recommendations = @recommendations.slice((@page - 1) * per_page, per_page)
     else
-      redirect_to surveys_path, alert: "Please complete the survey to receive recommendations."
+      redirect_to surveys_path, alert: "Please complete the survey to get personalized recommendations."
     end
   end
 
   def show
+    authorize :recommendation, :show?
     @item = if params[:type] == "movie"
         TmdbService.fetch_movie_details(params[:id])
       else
@@ -38,6 +41,10 @@ class RecommendationsController < ApplicationController
   end
 
   private
+
+  def ensure_user_preference
+    current_user.ensure_user_preference
+  end
 
   def calculate_recommendations(content)
     recommendations = content.map do |item|

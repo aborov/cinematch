@@ -8,6 +8,8 @@ window.$ = jquery
 import * as bootstrap from "bootstrap"
 window.bootstrap = bootstrap
 
+import "password_validation"
+
 const application = Application.start()
 
 // Configure Stimulus development experience

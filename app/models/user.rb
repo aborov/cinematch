@@ -3,11 +3,13 @@
 # Table name: users
 #
 #  id                     :integer          not null, primary key
+#  admin                  :boolean
 #  dob                    :date
 #  email                  :string           default(""), not null
 #  encrypted_password     :string           default(""), not null
 #  gender                 :string
 #  name                   :string
+#  password_changed_at    :datetime
 #  remember_created_at    :datetime
 #  reset_password_sent_at :datetime
 #  reset_password_token   :string
@@ -23,7 +25,8 @@ class User < ApplicationRecord
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
   devise :database_authenticatable, :registerable,
-         :recoverable, :rememberable, :validatable
+         :recoverable, :rememberable, :validatable,
+         :secure_validatable, :timeoutable
 
   has_one :user_preference, dependent: :nullify
   has_many  :survey_responses, dependent: :destroy
@@ -34,9 +37,20 @@ class User < ApplicationRecord
 
   after_create :create_user_preference
 
+  scope :admins, -> { where(admin: true) }
+
+  def admin?
+    self.admin
+  end
+  
+  def ensure_user_preference
+    self.create_user_preference if user_preference.nil?
+  end
+  
   private
 
   def create_user_preference
     self.create_user_preference!
   end
+
 end
