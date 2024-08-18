@@ -18,35 +18,7 @@ class SurveyResponsesController < ApplicationController
     false
   end
   
-  # def index
-  #   @survey_questions = SurveyQuestion.all
-  # end
-
-  # def create
-  #   responses_params.each do |question_id, response_param|
-  #     permitted_response = ActionController::Parameters.new(response_param).permit(:response, :survey_question_id)
-  #     SurveyResponse.create(permitted_response.merge(user_id: current_user.id, survey_question_id: question_id))
-  #   end
-
-  #   ensure_user_preference_exists
-  #   process_personality_profile if all_responses_received?
-  #   redirect_to edit_user_preference_path(current_user.user_preference), notice: 'Survey completed. Please update your preferences.'
-  # end
-
   private
-
-  # def responses_params
-  #   params.require(:responses).to_unsafe_h
-  # end
-
-  # def all_responses_received?
-  #   required_questions_count = SurveyQuestion.where(question_type: %w[openness conscientiousness extraversion agreeableness neuroticism]).count
-  #   current_user.survey_responses.where(survey_question: SurveyQuestion.where(question_type: %w[openness conscientiousness extraversion agreeableness neuroticism])).count == required_questions_count
-  # end
-
-  # def ensure_user_preference_exists
-  #   current_user.create_user_preference! unless current_user.user_preference
-  # end
 
   def process_personality_profile(user)
     responses = user.survey_responses.includes(:survey_question)
