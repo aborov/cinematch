@@ -255,7 +255,7 @@ img {
 @media (max-width: 1024px) {
   .hero-section {
     grid-template-columns: 1fr;
-    text-align: left; /* Keep text aligned to the left */
+    text-align: left;
   }
 
   .hero-content {
@@ -444,16 +444,10 @@ img {
   }
   
   .footer-content {
-    flex-direction: column;
+    flex-direction: column-reverse;
     align-items: center;
     text-align: center;
-  }
-  
-  .logo-copyright, .contact-info {
-    align-items: center;
-    margin-bottom: 1.5rem;
-  }
-  
+  }  
   .footer-logo {
     width: 150px;
   }
@@ -775,17 +769,6 @@ img {
     .animate-on-scroll.animated {
       opacity: 1;
       transform: translate(0, 0) scale(1);
-    }
-
-    @media (max-width: 768px) {
-      .footer-content {
-        flex-direction: column;
-        text-align: center;
-      }
-
-      .logo-copyright {
-        margin-bottom: 1rem;
-      }
     }
   
     .cta-overlay {
