@@ -1,856 +1,212 @@
 <div id="root">
-<a id="home" aria-hidden="true" style="visibility:hidden;"></a>
-<section id="fiLWd6QhEzc9YQdP" style="position:relative; overflow:hidden; display:grid; align-items:center; grid-template-columns:auto 100rem auto; z-index:0;">
-    <!-- Background Image Container -->
-    <div id="KQtZ0QywVFMH8OLw" style="grid-area:1 / 1 / 2 / 4; position:relative; width:100%; aspect-ratio:16/9; z-index:0;">
-        <div id="FaDfhDJaG5569UQS" style="width:100%; height:100%; animation:fadeIn 1s ease-out;">
-            <img src="<%= asset_path("landing/2c3859877d455431b5dcb950642ec157.jpg") %>" alt="woman cry while watching movie" loading="lazy" style="width:100%; height:100%; object-fit:cover; object-position:center;">
-        </div>
+  <a id="home" aria-hidden="true" class="hidden-anchor"></a>
+  <section id="hero-section" class="hero-section">
+    <div class="background-image">
+      <img src="<%= asset_path("landing/2c3859877d455431b5dcb950642ec157.jpg") %>" alt="woman gets emotional watching movie" loading="lazy" class="hero-background">
     </div>
     
-    <!-- Content Container -->
-    <div id="jGMrImNvPihinaJw" style="grid-area:1 / 2 / 2 / 3; position:relative; z-index:1; width:100%; padding:5% 50% 5% 5%; display:flex; flex-direction:column; justify-content:center;">
-        <!-- Main Heading -->
-        <div id="o6X9WylllyNb83FJ" style="margin-bottom:1rem; animation:fadeInLeft 862ms 100ms both;">
-            <h1 id="OiB04vhVyFU2n0H9" style="color:#efc81a; font-family:var(--bs-font-sans-serif); font-size:4rem; line-height:1.2; letter-spacing:-0.03em; text-shadow:0 0.0375em 0.28125em rgba(0,0,0,0.6); margin:0;">
-                <span id="mZgBsHb1vNlJ1UEZ" style="font-weight:700;">
-                    Discover Content That Resonates with You
-                </span>
-            </h1>
+    <div class="hero-content">
+      <h1 class="hero-title">
+        Discover Content That<br>Resonates with You
+      </h1>
+      
+      <p class="hero-subtitle">
+        Personalized movie and<br>TV show recommendations
+      </p>
+      
+      <div class="cta-button-container">
+        <a href="<%= new_user_registration_path %>" class="cta-button">
+          Get Started
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <a id="features" aria-hidden="true" style="visibility:hidden;"></a>
+  <section id="features" class="features-section">
+    <div class="background-gradient"></div>
+    <div class="content-wrapper">
+      <div class="logo-container animate-on-scroll" data-animation="fade-in">
+        <img src="<%= asset_path("logos/cm_logo1_glare1.svg") %>" alt="Cinematch Logo" class="logo">
+      </div>
+      <div class="feature-list">
+        <div class="feature">
+          <h3 class="feature-title">Personalized Recommendations</h3>
+          <p class="feature-description">Get recommendations tailored to your personality and preferences, ensuring a viewing experience that aligns with your unique tastes and interests.</p>
         </div>
+        <div class="feature">
+          <h3 class="feature-title">Discover Hidden Gems</h3>
+          <p class="feature-description">Uncover titles that often go unnoticed amidst the marketing noise. Our platform ensures you don't miss out on under-discovered gems, providing a diverse selection for you to explore.</p>
+        </div>
+        <div class="feature">
+          <h3 class="feature-title">Easy-to-Use Interface</h3>
+          <p class="feature-description">Navigate effortlessly through a sleek and intuitive design, making it simple to find, save, and enjoy your next favorite film or show without any hassle.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const heroContent = document.querySelector('.hero-content');
+      const featureList = document.querySelector('.feature-list');
+      
+      function fadeInLeft(element, delay) {
+        element.style.opacity = '0';
+        element.style.transform = 'translateX(-20px)';
+        element.style.transition = 'opacity 0.8s ease-out, transform 0.8s ease-out';
         
-        <!-- Subheading (Increased font size) -->
-        <div id="CLRWNNkIzqbf9kRf" style="margin-bottom:3rem; animation:fadeInLeft 862ms 300ms both;">
-            <p id="AOXumhDL6XUEvNjl" style="color:#e9fff9; font-family:var(--bs-font-sans-serif); font-size:2.5rem; line-height:1.3; letter-spacing:-0.03em; text-shadow:0 0.0375em 0.159375em rgba(0,0,0,0.325); margin:0;">
-                <span id="fkItJdtS553lIQye">
-                    Personalized movie and<br>TV show recommendations
-                </span>
-            </p>
-        </div>
-        
-        <!-- CTA Button -->
-        <div id="Esxgz7ARQfrvwqFL" style="width:200px; animation:fadeInLeft 500ms 500ms both;">
-            <a href="<%= new_user_registration_path %>" style="text-decoration:none; display:block; width:100%; position:relative;">
-                <div id="TgLn3RxPNG0sfYED" style="width:100%;">
-                    <div id="xQtUMZ0xoYty5sNQ" style="padding-top:24.875%;">
-                        <div id="aUeXIjXVEmk62WNN" style="position:absolute; top:0; left:0; width:100%; height:100%;">
-                            <img src="<%= asset_path("landing/af9b5e980a6cac7744ee8ca36aa417ac.svg") %>" alt="CTA Button" loading="lazy" style="width:100%; height:100%; display:block; object-fit:contain;">
-                        </div>
-                    </div>
-                </div>
-                <div id="PgkYPhjiAGg0IZNP" style="position:absolute; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
-                    <p id="s45qGPY3XWRyZpZ6" style="color:#ba2d0b; font-family:var(--bs-font-sans-serif); font-size:1.2em; line-height:1.1785567em; text-align:center; text-transform:uppercase; letter-spacing:0.04em; margin:0;">
-                        <span id="rBA8AWXNi6UvsMpT" style="font-weight:700;">Get Started</span>
-                    </p>
-                </div>
-            </a>
-        </div>
-    </div>
-</section>
-
-<style>
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes fadeInLeft {
-    from {
-        opacity: 0;
-        transform: translateX(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-</style>
-<a id="features" aria-hidden="true" style="visibility:hidden;"></a>
-<section id="FslDVpO0RsEmphHE" style="position:relative;overflow:hidden;display:grid;align-items:center;grid-template-columns:auto 100rem auto;z-index:0;margin-top:-1px;">
-    <div id="Iy4nnxzq926z7HNU" style="grid-area:1 / 1 / 2 / 4;display:grid;position:absolute;min-height:100%;min-width:100%;">
-        <div id="sXXA9s6XHTvuNsHO" style="z-index:0;">
-            <div id="AicbLG5wcoufdbTt" style="box-sizing:border-box;width:100%;height:100%;transform:rotate(0deg);">
-                <div id="XcHWIvrDW3Ur5cKo" style="width:100%;height:100%;opacity:1.0;">
-                    <div id="mAcUIjKv7ul0q42s" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;">
-                        <svg id="XXGRkYfeskaQaPwv" viewBox="0 0 1366.0 768.0" preserveAspectRatio="none" style="width:100%;height:100%;position:absolute;top:0%;left:0%;">
-                            <defs>
-                                <linearGradient id="brandGradient" gradientUnits="userSpaceOnUse" x1="683" y1="0" x2="1024.5" y2="768">
-                                    <stop offset="0%" stop-color="#1a8fe3" />
-                                    <stop offset="20%" stop-color="#1a4a7a" />
-                                    <stop offset="40%" stop-color="#2b2d42" />
-                                    <stop offset="100%" stop-color="#2b2d42" />
-                                </linearGradient>
-                            </defs>
-                            <rect id="MKrCUJlUTckCTAQS" width="1366" height="768" style="fill:url(#brandGradient);"></rect>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div id="nSUrhjLb2ulLxWGa" style="display:grid;position:relative;grid-area:1 / 2 / 2 / 3;">
-        <div id="YFQoJ8vuZKbk5yGN" style="z-index:1;">
-            <div id="JUglTStCW8KNKP6I" style="padding-top:26.76311031%;">
-                <div id="TkuLG9kJsfAxeLwK" style="position:absolute;top:0px;left:0px;width:100%;height:100%;">
-                    <div class="animation_container" style="width:100%;height:100%;">
-                        <div style="width:100%;height:100%;transform:rotate(0deg);overflow:hidden;">
-                            <div class="animated" style="width:100%;height:100%;animation:baseline-LEFT-af7c7f92-5e1f-480b-9ff8-c709372e72a4 500ms 100ms both paused;">
-                                <div id="e1i8mwiCXjes73yP" style="width:100%;height:100%;opacity:1.0;">
-                                    <div id="f1LrnKF7JTBlaZSw" style="transform:scale(1, 1);width:100%;height:100%;overflow:hidden;position:relative;">
-                                        <div id="FN5u2uFNvTNkMIKk" style="width:calc(100% * max(1, var(--scale-fill, 1)));height:calc(100% / min(1, var(--scale-fill, 1)));position:absolute;top:50%;left:50%;opacity:1.0;">
-                                            <img src="<%= asset_path("logos/cm_logo1_glare1.svg") %>" loading="lazy" style="width:100%;height:100%;display:block;object-fit:cover;object-position:50% 50%;transform:translate(-50%, -50%) rotate(0deg);">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="rg9UUdMuMxdzcoiF">
-            <div id="h81iIzLAouqEotF8" style="display:grid;position:relative;">
-                <div id="CoWm41JiXWCPlyuz" style="z-index:3;">
-                    <div id="HeniNnUkTlLYZjnB" style="box-sizing:border-box;width:100%;height:100%;">
-                        <div class="animation_container" style="width:100%;height:100%;">
-                            <div class="animated" style="width:100%;height:100%;animation:fade-LEFT-b162af9b-7a0f-4c38-9d7c-c358a2a7d158 700ms 100ms both paused;">
-                                <div id="B93jo6B40SjqLtIh" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
-                                    <p id="MjbmMlccW4xYF4C8" style="color:#efc81a;direction:ltr;font-family:var(--bs-font-sans-serif);margin-left:0em;line-height:1.28570969em;text-align:center;text-transform:none;letter-spacing:0em;">
-                                        <span id="FL61V5z0Q0heLVPA" style="color:#efc81a;font-weight:700;">Personalized Recommendations</span>
-                                        <br>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div id="BDAqwqfoegk0YmlA" style="z-index:4;">
-                    <div id="ubQmYSjwzqQsSa9X" style="box-sizing:border-box;width:100%;height:100%;">
-                        <div class="animation_container" style="width:100%;height:100%;">
-                            <div class="animated" style="width:100%;height:100%;animation:fade-LEFT-2b8667ee-c555-4f25-a2be-2ce4d32f3313 700ms 200ms both paused;">
-                                <div id="VwUpSds3p9bQcnFj" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
-                                    <p id="SwvDezRfbEHJ9AaD" style="color:#e9fff9;direction:ltr;font-family:var(--bs-font-sans-serif);margin-left:0em;line-height:1.26560918em;text-align:center;text-transform:none;letter-spacing:0em;">
-                                        <span id="e1dn1HoFLl4wJf1a" style="color:#e9fff9;white-space:pre-wrap;">        </span>
-                                        <span id="USb68QfIpYjSsbrG" style="color:#e9fff9;">Get recommendations tailored to your personality and preferences, ensuring a viewing experience that aligns with your unique tastes and interests.</span>
-                                        <br>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="BeuhVbFoHGOXB2dS">
-            <div id="u3FouwscylxBBa4Q" style="display:grid;position:relative;">
-                <div id="Dkb4Mdq7z2WIIT9i" style="z-index:6;">
-                    <div id="C8aPUACLqwEZ78tM" style="box-sizing:border-box;width:100%;height:100%;">
-                        <div class="animation_container" style="width:100%;height:100%;">
-                            <div class="animated" style="width:100%;height:100%;animation:fade-LEFT-ff2a6cb0-c8bc-4fdc-bb79-e5598c287fba 700ms 300ms both paused;">
-                                <div id="PDfaY9uUX6ev6b3p" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
-                                    <p id="o9xEidymnk3laGDQ" style="color:#efc81a;direction:ltr;font-family:var(--bs-font-sans-serif);margin-left:0em;line-height:1.28570969em;text-align:center;text-transform:none;letter-spacing:0em;">
-                                        <span id="OdoTGE8hkFE4plTU" style="color:#efc81a;font-weight:700;">Discover Hidden Gems</span>
-                                        <br>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div id="o94x71sMNoZxksAw" style="z-index:7;">
-                    <div id="TsxWECqHVuYOB5ZF" style="box-sizing:border-box;width:100%;height:100%;">
-                        <div class="animation_container" style="width:100%;height:100%;">
-                            <div class="animated" style="width:100%;height:100%;animation:fade-LEFT-c69197fd-cb12-4c19-a439-ded7a64421a8 700ms 400ms both paused;">
-                                <div id="VrIR8WBZPP5CYgWA" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
-                                    <p id="C8GQRTs6jgFRaiYA" style="color:#e9fff9;direction:ltr;font-family:var(--bs-font-sans-serif);margin-left:0em;line-height:1.26560918em;text-align:center;text-transform:none;letter-spacing:0em;">
-                                        <span id="cqoRoPn5NIPN9YKu" style="color:#e9fff9;white-space:pre-wrap;">     </span>
-                                        <span id="Y3UZCOarC2L7m9FZ" style="color:#e9fff9;">Uncover titles that often go unnoticed amidst the marketing noise. Our platform ensures you don't miss out on under-discovered gems, providing a diverse selection for you to explore.</span>
-                                        <br>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="PiZK8o2Ul9AZfpCk">
-            <div id="MhQV2zW2dL4cK9c3" style="display:grid;position:relative;">
-                <div id="TgUNCLuIyHfRSOEb" style="z-index:9;">
-                    <div id="zFf3XxIkebZgu9QP" style="box-sizing:border-box;width:100%;height:100%;">
-                        <div class="animation_container" style="width:100%;height:100%;">
-                            <div class="animated" style="width:100%;height:100%;animation:fade-LEFT-f97792f8-84c9-4186-95bd-0e84444d86c9 700ms 500ms both paused;">
-                                <div id="LkkB5Uj5ddd05su7" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
-                                    <p id="zUipeZ1YHATXn3po" style="color:#efc81a;direction:ltr;font-family:var(--bs-font-sans-serif);margin-left:0em;line-height:1.28570969em;text-align:center;text-transform:none;letter-spacing:0em;">
-                                        <span id="tCoQLdhEuqshArYv" style="color:#efc81a;font-weight:700;">Easy-to-Use Interface</span>
-                                        <br>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div id="gGTsmGP7OhpGUjwv" style="z-index:10;">
-                    <div id="w1p93k9fzc6OpAM0" style="box-sizing:border-box;width:100%;height:100%;">
-                        <div class="animation_container" style="width:100%;height:100%;">
-                            <div class="animated" style="width:100%;height:100%;animation:fade-LEFT-4b56184b-e293-41e6-a7d7-f84c0ed2720f 700ms 600ms both paused;">
-                                <div id="eY4HvnguOufAZkOH" style="opacity:1.0;display:flex;box-sizing:border-box;flex-direction:column;justify-content:flex-start;width:100%;height:100%;">
-                                    <p id="EJAF6WGBJczG6OlK" style="color:#e9fff9;direction:ltr;font-family:var(--bs-font-sans-serif);margin-left:0em;line-height:1.26560918em;text-align:center;text-transform:none;letter-spacing:0em;">
-                                        <span id="z207jxYCohV6xpYF" style="color:#e9fff9;white-space:pre-wrap;">        </span>
-                                        <span id="igAQywsHTFKcFTSK" style="color:#e9fff9;">Navigate effortlessly through a sleek and intuitive design, making it simple to find, save, and enjoy your next favorite film or show without any hassle.</span>
-                                        <br>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-<a id="why" aria-hidden="true" style="visibility:hidden;"></a>
-<section class="entertainment-section">
-  <div class="content-wrapper">
-    <h2 class="heading animate-on-scroll" data-animation="baseline">
-      Entertainment<br>Made Personal
-    </h2>
-    <img src="<%= asset_path('landing/laptop.png') %>" alt="Laptop showcasing entertainment" class="laptop-image animate-on-scroll" data-animation="slide-right">
-    <img src="<%= asset_path('landing/iphone.png') %>" alt="iPhone showcasing entertainment" class="iphone-image animate-on-scroll" data-animation="slide-left">
-    <p class="description animate-on-scroll" data-animation="slide-left">
-      Leveraging advanced algorithms and<br>
-      user data, we ensure that you always<br>
-      find something you'll love to watch.
-    </p>
-  </div>
-</section>
-
-<style>
-  .entertainment-section {
-    position: relative;
-    aspect-ratio: 16 / 8;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-    overflow: hidden;
-  }
-
-  .entertainment-section::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(to bottom left, #efc81a, #efc81a 20%, #ba2d0b 40%, #ba2d0b);
-    z-index: -1;
-  }
-
-  .content-wrapper {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    max-width: 1200px;
-    max-height: 600px;
-  }
-
-  .heading {
-    position: absolute;
-    top: 5%;
-    left: 10%;
-    font-size: clamp(3rem, 5vw, 4rem);
-    line-height: 1.2;
-    color: #e9fff9;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-  }
-
-  .laptop-image {
-    position: absolute;
-    bottom: 5%;
-    left: 5%;
-    width: 50%;
-  }
-
-  .iphone-image {
-    position: absolute;
-    top: 5%;
-    right: 20%;
-    max-height: 65%;
-    max-width: 250px;
-  }
-
-  .description {
-    position: absolute;
-    bottom: 5%;
-    left: 60%;
-    font-size: 1.8rem;
-    line-height: 1.5;
-    color: #e9fff9;
-    text-align: left;
-    max-width: 45%;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-  }
-
-  @media (max-width: 1024px) {
-    .entertainment-section {
-      aspect-ratio: auto;
-      height: auto;
-      min-height: 100vh;
-      padding: 4rem 2rem;
-    }
-
-    .content-wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: auto;
-    }
-
-    .heading, .laptop-image, .iphone-image, .description {
-      position: static;
-      margin: 1rem 0;
-    }
-
-    .heading {
-      text-align: center;
-    }
-
-    .laptop-image {
-      width: 80%;
-      max-width: 500px;
-    }
-
-    .iphone-image {
-      width: 40%;
-      max-width: 200px;
-    }
-
-    .description {
-      text-align: center;
-      max-width: 100%;
-      font-size: 2.5rem;
-    }
-  }
-
-  @media (max-width: 768px) {
-    .description {
-      font-size: 2rem;
-    }
-  }
-
-  /* Animation styles */
-  .animate-on-scroll {
-    opacity: 0;
-    transition: opacity 1s ease-out, transform 1s ease-out;
-  }
-
-  .animate-on-scroll.slide-right {
-    transform: translateX(-100px);
-  }
-
-  .animate-on-scroll.slide-left {
-    transform: translateX(100px);
-  }
-
-  .animate-on-scroll.baseline {
-    transform: translateY(20px);
-  }
-
-  .animate-on-scroll.animated {
-    opacity: 1;
-    transform: translate(0, 0);
-  }
-</style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  const animatedElements = document.querySelectorAll('.animate-on-scroll');
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
         setTimeout(() => {
-          entry.target.classList.add('animated');
-        }, 100);
-        observer.unobserve(entry.target);
+          element.style.opacity = '1';
+          element.style.transform = 'translateX(0)';
+        }, delay);
       }
+
+      fadeInLeft(heroContent, 100);
+
+      const features = featureList.querySelectorAll('.feature');
+      features.forEach((feature, index) => {
+        fadeInLeft(feature, 100 + (index * 200));
+      });
     });
-  }, { threshold: 0.2 });
+  </script>
 
-  animatedElements.forEach(el => observer.observe(el));
-});
-</script>
+  <a id="why" aria-hidden="true" style="visibility:hidden;"></a>
+  <section class="entertainment-section">
+    <div class="content-wrapper">
+      <h2 class="heading animate-on-scroll" data-animation="baseline">
+        Entertainment<br>Made Personal
+      </h2>
+      <img src="<%= asset_path('landing/laptop.png') %>" alt="Laptop showcasing app" class="laptop-image animate-on-scroll" data-animation="slide-right">
+      <img src="<%= asset_path('landing/iphone.png') %>" alt="iPhone showcasing app" class="iphone-image animate-on-scroll" data-animation="slide-left">
+      <p class="description animate-on-scroll" data-animation="slide-left">
+        Leveraging advanced algorithms and<br>
+        user data, we ensure that you always<br>
+        find something you'll love to watch.
+      </p>
+    </div>
+  </section>
 
-<a id="testimonials" aria-hidden="true" style="visibility:hidden;"></a>
-<section id="user-testimonials" class="testimonials-section">
-  <div class="background-overlay"></div>
-  <div class="content-wrapper">
-    <h2 class="section-title animate-on-scroll" data-animation="baseline">What Users Will Say</h2>
-    <div class="testimonials-container">
-      <div class="testimonial">
-        <div class="image-container animate-on-scroll" data-animation="fade-in">
-          <img src="<%= asset_path('landing/56381ebfc97d164a0c9b128e5f82816e.jpg') %>" alt="Melissa Sanchez" class="user-image">
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const animatedElements = document.querySelectorAll('.animate-on-scroll');
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            setTimeout(() => {
+              entry.target.classList.add('animated');
+            }, 100);
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.2 });
+
+      animatedElements.forEach(el => observer.observe(el));
+    });
+  </script>
+
+  <a id="testimonials" aria-hidden="true" style="visibility:hidden;"></a>
+  <section id="user-testimonials" class="testimonials-section">
+    <div class="background-overlay"></div>
+    <div class="content-wrapper">
+      <h2 class="section-title animate-on-scroll" data-animation="baseline">What Users Will Say</h2>
+      <div class="testimonials-container">
+        <div class="testimonial">
+          <div class="image-container animate-on-scroll" data-animation="fade-in">
+            <img src="<%= asset_path('landing/56381ebfc97d164a0c9b128e5f82816e.jpg') %>" alt="Melissa Sanchez" class="user-image">
+          </div>
+          <h3 class="user-name animate-on-scroll" data-animation="slide-up">Melissa Sanchez</h3>
+          <p class="user-quote animate-on-scroll" data-animation="slide-up">"Cinematch gets my personality right. The recommendations are spot on!"</p>
         </div>
-        <h3 class="user-name animate-on-scroll" data-animation="slide-up">Melissa Sanchez</h3>
-        <p class="user-quote animate-on-scroll" data-animation="slide-up">"Cinematch gets my personality right. The recommendations are spot on!"</p>
-      </div>
-      <div class="testimonial">
-        <div class="image-container animate-on-scroll" data-animation="fade-in">
-          <img src="<%= asset_path('landing/76f32fbbd57f15e9c51b1caf545e180f.jpg') %>" alt="Michael Baker" class="user-image michael-image">
+        <div class="testimonial">
+          <div class="image-container animate-on-scroll" data-animation="fade-in">
+            <img src="<%= asset_path('landing/76f32fbbd57f15e9c51b1caf545e180f.jpg') %>" alt="Michael Baker" class="user-image michael-image">
+          </div>
+          <h3 class="user-name animate-on-scroll" data-animation="slide-up">Michael Baker</h3>
+          <p class="user-quote animate-on-scroll" data-animation="slide-up">"A game-changer for binge-watchers. I never run out of great shows to watch."</p>
         </div>
-        <h3 class="user-name animate-on-scroll" data-animation="slide-up">Michael Baker</h3>
-        <p class="user-quote animate-on-scroll" data-animation="slide-up">"A game-changer for binge-watchers. I never run out of great shows to watch."</p>
-      </div>
-      <div class="testimonial">
-        <div class="image-container animate-on-scroll" data-animation="fade-in">
-          <img src="<%= asset_path('landing/8d3a7bcae790dc53d49264f4ce025f43.jpg') %>" alt="Emily Santon" class="user-image emily-image">
+        <div class="testimonial">
+          <div class="image-container animate-on-scroll" data-animation="fade-in">
+            <img src="<%= asset_path('landing/8d3a7bcae790dc53d49264f4ce025f43.jpg') %>" alt="Emily Stanton" class="user-image emily-image">
+          </div>
+          <h3 class="user-name animate-on-scroll" data-animation="slide-up">Emily Stanton</h3>
+          <p class="user-quote animate-on-scroll" data-animation="slide-up">"The personalized recommendations have introduced me to so many new favorites."</p>
         </div>
-        <h3 class="user-name animate-on-scroll" data-animation="slide-up">Emily Stanton</h3>
-        <p class="user-quote animate-on-scroll" data-animation="slide-up">"The personalized recommendations have introduced me to so many new favorites."</p>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<style>
-  .testimonials-section {
-    position: relative;
-    aspect-ratio: 16 / 8;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    background-color: #2b2d42;
-    padding: 5%;
-  }
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const animatedElements = document.querySelectorAll('.animate-on-scroll');
 
-  .background-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url('<%= asset_path("landing/6ca309dffd8311f9efcf03dedf9e1623.png") %>');
-    background-size: cover;
-    background-position: center;
-    opacity: 0.5;
-  }
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            setTimeout(() => {
+              entry.target.classList.add('animated');
+            }, 50); // Reduced delay for faster animation start
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.2 });
 
-  .content-wrapper {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-    max-width: 1200px;
-    padding: 2rem;
-    color: #ffffff;
-  }
-
-  .section-title {
-    font-size: 4rem;
-    color: #efc81a;
-    text-align: center;
-    margin-bottom: 3rem;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-  }
-
-  .testimonials-container {
-    display: flex;
-    justify-content: space-between;
-    gap: 2rem;
-  }
-
-  .testimonial {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-
-  .image-container {
-    width: 200px;
-    height: 200px;
-    margin-bottom: 1.5rem;
-    border-radius: 10px;
-    overflow: hidden;
-  }
-
-  .user-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .michael-image {
-    object-position: center 30%;
-  }
-
-  .emily-image {
-    object-position: 95% center;
-  }
-
-  .user-name {
-    font-size: 2.25rem;
-    color: #efc81a;
-    margin-bottom: 1rem;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-  }
-
-  .user-quote {
-    font-size: 1.5rem;
-    line-height: 1.4;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-    max-width: 90%;
-    margin: 0 auto;
-  }
-
-  /* Animation styles */
-  .animate-on-scroll {
-    opacity: 0;
-    transition: opacity 0.7s ease-out, transform 0.7s ease-out; /* Faster animation */
-  }
-
-  .animate-on-scroll[data-animation="baseline"] {
-    transform: translateY(20px);
-  }
-
-  .animate-on-scroll[data-animation="fade-in"] {
-    /* No transform for fade-in */
-  }
-
-  .animate-on-scroll[data-animation="slide-up"] {
-    transform: translateY(20px);
-  }
-
-  .animate-on-scroll.animated {
-    opacity: 1;
-    transform: translate(0, 0);
-  }
-
-  @media (max-width: 1024px) {
-    .testimonials-container {
-      flex-direction: column;
-    }
-
-    .image-container {
-      width: 150px;
-      height: 150px;
-    }
-
-    .user-name {
-      font-size: 2rem;
-    }
-
-    .user-quote {
-      font-size: 1.4rem;
-    }
-  }
-
-  @media (max-width: 768px) {
-    .section-title {
-      font-size: 3rem;
-    }
-
-    .user-name {
-      font-size: 1.8rem;
-    }
-
-    .user-quote {
-      font-size: 1.2rem;
-    }
-  }
-</style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  const animatedElements = document.querySelectorAll('.animate-on-scroll');
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        setTimeout(() => {
-          entry.target.classList.add('animated');
-        }, 50); // Reduced delay for faster animation start
-        observer.unobserve(entry.target);
-      }
+      animatedElements.forEach(el => observer.observe(el));
     });
-  }, { threshold: 0.2 });
+  </script>
 
-  animatedElements.forEach(el => observer.observe(el));
-});
-</script>
-
-<a id="demo" aria-hidden="true" style="visibility:hidden;"></a>
-<section id="cinematch-in-action" class="video-section">
-  <div class="content-wrapper">
-    <h2 class="section-title">Cinematch in Action</h2>
-    <div class="video-container">
-      <iframe width="100%" height="100%" src="https://www.youtube.com/embed/PIfEJnWJzdc?si=rd7bBrzOf7ZYnv_W" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen class="video-placeholder"></iframe>
+  <a id="demo" aria-hidden="true" style="visibility:hidden;"></a>
+  <section id="cinematch-in-action" class="video-section">
+    <div class="content-wrapper">
+      <h2 class="section-title">Cinematch in Action</h2>
+      <div class="video-container">
+        <iframe width="100%" height="100%" src="https://www.youtube.com/embed/PIfEJnWJzdc?si=rd7bBrzOf7ZYnv_W" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen class="video-placeholder"></iframe>
+      </div>
     </div>
-  </div>
-</section>
-
-<style>
-  .video-section {
-    position: relative;
-    aspect-ratio: 16 / 8;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(to bottom right, #ba2d0b, #1a8fe3); /* engineering-orange to tufts-blue */
-    padding: 2rem;
-    overflow: hidden;
-  }
-
-  .content-wrapper {
-    width: 100%;
-    max-width: 1200px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .section-title {
-    font-size: 4rem; /* Matching the previous section */
-    color: #efc81a; /* jonquil */
-    text-align: center;
-    margin-bottom: 2rem;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-  }
-
-  .video-container {
-    width: 70%;
-    height: 100%;
-    max-width: 900px;
-    margin-top: 1.5rem;
-    margin-bottom: 1.5rem; /* Adding padding underneath */
-  }
-
-  .video-placeholder {
-    display: block;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-  }
-
-  @media (max-width: 1024px) {
-    .video-container {
-      width: 80%;
-      height: 100%;
-    }
-  }
-
-  @media (max-width: 768px) {
-    .section-title {
-      font-size: 3rem;
-    }
-
-    .video-container {
-      width: 90%;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .section-title {
-      font-size: 2.5rem;
-    }
-  }
-</style>
+  </section>
                 
-<a id="contact" aria-hidden="true" style="visibility:hidden;"></a>
-<section id="call-to-action" class="cta-section">
-  <div class="cta-overlay"></div>
-  <div class="content-wrapper">
-    <h2 class="section-title animate-on-scroll" data-animation="baseline">
-      Ready to Discover<br>
-      Your Next Favorite Movie?
-    </h2>
-    <a href="<%= new_user_registration_path %>" class="cta-button animate-on-scroll" data-animation="pop">GET STARTED</a>
-    <div class="footer-content">
-      <div class="logo-copyright">
-        <img src="<%= asset_path('logos/cm_logo1_mint.svg') %>" alt="Cinematch Logo" class="footer-logo animate-on-scroll" data-animation="fade-in">
-        <p class="copyright animate-on-scroll" data-animation="fade-in">© 2024 Cinematch. All Rights Reserved.</p>
-      </div>
-      <div class="contact-info animate-on-scroll" data-animation="fade-in">
-        <p class="questions">Questions?</p>
-        <a href="mailto:info@cinematch.net" class="email">info@cinematch.net</a>
+  <a id="contact" aria-hidden="true" style="visibility:hidden;"></a>
+  <section id="call-to-action" class="cta-section">
+    <div class="cta-overlay"></div>
+    <div class="content-wrapper">
+      <h2 class="section-title animate-on-scroll" data-animation="baseline">
+        Ready to Discover<br>
+        Your Next Favorite Movie?
+      </h2>
+      <a href="<%= new_user_registration_path %>" class="cta-button animate-on-scroll" data-animation="pop">GET STARTED</a>
+      <div class="footer-content">
+        <div class="logo-copyright">
+          <img src="<%= asset_path('logos/cm_logo1_mint.svg') %>" alt="Cinematch Logo" class="footer-logo animate-on-scroll" data-animation="fade-in">
+          <p class="copyright animate-on-scroll" data-animation="fade-in">© 2024 Cinematch. All Rights Reserved.</p>
+        </div>
+        <div class="contact-info animate-on-scroll" data-animation="fade-in">
+          <p class="questions">Questions?</p>
+          <a href="mailto:info@cinematch.net" class="email">info@cinematch.net</a>
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<style>
-  .cta-section {
-    position: relative;
-    aspect-ratio: 16 / 8;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #2b2d42; /* Space Cadet */
-    overflow: hidden;
-    padding: 4rem 2rem;
-  }
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const animatedElements = document.querySelectorAll('.animate-on-scroll');
 
-  .cta-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url('<%= asset_path("landing/4a2553e5c1a52b8ec93fd54140badd4e.png") %>');
-    background-size: cover;
-    background-position: center;
-    opacity: 0.5;
-  }
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            setTimeout(() => {
+              entry.target.classList.add('animated');
+            }, 50); // Reduced delay for faster animation start
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.2 });
 
-  .content-wrapper {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-    max-width: 1200px;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .section-title {
-    font-size: 4rem;
-    color: #efc81a; /* jonquil */
-    text-align: center;
-    margin-bottom: 2rem;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-  }
-
-  .cta-button {
-    background-color: #efc81a; /* jonquil */
-    color: #ba2d0b; /* engineering orange */
-    font-size: 1.8rem;
-    font-weight: bold;
-    text-decoration: none;
-    padding: 1rem 3rem;
-    border-radius: 50px;
-    margin-bottom: 3rem;
-    transition: background-color 0.3s ease, transform 0.3s ease;
-    shadow: 2px 2px 4px rgba(0,0,0,0.5);
-  }
-
-  .cta-button:hover {
-    background-color: #f0d04b;
-    transform: scale(1.1);
-  }
-
-  .footer-content {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-  }
-
-  .logo-copyright {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .footer-logo {
-    width: 250px;
-    margin-bottom: 1.5rem;
-  }
-
-  .copyright {
-    color: #e9fff9; /* mint green */
-    font-size: 1.1rem;
-    margin: 0;
-  }
-
-  .contact-info {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .questions {
-    color: #e9fff9; /* mint green */
-    font-size: 3rem;
-    margin: 0 0 0.5rem 0;
-  }
-
-  .email {
-    color: #e9fff9; /* mint green */
-    font-size: 2rem;
-    text-decoration: none;
-    transition: color 0.3s ease;
-  }
-
-  .email:hover {
-    color: #efc81a; /* jonquil */
-  }
-
-  /* Animation styles */
-  .animate-on-scroll {
-    opacity: 0;
-    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-  }
-
-  .animate-on-scroll[data-animation="baseline"] {
-    transform: translateY(20px);
-  }
-
-  .animate-on-scroll[data-animation="pop"] {
-    transform: scale(0.95);
-  }
-
-  .animate-on-scroll[data-animation="fade-in"] {
-    transform: translateY(10px);
-  }
-
-  .animate-on-scroll.animated {
-    opacity: 1;
-    transform: translate(0, 0) scale(1);
-  }
-
-  @media (max-width: 768px) {
-    .cta-section {
-      padding: 3rem 1.5rem;
-    }
-
-    .section-title {
-      font-size: 2.5rem;
-    }
-
-    .cta-button {
-      font-size: 1.5rem;
-      padding: 0.8rem 2rem;
-    }
-
-    .footer-content {
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-    }
-
-    .logo-copyright, .contact-info {
-      align-items: center;
-      margin-bottom: 1.5rem;
-    }
-
-    .footer-logo {
-      width: 150px;
-    }
-
-    .questions {
-      font-size: 1.5rem;
-    }
-
-    .email {
-      font-size: 1rem;
-    }
-  }
-</style>
+      animatedElements.forEach(el => observer.observe(el));
+    });
+  </script>
+</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
