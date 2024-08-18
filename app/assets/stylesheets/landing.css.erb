@@ -768,10 +768,6 @@ img {
       transform: translateY(20px);
     }
 
-    .animate-on-scroll[data-animation="fade-in"] {
-      /* No transform for fade-in */
-    }
-
     .animate-on-scroll[data-animation="pop"] {
       transform: scale(0.9);
     }
@@ -891,7 +887,12 @@ img {
     }
   
     .animate-on-scroll[data-animation="fade-in"] {
-      transform: translateY(10px);
+      opacity: 0;
+      transition: opacity 0.7s ease-out;
+    }
+
+    .animate-on-scroll[data-animation="fade-in"].animated {
+      opacity: 1;
     }
   
     @media (max-width: 768px) {
@@ -900,14 +901,14 @@ img {
       }
   
       .footer-content {
-        flex-direction: column;
+        flex-direction: column-reverse;
         align-items: center;
         text-align: center;
       }
   
       .logo-copyright, .contact-info {
         align-items: center;
-        margin-bottom: 1.5rem;
+        margin-top: 3rem;
       }
   
       .footer-logo {
@@ -960,6 +961,10 @@ img {
         font-size: 2.75rem;
       }
 
+      .video-section {
+        padding-bottom: 8%;
+      }
+
       .cta-section .section-title {
         font-size: 4rem;
       }
@@ -970,16 +975,20 @@ img {
         margin-top: 3rem;
       }
 
+      .footer-content {
+        padding-bottom: 10%;
+      }
+
       .copyright {
         font-size: 2rem;
       }
 
       .questions {
-        font-size: 3.75rem;
+        font-size: 4rem;
       }
 
       .email {
-        font-size: 2.75rem;
+        font-size: 3.25rem;
       }
     }
 
