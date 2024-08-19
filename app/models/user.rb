@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: users
@@ -40,17 +42,16 @@ class User < ApplicationRecord
   scope :admins, -> { where(admin: true) }
 
   def admin?
-    self.admin
+    admin
   end
-  
+
   def ensure_user_preference
-    self.create_user_preference if user_preference.nil?
+    create_user_preference if user_preference.nil?
   end
-  
+
   private
 
   def create_user_preference
-    self.create_user_preference!
+    create_user_preference!
   end
-
 end

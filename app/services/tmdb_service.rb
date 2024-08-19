@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'http'
 require 'json'
 
@@ -36,7 +38,7 @@ class TmdbService
     url = "#{BASE_URL}/tv/#{tv_id}"
     response = HTTP.get(url, params: { api_key: API_KEY, language: 'en-US', append_to_response: 'credits,videos' })
     JSON.parse(response.body.to_s)
-  end  
+  end
 
   def self.fetch_genres
     movie_genres_url = "#{BASE_URL}/genre/movie/list"
@@ -51,18 +53,16 @@ class TmdbService
     genres = (movie_genres + tv_genres).uniq { |genre| genre['id'] }
 
     # Exclude combined genres from user-facing views
-    combined_genres = ["Sci-Fi & Fantasy", "Action & Adventure", "War & Politics"]
+    combined_genres = ['Sci-Fi & Fantasy', 'Action & Adventure', 'War & Politics']
     user_facing_genres = genres.reject { |genre| combined_genres.include?(genre['name']) }
 
-    { all_genres: genres, user_facing_genres: user_facing_genres }
+    { all_genres: genres, user_facing_genres: }
   end
-
-  private
 
   def self.fetch_multiple_pages(url)
     results = []
     (1..MAX_PAGES).each do |page|
-      response = HTTP.get(url, params: { api_key: API_KEY, language: 'en-US', page: page })
+      response = HTTP.get(url, params: { api_key: API_KEY, language: 'en-US', page: })
       parsed_response = JSON.parse(response.body.to_s)
       results += parsed_response['results']
     end

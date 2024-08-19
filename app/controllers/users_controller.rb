@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class UsersController < ApplicationController
   before_action :authenticate_user!
 
@@ -19,7 +21,7 @@ class UsersController < ApplicationController
     @user = current_user
     authorize @user
     if @user.update(user_params)
-      redirect_to profile_user_path(@user), notice: "Profile was successfully updated."
+      redirect_to profile_user_path(@user), notice: 'Profile was successfully updated.'
     else
       render :edit
     end

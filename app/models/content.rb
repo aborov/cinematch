@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: contents
@@ -16,6 +18,6 @@
 #  source_id     :string
 #
 class Content < ApplicationRecord
-  has_many :content_genres, class_name: "ContentGenre", foreign_key: "content_id", dependent: :destroy
+  has_many :content_genres, class_name: 'ContentGenre', foreign_key: 'content_id', dependent: :destroy
   has_many :genres, through: :content_genres, source: :genre
 end
