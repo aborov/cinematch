@@ -2,7 +2,7 @@ services:
   - type: web
     name: Cinematch 
     env: ruby 
-    plan: free 
+    plan: starter
     buildCommand: "./bin/render-build.sh" 
     startCommand: "./bin/render-start.sh"
     envVars: 
@@ -14,5 +14,5 @@ services:
           property: connectionString
 databases: 
   - name: db
-    plan: free
+    plan: starter
     ipAllowList: []
