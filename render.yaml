@@ -2,7 +2,7 @@ services:
   - type: web
     name: Cinematch 
     env: ruby 
-    plan: starter 
+    plan: starter
     buildCommand: "./bin/render-build.sh" 
     startCommand: "./bin/render-start.sh"
     envVars: 
