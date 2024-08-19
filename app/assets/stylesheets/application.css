@@ -67,9 +67,9 @@ h6 {
 }
 
 .user-greeting {
-  font-size: 1.2rem; /* Adjust font size as needed */
-  color: var(--jonquil); /* Apply your color palette */
-  margin-right: 10px; /* Adjust margin as needed */
+  font-size: 1.2rem; 
+  color: var(--jonquil); 
+  margin-right: 10px;
 }
 
 .btn-primary {
@@ -196,7 +196,7 @@ h6 {
 }
 
 .card-body {
-  padding: 0.75rem; /* Adjust padding if necessary */
+  padding: 0.75rem; 
 }
 
 .card-title {
@@ -206,8 +206,8 @@ h6 {
 }
 
 .card-text-small {
-  font-size: 0.7rem; /* Make the text smaller */
-  margin: 0; /* Remove additional margin */
+  font-size: 0.7rem; 
+  margin: 0; 
 }
 
 .badge {
@@ -337,7 +337,7 @@ h6 {
 
 /* Survey-specific styles */
 .survey-container {
-  min-height: calc(100vh - 200px); /* Adjust to match your navbar height */
+  min-height: calc(100vh - 200px); 
   padding: 2rem 0;
 }
 
@@ -471,26 +471,26 @@ h6 {
 
 .welcome-modal .modal-body p,
 .welcome-modal .modal-body ul li {
-  display: block; /* Ensure each block of text is displayed below the previous one */
-  margin-bottom: 10px; /* Add margin between blocks */
+  display: block; 
+  margin-bottom: 10px; 
 }
 
 .welcome-modal .modal-body ul {
-  padding-left: 0; /* Remove default padding */
-  list-style: none; /* Remove default list style */
+  padding-left: 0; 
+  list-style: none;
 }
 
 .welcome-modal .modal-body ul li {
   display: flex;
-  align-items: flex-start; /* Align items to the top */
-  margin-bottom: 10px; /* Add margin between list items */
+  align-items: flex-start; 
+  margin-bottom: 10px; 
 }
 
 .welcome-modal .modal-body ul li i {
   margin-right: 10px;
-  color: var(--tufts-blue); /* Adjust color to match your palette */
-  font-size: 1.5em; /* Ensure icon size is consistent */
-  line-height: 1; /* Ensure line height is consistent */
+  color: var(--tufts-blue); 
+  font-size: 1.5em; 
+  line-height: 1; 
 }
 
 .welcome-modal .modal-body p,
@@ -499,7 +499,7 @@ h6 {
 }
 
 .welcome-modal .modal-body ul li span {
-  line-height: 1.5; /* Ensure line height for text is consistent */
+  line-height: 1.5;
 }
 
 .welcome-modal .modal-content {
@@ -568,7 +568,6 @@ h6 {
 .welcome-modal .modal-body ul li:nth-child(2) { animation-delay: 0.4s; }
 .welcome-modal .modal-body ul li:nth-child(3) { animation-delay: 0.6s; }
 
-/* Add pointer cursor to show-details class */
 .show-details {
   cursor: pointer;
 }
