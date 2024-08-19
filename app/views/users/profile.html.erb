@@ -13,9 +13,9 @@
           </h2>
           <div id="settingsCollapse" class="accordion-collapse collapse show" aria-labelledby="settingsHeading" data-bs-parent="#profileAccordion">
             <div class="accordion-body">
-              <%= link_to 'Edit Account Data', edit_user_registration_path, class: 'btn btn-primary' %>
+              <%= link_to "Edit Account Data", edit_user_registration_path, class: "btn btn-primary" %>
               <h3 class="mt-4">Edit Personal Information</h3>
-              <%= render 'users/edit' %>
+              <%= render "users/edit" %>
             </div>
           </div>
         </div>
@@ -40,15 +40,15 @@
                       <li class="list-group-item"><%= trait.capitalize %>: <%= score %></li>
                     <% end %>
                   </ul>
-                  <%= link_to 'Retake Personality Survey', surveys_path, class: "btn btn-primary mt-3" %>
+                  <%= link_to "Retake Personality Survey", surveys_path, class: "btn btn-primary mt-3" %>
                 <% else %>
                   <div class="alert alert-warning" role="alert">
-                    No personality profile available. Please complete the <%= link_to 'survey', surveys_path, class: "alert-link" %> to receive recommendations.
+                    No personality profile available. Please complete the <%= link_to "survey", surveys_path, class: "alert-link" %> to receive recommendations.
                   </div>
                 <% end %>
               <% else %>
                 <div class="alert alert-warning" role="alert">
-                  No preferences found. Please complete the <%= link_to 'survey', surveys_path, class: "alert-link" %> to receive recommendations.
+                  No preferences found. Please complete the <%= link_to "survey", surveys_path, class: "alert-link" %> to receive recommendations.
                 </div>
               <% end %>
             </div>
@@ -70,8 +70,8 @@
                   <%= form.label :favorite_genres, "Select your favorite genres", class: "form-label" %><br>
                   <div class="btn-group-toggle d-flex flex-wrap" data-toggle="buttons">
                     <% @genres.each do |genre| %>
-                      <%= form.check_box :favorite_genres, { :multiple => true, :class => 'btn-check', :id => genre['name'].parameterize }, genre['name'], nil %>
-                      <%= label_tag genre['name'].parameterize, genre['name'], { :class => 'btn btn-outline-primary m-1' } %>
+                      <%= form.check_box :favorite_genres, { :multiple => true, :class => "btn-check", :id => genre["name"].parameterize }, genre["name"], nil %>
+                      <%= label_tag genre["name"].parameterize, genre["name"], { :class => "btn btn-outline-primary m-1" } %>
                     <% end %>
                   </div>
                 </div>

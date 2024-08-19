@@ -25,4 +25,5 @@ SurveyQuestion.create([
   { question_text: "I worry about things.", question_type: "neuroticism" },
   { question_text: "I get upset easily.", question_type: "neuroticism" },
 ])
-User.create!(name: "Admin", email: 'admin@example.com', password: 'password', password_confirmation: 'password', admin: true) if Rails.env.development?
+
+User.create!(name: "Admin", email: "admin@example.com", password: "password", password_confirmation: "password", admin: true) if Rails.env.development?

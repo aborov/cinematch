@@ -6,17 +6,17 @@
   <div class="mb-3">
     <%= f.label :gender, class: "form-label" %><br>
     <div class="btn-group" role="group" aria-label="Gender">
-      <%= f.radio_button :gender, 'Male', id: 'gender_male', class: "btn-check" %>
-      <%= f.label :gender, 'Male', class: "btn btn-outline-primary", for: 'gender_male' %>
+      <%= f.radio_button :gender, "Male", id: "gender_male", class: "btn-check" %>
+      <%= f.label :gender, "Male", class: "btn btn-outline-primary", for: "gender_male" %>
 
-      <%= f.radio_button :gender, 'Female', id: 'gender_female', class: "btn-check" %>
-      <%= f.label :gender, 'Female', class: "btn btn-outline-primary", for: 'gender_female' %>
+      <%= f.radio_button :gender, "Female", id: "gender_female", class: "btn-check" %>
+      <%= f.label :gender, "Female", class: "btn btn-outline-primary", for: "gender_female" %>
 
-      <%= f.radio_button :gender, 'Non-binary', id: 'gender_non_binary', class: "btn-check" %>
-      <%= f.label :gender, 'Non-binary', class: "btn btn-outline-primary", for: 'gender_non_binary' %>
+      <%= f.radio_button :gender, "Non-binary", id: "gender_non_binary", class: "btn-check" %>
+      <%= f.label :gender, "Non-binary", class: "btn btn-outline-primary", for: "gender_non_binary" %>
 
-      <%= f.radio_button :gender, 'Prefer not to say', id: 'gender_prefer_not_to_say', class: "btn-check" %>
-      <%= f.label :gender, 'Prefer not to say', class: "btn btn-outline-primary", for: 'gender_prefer_not_to_say' %>
+      <%= f.radio_button :gender, "Prefer not to say", id: "gender_prefer_not_to_say", class: "btn-check" %>
+      <%= f.label :gender, "Prefer not to say", class: "btn btn-outline-primary", for: "gender_prefer_not_to_say" %>
     </div>
   </div>
   <div class="mb-3">
@@ -24,6 +24,6 @@
     <%= f.date_field :dob, start_year: 1900, end_year: Time.now.year, class: "form-control" %>
   </div>
   <div>
-    <%= f.submit 'Update', class: "btn btn-primary" %>
+    <%= f.submit "Update", class: "btn btn-primary" %>
   </div>
 <% end %>

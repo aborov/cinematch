@@ -15,56 +15,56 @@
             </span>
           </li>
           <li class="nav-item">
-            <%= link_to profile_user_path(current_user), class: 'nav-link', title: 'Profile' do %>
+            <%= link_to profile_user_path(current_user), class: "nav-link", title: "Profile" do %>
               <i class="fa-solid fa-circle-user fa-2x" aria-hidden="true"></i><span class="sr-only">Profile</span>
             <% end %>
           </li>
           <li class="nav-item">
-            <%= button_to destroy_user_session_path, method: :delete, data: { turbo: false }, class: 'nav-link', title: 'Sign Out' do %>
+            <%= button_to destroy_user_session_path, method: :delete, data: { turbo: false }, class: "nav-link", title: "Sign Out" do %>
               <i class="fas fa-sign-out-alt fa-2x" aria-hidden="true"></i><span class="sr-only">Sign Out</span>
             <% end %>
           </li>
         <% else %>
           <% if current_page?(root_path) %>
             <li class="nav-item">
-              <%= link_to '#features', class: 'nav-link', title: 'Features' do %>
+              <%= link_to "#features", class: "nav-link", title: "Features" do %>
                 Features
               <% end %>
             </li>
             <li class="nav-item">
-              <%= link_to '#why', class: 'nav-link', title: 'Why Cinematch' do %>
+              <%= link_to "#why", class: "nav-link", title: "Why Cinematch" do %>
                 Why Cinematch
               <% end %>
             </li>
             <li class="nav-item">
-              <%= link_to '#testimonials', class: 'nav-link', title: 'Testimonials' do %>
+              <%= link_to "#testimonials", class: "nav-link", title: "Testimonials" do %>
                 Testimonials
               <% end %>
             </li>
             <li class="nav-item">
-              <%= link_to '#demo', class: 'nav-link', title: 'Demo' do %>
+              <%= link_to "#demo", class: "nav-link", title: "Demo" do %>
                 Demo
               <% end %>
             </li>
             <li class="nav-item">
-              <%= link_to '#contact', class: 'nav-link', title: 'Contact Us' do %>
+              <%= link_to "#contact", class: "nav-link", title: "Contact Us" do %>
                 Contact Us
               <% end %>
             </li>
             <li class="nav-item">
-              <%= link_to "Sign In", new_user_session_path, class: 'btn btn-outline-mint btn-rounded ms-2 me-2' %>
+              <%= link_to "Sign In", new_user_session_path, class: "btn btn-outline-mint btn-rounded ms-2 me-2" %>
             </li>
             <li class="nav-item">
-              <%= link_to "Sign Up", new_user_registration_path, class: 'btn btn-jonquil btn-rounded' %>
+              <%= link_to "Sign Up", new_user_registration_path, class: "btn btn-jonquil btn-rounded" %>
             </li>
           <% else %>
             <li class="nav-item">
-              <%= link_to new_user_session_path, class: 'nav-link', title: 'Sign In' do %>
+              <%= link_to new_user_session_path, class: "nav-link", title: "Sign In" do %>
                 <i class="fas fa-sign-in-alt fa-lg" aria-hidden="true"></i><span class="sr-only">Sign In</span>
               <% end %>
             </li>
             <li class="nav-item">
-              <%= link_to new_user_registration_path, class: 'nav-link', title: 'Sign Up' do %>
+              <%= link_to new_user_registration_path, class: "nav-link", title: "Sign Up" do %>
                 <i class="fas fa-user-plus fa-lg" aria-hidden="true"></i><span class="sr-only">Sign Up</span>
               <% end %>
             </li>
