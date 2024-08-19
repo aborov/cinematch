@@ -6,16 +6,23 @@ CineMatch is a personalized content recommendation platform that matches feature
 
 ## Table of Contents
 
-- [Installation](#installation)
+- [Instructions](#instructions)
 - [Usage](#usage)
 - [Contributing](#contributing)
+- [ERD](#erd)
+- [User Journey](#user-journey)
 - [License](#license)
 - [Contact](#contact)
 
 
-## Installation
+## Instructions
 
-Cinematch uses TMDB API to fetch content data, so launching the app requires setting up API key as `THEMOVIEDB_KEY` in the environment variables. [Details on TMDB API](https://developer.themoviedb.org/docs/getting-started)
+### Configuration
+
+- Cinematch uses TMDB API to fetch content data, so launching the app requires setting up API key as `THEMOVIEDB_KEY` in the environment variables. [Details on TMDB API](https://developer.themoviedb.org/docs/getting-started).
+- Password recovery functionality requires configuring external SMTP server for mailer in `development.rb` or `production.rb` (depending on the environment) and providing its credentials in the environment variables as `SMTP_USERNAME` and `SMTP_PASSWORD`. Currently, Cinematch uses Zoho SMTP server as default.
+
+### Installation
 
 1. Clone the repository:
 ```bash
@@ -102,15 +109,16 @@ Please follow the [Ruby community Style Guide](https://rubystyle.guide/).
 ## ERD
 <img alt="Cinematch ERD" src="./erd.png">
 
+## User Journey
+![Cinematch user journey](https://gist.github.com/user-attachments/assets/b4d26004-c9d9-4752-b304-165301ba4c24)
+
 ## License
 
 Distributed under the GNU General Public License (GPL). See `LICENSE` for more information.
 
 ## Contacts
 
-For user inquiries: info@cinematch.net
-
-For development inquiries: Aleksei Borovikov - alex@aborovikov.com
-
-[Project Link](https://github.com/users/aborov/projects/1)
-[Application Link](https://cinematch.net)
+- For user inquiries: info@cinematch.net
+- For development inquiries: Aleksei Borovikov alex@aborovikov.com
+- [Project Link](https://github.com/users/aborov/projects/1)
+- [Application Link](https://cinematch.net)
