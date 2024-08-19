@@ -1,16 +1,20 @@
-class Users::PasswordsController < Devise::PasswordsController
-  def update
-    super do |resource|
-      if resource.errors.empty?
-        sign_in(resource, bypass: true)
-        flash[:notice] = "Your password has been changed successfully."
+# frozen_string_literal: true
+
+module Users
+  class PasswordsController < Devise::PasswordsController
+    def update
+      super do |resource|
+        if resource.errors.empty?
+          sign_in(resource, bypass: true)
+          flash[:notice] = 'Your password has been changed successfully.'
+        end
       end
     end
-  end
 
-  protected
+    protected
 
-  def after_resetting_password_path_for(resource)
-    root_path # or any other path you want to redirect to after password reset
+    def after_resetting_password_path_for(_resource)
+      root_path # or any other path you want to redirect to after password reset
+    end
   end
 end

@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 namespace :tmdb do
-  desc "Fetch and store genres from TMDb"
+  desc 'Fetch and store genres from TMDb'
   task fetch_genres: :environment do
     genres = TmdbService.fetch_genres
 
@@ -12,6 +14,6 @@ namespace :tmdb do
       end
     end
 
-    puts "Genres have been fetched and stored successfully."
+    puts 'Genres have been fetched and stored successfully.'
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class UserPreferencePolicy < ApplicationPolicy
   def create?
     user == record.user

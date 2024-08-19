@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class SurveysController < ApplicationController
   before_action :authenticate_user!
   before_action :ensure_user_preference
