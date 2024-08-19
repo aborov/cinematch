@@ -31,7 +31,7 @@ gem "sqlite3", "~> 1.4"
 gem "stimulus-rails"
 gem "table_print"
 gem "turbo-rails"
-gem "turbolinks", '~> 5'
+gem "turbolinks", "~> 5"
 gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ]
 
 # Use Kredis to get higher-level data types in Redis [https://github.com/rails/kredis]
@@ -39,7 +39,6 @@ gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ]
 
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"
-
 
 # Use Sass to process CSS
 # gem "sassc-rails"

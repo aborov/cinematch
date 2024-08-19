@@ -3,14 +3,11 @@ Rails.application.routes.draw do
   ActiveAdmin.routes(self)
 
   root to: "pages#landing"
-  # get 'pages/landing'
 
   devise_for :users, controllers: {
-    passwords: "users/passwords",
-    registrations: "users/registrations",
-  }
-
-  # root to: "recommendations#index"
+            passwords: "users/passwords",
+            registrations: "users/registrations",
+          }
 
   resources :users, only: [:show, :edit, :update] do
     member do

@@ -51,15 +51,15 @@
         This will help us understand your personality and preferences to provide better recommendations.
       </p>
 
-      <%= form_with url: surveys_path, local: false, html: { id: 'survey-form' } do |form| %>
+      <%= form_with url: surveys_path, local: false, html: { id: "survey-form" } do |form| %>
         <div id="personality-questions">
           <% @personality_questions.each_with_index do |question, index| %>
-            <div class="question-container" style="display: <%= index == 0 ? 'block' : 'none' %>;" data-question-index="<%= index %>">
+            <div class="question-container" style="display: <%= index == 0 ? "block" : "none" %>;" data-question-index="<%= index %>">
               <h3 class="mb-3"><%= question.question_text %></h3>
               <div class="btn-group-toggle d-flex justify-content-between" data-toggle="buttons">
                 <% (1..5).each do |option| %>
-                  <%= form.radio_button "personality_responses[#{question.id}]", option, class: 'btn-check', id: "q#{question.id}_#{option}" %>
-                  <%= form.label "q#{question.id}_#{option}", option, class: 'btn btn-outline-primary', style: 'width: 18%;' %>
+                  <%= form.radio_button "personality_responses[#{question.id}]", option, class: "btn-check", id: "q#{question.id}_#{option}" %>
+                  <%= form.label "q#{question.id}_#{option}", option, class: "btn btn-outline-primary", style: "width: 18%;" %>
                 <% end %>
               </div>
             </div>
@@ -70,8 +70,8 @@
           <h3 class="mb-3">Select your favorite genres</h3>
           <div class="btn-group-toggle d-flex flex-wrap" data-toggle="buttons">
             <% @genres.each do |genre| %>
-              <%= form.check_box :favorite_genres, { multiple: true, class: 'btn-check', id: genre['name'].parameterize }, genre['name'], nil %>
-              <%= form.label genre['name'].parameterize, genre['name'], class: 'btn btn-outline-primary m-1' %>
+              <%= form.check_box :favorite_genres, { multiple: true, class: "btn-check", id: genre["name"].parameterize }, genre["name"], nil %>
+              <%= form.label genre["name"].parameterize, genre["name"], class: "btn btn-outline-primary m-1" %>
             <% end %>
           </div>
         </div>

@@ -8,8 +8,8 @@
           <%= form.label :favorite_genres, "Select your favorite genres", class: "form-label" %><br>
           <div class="btn-group-toggle d-flex flex-wrap" data-toggle="buttons">
             <% @genres.each do |genre| %>
-              <%= form.check_box :favorite_genres, { multiple: true, class: 'btn-check', id: genre['name'].parameterize }, genre['name'], nil %>
-              <%= label_tag genre['name'].parameterize, genre['name'], class: 'btn btn-outline-primary m-1' %>
+              <%= form.check_box :favorite_genres, { multiple: true, class: "btn-check", id: genre["name"].parameterize }, genre["name"], nil %>
+              <%= label_tag genre["name"].parameterize, genre["name"], class: "btn btn-outline-primary m-1" %>
             <% end %>
           </div>
         </div>
