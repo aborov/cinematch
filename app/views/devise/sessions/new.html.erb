@@ -25,6 +25,12 @@
               </div>
             <% end %>
 
+            <div class="mb-3">
+              <p class="text-muted small">
+                By signing in, you agree to our <%= link_to "Terms of Service", terms_path, target: "_blank" %> and <%= link_to "Privacy Policy", privacy_path, target: "_blank" %>.
+              </p>
+            </div>
+
             <div class="d-flex justify-content-between align-items-center">
               <div class="d-flex">
                 <%= f.submit "Sign In", class: "btn btn-primary" %>

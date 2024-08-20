@@ -34,6 +34,12 @@ class PagesController < ApplicationController
     end
   end
 
+  def privacy
+  end
+
+  def terms
+  end
+
   private
 
   def contact_params

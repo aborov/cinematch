@@ -60,6 +60,12 @@
               <small id="passwordConfirmationHelp" class="form-text text-muted"></small>
             </div>
 
+            <div class="mb-3">
+              <p class="text-muted small">
+                By signing up, you agree to our <%= link_to "Terms of Service", terms_path, target: "_blank" %> and <%= link_to "Privacy Policy", privacy_path, target: "_blank" %>.
+              </p>
+            </div>
+
             <div class="d-flex justify-content-between align-items-center">
               <div class="d-flex">
                 <%= link_to "Back", new_user_session_path, class: "btn btn-secondary me-2" %>
