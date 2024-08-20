@@ -9,6 +9,7 @@ import * as bootstrap from "bootstrap"
 window.bootstrap = bootstrap
 
 import "password_validation"
+import "recaptcha"
 
 const application = Application.start()
 

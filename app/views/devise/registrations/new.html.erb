@@ -37,7 +37,7 @@
 
             <div class="mb-3">
               <%= f.label :dob, "Date of Birth", class: "form-label" %>
-              <%= f.date_field :dob, start_year: 1900, end_year: Time.now.year, class: "form-control" %>
+              <%= f.date_field :dob, start_year: 1900, end_year: Time.now.year, class: "form-control", optional: true %>
             </div>
 
             <div class="mb-3">

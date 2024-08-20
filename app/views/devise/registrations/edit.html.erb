@@ -20,7 +20,7 @@
 
             <div class="mb-3">
               <%= f.label :gender, class: "form-label" %><br>
-              <div class="btn-group" role="group" aria-label="Gender">
+              <div class="btn-group btn-group-sm flex-wrap" role="group" aria-label="Gender">
                 <%= f.radio_button :gender, "Male", id: "gender_male", class: "btn-check" %>
                 <%= f.label :gender, "Male", class: "btn btn-outline-primary", for: "gender_male" %>
 
@@ -37,7 +37,7 @@
 
             <div class="mb-3">
               <%= f.label :dob, "Date of Birth", class: "form-label" %>
-              <%= f.date_field :dob, start_year: 1900, end_year: Time.now.year, class: "form-control" %>
+              <%= f.date_field :dob, start_year: 1900, end_year: Time.now.year, class: "form-control", optional: true %>
             </div>
 
             <div class="mb-3">

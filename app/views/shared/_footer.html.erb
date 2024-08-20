@@ -1,11 +1,18 @@
 <footer class="footer mt-auto py-3 px-3">
   <div class="container text-left">
-    <span class="text-muted small">
-      This product uses the TMDB API but is not endorsed or certified by TMDB.
-      <br>
-      <a href="https://www.themoviedb.org/" target="_blank" class="mt-2 d-inline-block">
-        <img src="<%= asset_path("logos/tmdb_logo.svg") %>" alt="TMDB Logo" height="15">
-      </a>
-    </span>
+    <div class="row">
+      <div class="col-md-6">
+        <span class="text-muted small">
+          This product uses the TMDB API but is not endorsed or certified by TMDB.
+          <br>
+          <a href="https://www.themoviedb.org/" target="_blank" class="mt-2 d-inline-block">
+            <img src="<%= asset_path("logos/tmdb_logo.svg") %>" alt="TMDB Logo" height="15">
+          </a>
+        </span>
+      </div>
+      <div class="col-md-6 text-md-end">
+        <%= link_to "Contact Us", contact_path, class: "text-muted small footer-link" %>
+      </div>
+    </div>
   </div>
 </footer>
