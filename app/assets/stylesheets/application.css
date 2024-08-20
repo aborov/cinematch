@@ -571,3 +571,11 @@ h6 {
 .show-details {
   cursor: pointer;
 }
+
+.footer-link {
+  text-decoration: none;
+}
+
+.footer-link:hover {
+  text-decoration: underline;
+}

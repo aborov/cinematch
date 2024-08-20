@@ -1,0 +1,38 @@
+<div class="container">
+  <div class="row justify-content-center align-items-center" style="min-height: calc(100vh - 200px);">
+    <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5">
+      <div class="card">
+        <h3 class="card-header">Contact Us</h3>
+        <div class="card-body">
+          <%= form_tag(send_contact_email_path, method: :post) do %>
+            <div class="mb-3">
+              <%= label_tag :name, 'Name', class: 'form-label' %>
+              <%= text_field_tag :name, current_user&.name, class: 'form-control', required: true %>
+            </div>
+            <div class="mb-3">
+              <%= label_tag :email, 'Email', class: 'form-label' %>
+              <%= email_field_tag :email, current_user&.email, class: 'form-control', required: true %>
+            </div>
+            <div class="mb-3">
+              <%= label_tag :subject, 'Subject', class: 'form-label' %>
+              <%= select_tag :subject, options_for_select([
+                ['General Inquiry', 'General Inquiry'],
+                ['Technical Support', 'Technical Support'],
+                ['Feedback', 'Feedback'],
+                ['Other', 'Other']
+              ]), class: 'form-select', required: true %>
+            </div>
+            <div class="mb-3">
+              <%= label_tag :message, 'Message', class: 'form-label' %>
+              <%= text_area_tag :message, nil, class: 'form-control', rows: 5, required: true %>
+            </div>
+            <div class="mb-3">
+              <%= recaptcha_tags %>
+            </div>
+            <%= submit_tag 'Send Message', class: 'btn btn-primary' %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
