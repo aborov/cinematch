@@ -10,7 +10,11 @@ class PagesController < ApplicationController
   end
 
   def contact
-    @contact = OpenStruct.new(params[:contact])
+    @contact = if user_signed_in?
+      OpenStruct.new(name: current_user.name, email: current_user.email)
+    else
+      OpenStruct.new
+    end
   end
 
   def send_contact_email
@@ -19,7 +23,7 @@ class PagesController < ApplicationController
     if verify_recaptcha(model: @contact)
       if @contact.name.present? && @contact.email.present? && @contact.subject.present? && @contact.message.present?
         ContactMailer.contact_email(@contact.name, @contact.email, @contact.subject, @contact.message).deliver_now
-        redirect_to root_path, notice: 'Your message has been sent. We will get back to you soon!'
+        redirect_to contact_path, notice: 'Your message has been sent. We will get back to you soon!'
       else
         flash.now[:alert] = 'Please fill in all fields.'
         render :contact
