@@ -579,17 +579,3 @@ h6 {
 .footer-link:hover {
   text-decoration: underline;
 }
-
-.container h1, .container h2, .container h3 {
-  margin-top: 30px;
-  margin-bottom: 15px;
-}
-
-.container p, .container ul {
-  margin-bottom: 15px;
-}
-
-.container ul {
-  padding-left: 20px;
-}
-
