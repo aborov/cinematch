@@ -20,4 +20,6 @@ Rails.application.routes.draw do
   resources :recommendations, only: [:index, :show]
   get 'contact', to: 'pages#contact'
   post 'send_contact_email', to: 'pages#send_contact_email'
+  get 'terms', to: 'pages#terms'
+  get 'privacy', to: 'pages#privacy'
 end

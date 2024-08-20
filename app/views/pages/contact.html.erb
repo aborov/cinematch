@@ -16,8 +16,8 @@
             <div class="mb-3">
               <%= label_tag 'contact[subject]', 'Subject', class: 'form-label' %>
               <%= select_tag 'contact[subject]', options_for_select([
-                ['Account Inquiry', 'Account Inquiry'],
                 ['Technical Support', 'Technical Support'],
+                ['Account Inquiry', 'Account Inquiry'],
                 ['Feedback', 'Feedback'],
                 ['Other', 'Other']
               ], @contact&.subject), class: 'form-select', required: true %>
