@@ -10,17 +10,15 @@ class PagesController < ApplicationController
   end
 
   def contact
+    @contact = OpenStruct.new(params[:contact])
   end
 
   def send_contact_email
-    if verify_recaptcha(action: 'contact')
-      name = params[:name]
-      email = params[:email]
-      subject = params[:subject]
-      message = params[:message]
+    @contact = OpenStruct.new(contact_params)
 
-      if name.present? && email.present? && subject.present? && message.present?
-        ContactMailer.contact_email(name, email, subject, message).deliver_now
+    if verify_recaptcha(model: @contact)
+      if @contact.name.present? && @contact.email.present? && @contact.subject.present? && @contact.message.present?
+        ContactMailer.contact_email(@contact.name, @contact.email, @contact.subject, @contact.message).deliver_now
         redirect_to root_path, notice: 'Your message has been sent. We will get back to you soon!'
       else
         flash.now[:alert] = 'Please fill in all fields.'
@@ -30,5 +28,11 @@ class PagesController < ApplicationController
       flash.now[:alert] = 'reCAPTCHA verification failed. Please try again.'
       render :contact
     end
+  end
+
+  private
+
+  def contact_params
+    params.require(:contact).permit(:name, :email, :subject, :message)
   end
 end
