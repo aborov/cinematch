@@ -1,7 +1,7 @@
 <footer class="footer mt-auto py-3 px-3">
-  <div class="container text-left">
+  <div class="container">
     <div class="row">
-      <div class="col-md-6">
+      <div class="col-md-4">
         <span class="text-muted small">
           This product uses the TMDB API but is not endorsed or certified by TMDB.
           <br>
@@ -10,7 +10,14 @@
           </a>
         </span>
       </div>
-      <div class="col-md-6 text-md-end">
+      <div class="col-md-4 text-md-center">
+        <span class="text-muted small">
+          © <%= Date.today.year %> Cinematch.
+        </span>
+      </div>
+      <div class="col-md-4 text-md-end">
+        <%= link_to "Privacy Policy", privacy_policy_path, class: "text-muted small footer-link me-3" %>
+        <%= link_to "Terms of Service", terms_of_service_path, class: "text-muted small footer-link me-3" %>
         <%= link_to "Contact Us", contact_path, class: "text-muted small footer-link" %>
       </div>
     </div>

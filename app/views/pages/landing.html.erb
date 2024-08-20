@@ -178,11 +178,15 @@
       <div class="footer-content">
         <div class="logo-copyright">
           <img src="<%= asset_path("logos/cm_logo1_mint.svg") %>" alt="Cinematch Logo" class="footer-logo animate-on-scroll" data-animation="fade-in">
-          <p class="copyright animate-on-scroll" data-animation="fade-in">© 2024 Cinematch. All Rights Reserved.</p>
+          <p class="copyright animate-on-scroll" data-animation="fade-in">© <%= Date.today.year %> Cinematch.</p>
         </div>
         <div class="contact-info animate-on-scroll" data-animation="fade-in">
           <p class="questions">Questions?</p>
           <%= link_to "Contact Us", contact_path, class: "email" %>
+        </div>
+        <div class="legal-links animate-on-scroll" data-animation="fade-in">
+          <%= link_to "Privacy Policy", privacy_policy_path, class: "legal-link" %>
+          <%= link_to "Terms of Service", terms_of_service_path, class: "legal-link" %>
         </div>
       </div>
     </div>
