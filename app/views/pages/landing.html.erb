@@ -176,17 +176,14 @@
       </h2>
       <a href="<%= new_user_registration_path %>" class="cta-button animate-on-scroll" data-animation="pop">GET STARTED</a>
       <div class="footer-content">
-        <div class="logo-copyright">
-          <img src="<%= asset_path("logos/cm_logo1_mint.svg") %>" alt="Cinematch Logo" class="footer-logo animate-on-scroll" data-animation="fade-in">
-          <p class="copyright animate-on-scroll" data-animation="fade-in">© <%= Date.today.year %> Cinematch.</p>
+        <div class="logo-container animate-on-scroll" data-animation="fade-in">
+          <img src="<%= asset_path("logos/cm_logo1_mint.svg") %>" alt="Cinematch Logo" class="footer-logo">
         </div>
-        <div class="contact-info animate-on-scroll" data-animation="fade-in">
-          <p class="questions">Questions?</p>
-          <%= link_to "Contact Us", contact_path, class: "email" %>
-        </div>
-        <div class="legal-links animate-on-scroll" data-animation="fade-in">
-          <%= link_to "Privacy Policy", privacy_path, class: "legal-link" %>
-          <%= link_to "Terms of Service", terms_path, class: "legal-link" %>
+        <div class="footer-links-copyright animate-on-scroll" data-animation="fade-in">
+          <%= link_to "Privacy Policy", privacy_path, class: "footer-link" %>
+          <%= link_to "Terms of Service", terms_path, class: "footer-link" %>
+          <%= link_to "Contact Us", contact_path, class: "footer-link" %>
+          <p class="copyright">© <%= Date.today.year %> Cinematch.</p>
         </div>
       </div>
     </div>
