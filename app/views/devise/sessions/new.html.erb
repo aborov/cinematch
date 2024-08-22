@@ -52,7 +52,17 @@
               <i class="fa-brands fa-google me-2"></i> Sign in with Google
             <% end %>
 
-            
+            <%= link_to user_facebook_omniauth_authorize_path, method: :post, class: "btn btn-outline-primary" do %>
+              <i class="fa-brands fa-facebook me-2"></i> Sign in with Facebook
+            <% end %>
+
+            <%= link_to user_twitter_omniauth_authorize_path, method: :post, class: "btn btn-outline-dark" do %>
+              <i class="fa-brands fa-x-twitter me-2"></i> Sign in with X
+            <% end %>
+
+            <%= link_to user_apple_omniauth_authorize_path, method: :post, class: "btn btn-outline-dark" do %>
+              <i class="fa-brands fa-apple me-2"></i> Sign in with Apple
+            <% end %>
           </div>
         </div>
       </div>
