@@ -5,6 +5,7 @@
 # Table name: user_preferences
 #
 #  id                   :integer          not null, primary key
+#  deleted_at           :datetime
 #  favorite_genres      :json
 #  personality_profiles :json
 #  created_at           :datetime         not null
@@ -13,13 +14,15 @@
 #
 # Indexes
 #
-#  index_user_preferences_on_user_id  (user_id)
+#  index_user_preferences_on_deleted_at  (deleted_at)
+#  index_user_preferences_on_user_id     (user_id)
 #
 # Foreign Keys
 #
 #  user_id  (user_id => users.id)
 #
 class UserPreference < ApplicationRecord
+  acts_as_paranoid
   belongs_to :user, required: true
 
   def personality_profiles

@@ -26,7 +26,7 @@ class UserPolicy < ApplicationPolicy
   end
 
   def destroy?
-    user.admin?
+    user.admin? || record == user
   end
 
   def profile?

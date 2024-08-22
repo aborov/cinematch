@@ -86,7 +86,8 @@
               </div>
               <div class="d-flex align-items-center">
                 <p class="mb-0 me-2">Already a user?</p>
-                <%= link_to "Sign In", new_user_session_path, class: "btn btn-outline-primary" %>
+                <%= link_to "Sign In", new_user_session_path, class: "btn btn-outline-primary me-2" %>
+                <%= link_to "Restore", restore_account_path, class: "btn btn-outline-secondary" %>
               </div>
             </div>
           <% end %>

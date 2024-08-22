@@ -17,4 +17,19 @@ const application = Application.start()
 application.debug = false
 window.Stimulus = application
 
+
 export { application }
+
+document.addEventListener('turbo:load', addCSRFTokenToForms);
+document.addEventListener('DOMContentLoaded', addCSRFTokenToForms);
+
+function addCSRFTokenToForms() {
+  var token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  document.querySelectorAll('form').forEach(function(form) {
+    var input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'authenticity_token';
+    input.value = token;
+    form.appendChild(input);
+  });
+}

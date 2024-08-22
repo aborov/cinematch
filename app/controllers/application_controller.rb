@@ -6,6 +6,9 @@ class ApplicationController < ActionController::Base
   # Ensure unauthorized access is handled
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
 
+  protect_from_forgery with: :exception
+  before_action :set_csrf_cookie
+
   private
 
   def user_not_authorized
@@ -19,5 +22,14 @@ class ApplicationController < ActionController::Base
 
   def pages_controller?
     controller_name == 'pages'
+  end
+
+  def set_csrf_cookie
+    cookies['CSRF-TOKEN'] = form_authenticity_token
+  end
+
+  def handle_unverified_request
+    flash[:alert] = "CSRF token verification failed. Please try again."
+    redirect_to root_path
   end
 end
