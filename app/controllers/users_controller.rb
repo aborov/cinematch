@@ -46,24 +46,29 @@ class UsersController < ApplicationController
   end
 
   def restore
-    @user = User.only_deleted.find_by(email: params[:email])
-    if @user
-      begin
-        ActiveRecord::Base.transaction do
-          @user.restore!
-          UserPreference.only_deleted.where(user_id: @user.id).each(&:restore!)
-          SurveyResponse.only_deleted.where(user_id: @user.id).each(&:restore!)
+    if verify_recaptcha
+      @user = User.only_deleted.find_by(email: params[:email])
+      if @user
+        begin
+          ActiveRecord::Base.transaction do
+            @user.restore!
+            UserPreference.only_deleted.where(user_id: @user.id).each(&:restore!)
+            SurveyResponse.only_deleted.where(user_id: @user.id).each(&:restore!)
+          end
+          flash[:notice] = 'Your account has been successfully restored. Please sign in.'
+          redirect_to new_user_session_path
+        rescue => e
+          Rails.logger.error "Failed to restore user account: #{e.message}"
+          flash[:alert] = 'Unable to restore account. Please contact support.'
+          redirect_to new_user_registration_path
         end
-        flash[:notice] = 'Your account has been successfully restored. Please sign in.'
-        redirect_to new_user_session_path
-      rescue => e
-        Rails.logger.error "Failed to restore user account: #{e.message}"
-        flash[:alert] = 'Unable to restore account. Please contact support.'
+      else
+        flash[:alert] = 'No deleted account found with this email address.'
         redirect_to new_user_registration_path
       end
     else
-      flash[:alert] = 'No deleted account found with this email address.'
-      redirect_to new_user_registration_path
+      flash.now[:alert] = 'reCAPTCHA verification failed, please try again.'
+      render 'restore_account'
     end
   end
 

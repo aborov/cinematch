@@ -2,6 +2,16 @@
 
 module Users
   class PasswordsController < Devise::PasswordsController
+    def create
+      if verify_recaptcha
+        super
+      else
+        self.resource = resource_class.new
+        flash.now[:alert] = 'reCAPTCHA verification failed, please try again.'
+        respond_with_navigational(resource) { render :new }
+      end
+    end
+
     def update
       super do |resource|
         if resource.errors.empty?
