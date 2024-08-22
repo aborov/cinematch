@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_08_14_012322) do
+ActiveRecord::Schema[7.1].define(version: 2024_08_22_013933) do
   create_table "active_admin_comments", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -67,6 +67,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_14_012322) do
     t.integer "user_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["deleted_at"], name: "index_survey_responses_on_deleted_at"
   end
 
   create_table "user_preferences", force: :cascade do |t|
@@ -75,6 +77,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_14_012322) do
     t.json "favorite_genres"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["deleted_at"], name: "index_user_preferences_on_deleted_at"
     t.index ["user_id"], name: "index_user_preferences_on_user_id"
   end
 
@@ -91,7 +95,12 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_14_012322) do
     t.datetime "updated_at", null: false
     t.boolean "admin"
     t.datetime "password_changed_at"
+    t.string "provider"
+    t.string "uid"
+    t.datetime "deleted_at"
+    t.index ["deleted_at"], name: "index_users_on_deleted_at"
     t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 

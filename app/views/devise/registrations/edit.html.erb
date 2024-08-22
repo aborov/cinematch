@@ -67,13 +67,41 @@
               <small id="currentPasswordHelp" class="form-text text-muted">we need your current password to confirm your changes</small>
             </div>
 
-            <div class="d-flex justify-content-between">
-              <%= link_to "Back", profile_user_path(current_user), class: "btn btn-secondary" %>
-              <%= f.submit "Update", class: "btn btn-primary" %>
-            </div>
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <%= link_to "Back", profile_user_path(current_user), class: "btn btn-secondary" %>
+                <%= f.submit "Update", class: "btn btn-primary" %>
           <% end %>
+              </div>
+              <div class="d-flex align-items-center">
+                <%= button_to "Delete Account", user_path(current_user), method: :delete, 
+                              class: "btn btn-danger",
+                              id: "delete-account-btn" %>
+              </div>
+            </div>
         </div>
       </div>
     </div>
   </div>
 </div>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const deleteButton = entry.target;
+        deleteButton.addEventListener('click', (event) => {
+          if (!confirm("Are you sure you want to delete your account?")) {
+            event.preventDefault();
+          }
+        });
+        observer.unobserve(deleteButton);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  const deleteButton = document.getElementById('delete-account-btn');
+  if (deleteButton) {
+    observer.observe(deleteButton);
+  }
+</script>

@@ -180,8 +180,8 @@
           <img src="<%= asset_path("logos/cm_logo1_mint.svg") %>" alt="Cinematch Logo" class="footer-logo">
         </div>
         <div class="footer-links-copyright animate-on-scroll" data-animation="fade-in">
+          <%= link_to "Terms of Service", terms_path, class: "footer-link" %> 
           <%= link_to "Privacy Policy", privacy_path, class: "footer-link" %>
-          <%= link_to "Terms of Service", terms_path, class: "footer-link" %>
           <%= link_to "Contact Us", contact_path, class: "footer-link" %>
           <p class="copyright">© <%= Date.today.year %> Cinematch.</p>
         </div>

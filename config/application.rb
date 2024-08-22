@@ -32,9 +32,11 @@ module RailsTemplate
       g.helper false
     end
 
-    config.action_controller.default_protect_from_forgery = false
+    # config.action_controller.default_protect_from_forgery = false
 
     # Don't generate system test files.
     config.generators.system_tests = nil
+
+    config.action_controller.allow_forgery_protection = true
   end
 end

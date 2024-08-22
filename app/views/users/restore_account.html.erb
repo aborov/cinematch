@@ -1,0 +1,26 @@
+<div class="container">
+  <div class="row justify-content-center align-items-center" style="min-height: calc(100vh - 200px);">
+    <div class="col-12 col-sm-8 col-md-6 col-lg-4 col-xl-3">
+      <div class="card">
+        <h3 class="card-header">Restore Your Account</h3>
+
+        <div class="card-body">
+          <%= form_tag restore_account_path, method: :post do %>
+            <div class="mb-3">
+              <%= label_tag :email, 'Email', class: "form-label" %>
+              <%= email_field_tag :email, params[:email], class: "form-control", autofocus: true, required: true %>
+              <small class="form-text text-muted">
+                Enter the email address associated with your deleted account.
+              </small>
+            </div>
+
+            <div class="d-flex justify-content-between">
+              <%= link_to "Back", new_user_session_path, class: "btn btn-secondary" %>
+              <%= submit_tag "Restore Account", class: "btn btn-primary" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

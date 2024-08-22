@@ -80,13 +80,12 @@
             </div>
 
             <div class="d-flex justify-content-between align-items-center">
-              <div class="d-flex">
-                <%= link_to "Back", new_user_session_path, class: "btn btn-secondary me-2" %>
+              <div>
                 <%= f.submit "Sign Up", class: "btn btn-primary" %>
               </div>
               <div class="d-flex align-items-center">
-                <p class="mb-0 me-2">Already a user?</p>
-                <%= link_to "Sign In", new_user_session_path, class: "btn btn-outline-primary" %>
+                <%= link_to "Sign In", new_user_session_path, class: "btn btn-outline-primary me-2" %>
+                <%= link_to "Restore", restore_account_path, class: "btn btn-outline-secondary" %>
               </div>
             </div>
           <% end %>
