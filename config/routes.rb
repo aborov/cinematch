@@ -5,9 +5,10 @@ Rails.application.routes.draw do
   root to: "pages#landing"
 
   devise_for :users, controllers: {
-            passwords: "users/passwords",
-            registrations: "users/registrations",
-          }
+    passwords: "users/passwords",
+    registrations: "users/registrations",
+    omniauth_callbacks: "users/omniauth_callbacks",
+  }
 
   resources :users, only: [:show, :edit, :update, :destroy] do
     member do

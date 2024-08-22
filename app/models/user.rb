@@ -65,6 +65,28 @@ class User < ApplicationRecord
     create_user_preference if user_preference.nil?
   end
 
+  def self.from_omniauth(auth)
+    where(provider: auth.provider, uid: auth.uid).first_or_create do |user|
+      user.email = auth.info.email
+      user.password = Devise.friendly_token[0, 20]
+      user.name = auth.info.name
+      user.skip_password_complexity = true
+      
+      case auth.provider
+      when 'facebook'
+        user.gender = auth.extra.raw_info.gender if auth.extra.raw_info.gender.present?
+        if auth.extra.raw_info.birthday.present?
+          user.dob = Date.strptime(auth.extra.raw_info.birthday, "%m/%d/%Y") rescue nil
+        end
+      when 'google_oauth2'
+        user.gender = auth.info.gender if auth.info.gender.present?
+        if auth.info.birthday.present?
+          user.dob = Date.strptime(auth.info.birthday, "%Y-%m-%d") rescue nil
+        end
+      end
+    end
+  end
+
   private
 
   def create_user_preference

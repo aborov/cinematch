@@ -17,8 +17,8 @@
               <%= f.label :password, class: "form-label" %>
               <%= f.password_field :password, autocomplete: "current-password", class: "form-control" %>
               <div class="small">
-              <%= render "devise/shared/links" %>
-            </div>
+                <%= render "devise/shared/links" %>
+              </div>
             </div>
 
             <% if devise_mapping.rememberable? %>
@@ -45,7 +45,14 @@
             </div>
           <% end %>
 
+          <hr>
 
+          <div class="d-grid gap-2">
+            <%= link_to user_google_oauth2_omniauth_authorize_path, method: :post, class: "btn btn-outline-danger" do %>
+              <i class="fa-brands fa-google me-2"></i> Sign in with Google
+            <% end %>
+
+            
           </div>
         </div>
       </div>

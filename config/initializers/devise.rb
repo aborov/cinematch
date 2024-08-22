@@ -272,7 +272,21 @@ Devise.setup do |config|
   # ==> OmniAuth
   # Add a new OmniAuth provider. Check the wiki for more information on setting
   # up on your models and hooks.
-  # config.omniauth :github, 'APP_ID', 'APP_SECRET', scope: 'user,public_repo'
+  # config/initializers/devise.rb
+  config.omniauth :google_oauth2, ENV["GOOGLE_CLIENT_ID"], ENV["GOOGLE_CLIENT_SECRET"], {
+    scope: "email,profile",
+    prompt: "select_account",
+    image_aspect_ratio: "square",
+    image_size: 50,
+    access_type: "offline"
+  }
+  config.omniauth :facebook, ENV["FACEBOOK_APP_ID"], ENV["FACEBOOK_APP_SECRET"], scope: "email,public_profile,user_gender,user_birthday", info_fields: "email,name,gender,birthday"
+  config.omniauth :twitter, ENV["TWITTER_API_KEY"], ENV["TWITTER_API_SECRET"]
+  config.omniauth :apple, ENV["APPLE_CLIENT_ID"], "", { scope: "email name", info_fields: "email,name", team_id: ENV["APPLE_TEAM_ID"], key_id: ENV["APPLE_KEY_ID"], pem: ENV["APPLE_PRIVATE_KEY"] }
+
+  config.omniauth :google_oauth2, ENV['GOOGLE_CLIENT_ID'], ENV['GOOGLE_CLIENT_SECRET'], provider_ignores_state: true
+  OmniAuth.config.allowed_request_methods = [:post, :get]
+  OmniAuth.config.silence_get_warning = true
 
   # ==> Warden configuration
   # If you want to use other strategies, that are not supported by Devise, or
