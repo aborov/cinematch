@@ -2,7 +2,7 @@
   <div class="card h-100 stretched-link show-details" data-id="<%= recommendation[:id] %>" data-type="<%= recommendation[:type] %>">
     <div class="row no-gutters">
       <div class="col-4">
-        <%= image_tag "https://image.tmdb.org/t/p/w154#{recommendation[:poster_path]}", class: "card-img" %>
+        <%= image_tag "https://image.tmdb.org/t/p/w154#{recommendation[:poster_path]}", class: "card-img", alt: "#{recommendation[:title]} poster" %>
       </div>
       <div class="col-8">
         <div class="card-body position-relative">
