@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-
+# the business logic here should probably be broken up into services/concerns to keep the controller skinny
 class RecommendationsController < ApplicationController
   before_action :authenticate_user!
   before_action :ensure_user_preference
