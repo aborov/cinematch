@@ -1,5 +1,5 @@
 <div id="root">
-  <a id="home" aria-hidden="true" class="hidden-anchor"></a>
+  <a id="home" aria-hidden="true" class="hidden-anchor" aria-label="Home section"></a>
   <section id="hero-section" class="hero-section">
     <div class="background-image">
       <img src="<%= asset_path("landing/2c3859877d455431b5dcb950642ec157.jpg") %>" alt="woman gets emotional watching movie" loading="lazy" class="hero-background">
@@ -22,23 +22,23 @@
     </div>
   </section>
 
-  <a id="features" aria-hidden="true" style="visibility:hidden;"></a>
+  <a id="features" aria-hidden="true" style="visibility:hidden;" aria-label="Features section"></a>
   <section id="features" class="features-section">
     <div class="background-gradient"></div>
     <div class="content-wrapper">
       <div class="logo-container animate-on-scroll" data-animation="fade-in">
         <img src="<%= asset_path("logos/cm_logo1_glare1.svg") %>" alt="Cinematch Logo" class="logo">
       </div>
-      <div class="feature-list">
-        <div class="feature">
+      <div class="feature-list" role="list">
+        <div class="feature" role="listitem">
           <h3 class="feature-title">Personalized Recommendations</h3>
           <p class="feature-description">Get recommendations tailored to your personality and preferences, ensuring a viewing experience that aligns with your unique tastes and interests.</p>
         </div>
-        <div class="feature">
+        <div class="feature" role="listitem">
           <h3 class="feature-title">Discover Hidden Gems</h3>
           <p class="feature-description">Uncover titles that often go unnoticed amidst the marketing noise. Our platform ensures you don't miss out on under-discovered gems, providing a diverse selection for you to explore.</p>
         </div>
-        <div class="feature">
+        <div class="feature" role="listitem">
           <h3 class="feature-title">Easy-to-Use Interface</h3>
           <p class="feature-description">Navigate effortlessly through a sleek and intuitive design, making it simple to find, save, and enjoy your next favorite film or show without any hassle.</p>
         </div>
@@ -71,7 +71,7 @@
     });
   </script>
 
-  <a id="why" aria-hidden="true" style="visibility:hidden;"></a>
+  <a id="why" aria-hidden="true" style="visibility:hidden;" aria-label="Why Cinematch section"></a>
   <section class="entertainment-section">
     <div class="content-wrapper">
       <h2 class="heading animate-on-scroll" data-animation="baseline">
@@ -106,27 +106,27 @@
     });
   </script>
 
-  <a id="testimonials" aria-hidden="true" style="visibility:hidden;"></a>
+  <a id="testimonials" aria-hidden="true" style="visibility:hidden;" aria-label="Testimonials section"></a>
   <section id="user-testimonials" class="testimonials-section">
     <div class="background-overlay"></div>
     <div class="content-wrapper">
       <h2 class="section-title animate-on-scroll" data-animation="baseline">What Users Will Say</h2>
-      <div class="testimonials-container">
-        <div class="testimonial">
+      <div class="testimonials-container" role="list">
+        <div class="testimonial" role="listitem">
           <div class="image-container animate-on-scroll" data-animation="fade-in">
             <img src="<%= asset_path("landing/56381ebfc97d164a0c9b128e5f82816e.jpg") %>" alt="Melissa Sanchez" class="user-image">
           </div>
           <h3 class="user-name animate-on-scroll" data-animation="slide-up">Melissa Sanchez</h3>
           <p class="user-quote animate-on-scroll" data-animation="slide-up">"Cinematch gets my personality right. The recommendations are spot on!"</p>
         </div>
-        <div class="testimonial">
+        <div class="testimonial" role="listitem">
           <div class="image-container animate-on-scroll" data-animation="fade-in">
             <img src="<%= asset_path("landing/76f32fbbd57f15e9c51b1caf545e180f.jpg") %>" alt="Michael Baker" class="user-image michael-image">
           </div>
           <h3 class="user-name animate-on-scroll" data-animation="slide-up">Michael Baker</h3>
           <p class="user-quote animate-on-scroll" data-animation="slide-up">"A game-changer for binge-watchers. I never run out of great shows to watch."</p>
         </div>
-        <div class="testimonial">
+        <div class="testimonial" role="listitem">
           <div class="image-container animate-on-scroll" data-animation="fade-in">
             <img src="<%= asset_path("landing/8d3a7bcae790dc53d49264f4ce025f43.jpg") %>" alt="Emily Stanton" class="user-image emily-image">
           </div>
@@ -156,17 +156,17 @@
     });
   </script>
 
-  <a id="demo" aria-hidden="true" style="visibility:hidden;"></a>
+  <a id="demo" aria-hidden="true" style="visibility:hidden;" aria-label="Demo section"></a>
   <section id="cinematch-in-action" class="video-section">
     <div class="content-wrapper">
       <h2 class="section-title">Cinematch in Action</h2>
       <div class="video-container">
-        <iframe width="100%" height="100%" src="https://www.youtube.com/embed/PIfEJnWJzdc?si=rd7bBrzOf7ZYnv_W" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen class="video-placeholder"></iframe>
+        <iframe width="100%" height="100%" src="https://www.youtube.com/embed/PIfEJnWJzdc?si=rd7bBrzOf7ZYnv_W" title="Cinematch Product Demo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen class="video-placeholder" aria-label="Cinematch in Action demo video"></iframe>
       </div>
     </div>
   </section>
                 
-  <a id="contact" aria-hidden="true" style="visibility:hidden;"></a>
+  <a id="contact" aria-hidden="true" style="visibility:hidden;" aria-label="Contact section"></a>
   <section id="call-to-action" class="cta-section">
     <div class="cta-overlay"></div>
     <div class="content-wrapper">
