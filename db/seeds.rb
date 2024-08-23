@@ -25,5 +25,6 @@ SurveyQuestion.create([
   { question_text: "I worry about things.", question_type: "neuroticism" },
   { question_text: "I get upset easily.", question_type: "neuroticism" },
 ])
-
-User.create!(name: "Admin", email: "admin@example.com", password: "password", password_confirmation: "password", admin: true) if Rails.env.development?
+# your password_validation.js prevents this User from being created due to not meeting password complexity requirements.
+# Changed it here for our own purposes, you'll probably need to do the same.
+User.create!(name: "Admin", email: "admin@example.com", password: "Password1@", password_confirmation: "Password1@", admin: true) if Rails.env.development?

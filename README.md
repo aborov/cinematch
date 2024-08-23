@@ -6,13 +6,18 @@ CineMatch is a personalized content recommendation platform that matches feature
 
 ## Table of Contents
 
-- [Instructions](#instructions)
-- [Usage](#usage)
-- [Contributing](#contributing)
-- [ERD](#erd)
-- [User Journey](#user-journey)
-- [License](#license)
-- [Contact](#contact)
+- [CineMatch](#cinematch)
+  - [Description](#description)
+  - [Table of Contents](#table-of-contents)
+  - [Instructions](#instructions)
+    - [Configuration](#configuration)
+    - [Installation](#installation)
+  - [Usage](#usage)
+  - [Contributing](#contributing)
+  - [ERD](#erd)
+  - [User Journey](#user-journey)
+  - [License](#license)
+  - [Contacts](#contacts)
 
 
 ## Instructions
@@ -40,6 +45,7 @@ bundle install
 ```bash
 rails db:setup
 ```
+<!-- `rails db:setup` already includes `rails db:seed`, so step 5 is redundant -->
 5. Set up the survey questions:
 ```bash
 rails db:seed
