@@ -3,6 +3,7 @@ require "active_support/core_ext/integer/time"
 Rails.application.configure do
   # Allow server to be hosted on any URL
   config.hosts.clear
+  config.hosts << "cinematch.net"
   # Allow better_errors to work in online IDE
   config.web_console.allowed_ips = "0.0.0.0/0.0.0.0"
   BetterErrors::Middleware.allow_ip! "0.0.0.0/0.0.0.0"

@@ -497,6 +497,8 @@ GEM
     simple_form (5.3.1)
       actionpack (>= 5.2)
       activemodel (>= 5.2)
+    sitemap_generator (6.3.0)
+      builder (~> 3.0)
     snaky_hash (2.0.1)
       hashie
       version_gem (~> 1.1, >= 1.1.1)
@@ -614,6 +616,7 @@ DEPENDENCIES
   rufo
   sassc-rails
   selenium-webdriver
+  sitemap_generator
   specs_to_readme
   sprockets-rails
   sqlite3 (~> 1.4)
