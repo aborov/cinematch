@@ -432,7 +432,7 @@ GEM
     responders (3.1.1)
       actionpack (>= 5.2)
       railties (>= 5.2)
-    rexml (3.3.5)
+    rexml (3.3.6)
       strscan
     rotp (6.3.0)
     rouge (4.3.0)
@@ -610,6 +610,7 @@ DEPENDENCIES
   rails_db
   recaptcha
   redis (~> 4.0)
+  rexml (~> 3.3.6)
   rspec-html-matchers
   rspec-rails (~> 6.0.0)
   rubocop
