@@ -8,6 +8,7 @@ gem 'activeadmin'
 gem 'appdev_support'
 gem 'awesome_print'
 gem 'bootsnap', require: false
+gem 'csso-rails'
 gem 'devise'
 gem 'devise-security'
 gem 'devise-two-factor'

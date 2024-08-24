@@ -132,6 +132,8 @@ GEM
       bigdecimal
       rexml
     crass (1.0.6)
+    csso-rails (1.0.0)
+      execjs (>= 1)
     csv (3.3.0)
     date (3.3.4)
     debug (1.9.2)
@@ -168,6 +170,7 @@ GEM
     email_validator (2.2.4)
       activemodel
     erubi (1.13.0)
+    execjs (2.9.1)
     faker (3.4.2)
       i18n (>= 1.8.11, < 2)
     faraday (2.10.1)
@@ -576,6 +579,7 @@ DEPENDENCIES
   binding_of_caller
   bootsnap
   capybara
+  csso-rails
   debug
   devise
   devise-security
