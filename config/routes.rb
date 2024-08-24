@@ -26,4 +26,5 @@ Rails.application.routes.draw do
   get "terms", to: "pages#terms"
   get "privacy", to: "pages#privacy"
   get "data_deletion", to: "pages#data_deletion"
+  get '/sitemap.xml.gz', to: 'sitemaps#show'
 end

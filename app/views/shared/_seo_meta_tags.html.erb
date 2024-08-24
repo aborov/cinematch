@@ -1,0 +1,18 @@
+<title><%= content_for?(:title) ? yield(:title) + " | Cinematch" : "Cinematch - Personalized Movie and TV Show Recommendations" %></title>
+<meta name="description" content="<%= content_for?(:description) ? yield(:description) : "Discover films and series that match your unique personality. Cinematch uses psychological insights to suggest content tailored to who you are." %>">
+<!-- Add canonical URL -->
+<link rel="canonical" href="<%= request.original_url %>" />
+    
+<!-- Add Open Graph meta tags -->
+<meta property="og:title" content="<%= content_for?(:title) ? yield(:title) + " | Cinematch" : "Cinematch - Personalized Movie and TV Show Recommendations" %>">
+<meta property="og:description" content="<%= content_for?(:description) ? yield(:description) : "Discover films and series that match your unique personality. Cinematch uses psychological insights to suggest content tailored to who you are." %>">
+<meta property="og:image" content="<%= asset_url("logos/cm_meta_glare_1200.png") %>">
+<meta property="og:url" content="<%= request.original_url %>">
+<meta property="og:type" content="website">
+    
+<!-- Add Twitter Card meta tags -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="<%= request.original_url %>">
+<meta name="twitter:title" content="<%= content_for?(:title) ? yield(:title) + " | Cinematch" : "Cinematch - Personalized Movie and TV Show Recommendations" %>">
+<meta name="twitter:description" content="<%= content_for?(:description) ? yield(:description) : "Discover films and series that match your unique personality. Cinematch uses psychological insights to suggest content tailored to who you are." %>">
+<meta name="twitter:image" content="<%= asset_url("logos/cm_meta_glare_1200.png") %>">
