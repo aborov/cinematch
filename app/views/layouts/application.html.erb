@@ -18,6 +18,7 @@
 
     <div class="container mt-4">
       <%= render "shared/alerts" %>
+      <h1 aria-hidden="true" style="display: none;"><%= content_for?(:h1) ? yield(:h1) : "Welcome to Cinematch" %></h1>
       <%= yield %>
     </div>
 
