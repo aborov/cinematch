@@ -1,17 +1,18 @@
 <% content_for :title, "Data Deletion Instructions" %>
+<% content_for :h1, "Data Deletion Instructions" %>
 <div class="container mt-5 pb-5">
   <div class="row justify-content-center">
     <div class="col-12 col-xl-10">
       <div class="card shadow-sm mx-auto" style="max-width: 1000px;">
         <div class="card-body">
-          <h1 class="card-title mb-4">Data Deletion Instructions</h1>
+          <h2 class="card-title mb-4">Data Deletion Instructions</h2>
           
           <div class="alert">
             This page provides instructions on how to delete your account and associated personal data from our Service.
           </div>
 
           <section class="mb-4">
-            <h2 class="border-bottom pb-2">Steps to Delete Your Account</h2>
+            <h3 class="border-bottom pb-2">Steps to Delete Your Account</h3>
             <ol>
               <li>Log in to your account</li>
               <li>Go to your <%= link_to "Account settings", edit_user_registration_path %> page</li>
@@ -21,12 +22,12 @@
           </section>
 
           <section class="mb-4">
-            <h2 class="border-bottom pb-2">After Deletion</h2>
+            <h3 class="border-bottom pb-2">After Deletion</h3>
             <p>Once you've completed these steps, your account and associated data will be deleted from our system.</p>
           </section>
 
           <section class="mb-4">
-            <h2 class="border-bottom pb-2">Need Help?</h2>
+            <h3 class="border-bottom pb-2">Need Help?</h3>
             <p>If you have any issues or questions about this process, please <%= link_to "contact our support team", contact_path %>.</p>
           </section>
         </div>
