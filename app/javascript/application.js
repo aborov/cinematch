@@ -8,7 +8,6 @@ window.$ = jquery
 import * as bootstrap from "bootstrap"
 window.bootstrap = bootstrap
 
-import "password_validation"
 import "recaptcha"
 
 const application = Application.start()
@@ -20,7 +19,6 @@ window.Stimulus = application
 
 export { application }
 
-document.addEventListener('turbo:load', addCSRFTokenToForms);
 document.addEventListener('DOMContentLoaded', addCSRFTokenToForms);
 
 function addCSRFTokenToForms() {
