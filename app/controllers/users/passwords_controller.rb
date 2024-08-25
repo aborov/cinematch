@@ -14,7 +14,7 @@ module Users
     protected
 
     def after_resetting_password_path_for(_resource)
-      root_path # or any other path you want to redirect to after password reset
+      root_path
     end
   end
 end
