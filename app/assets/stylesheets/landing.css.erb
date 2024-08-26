@@ -389,13 +389,16 @@ img {
     aspect-ratio: auto;
     height: auto;
     min-height: fit-content;
+    padding: 5% 0;
   }
 
   .entertainment-section .content-wrapper {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     height: auto;
+    padding: 0 5%;
   }
   
   .entertainment-section .heading,
@@ -403,29 +406,29 @@ img {
   .entertainment-section .iphone-image,
   .entertainment-section .description {
     position: static;
-    margin: 2rem;
+    margin: 2rem 0;
+    text-align: center;
+    width: 100%;
+    max-width: 100%;
   }
   
   .entertainment-section .heading {
     font-size: 4rem;
-    text-align: center;
     padding-bottom: 1rem;
   }
   
-  .entertainment-section .laptop-image {
-    width: 80%;
-    max-width: 500px;
-  }
-  
+  .entertainment-section .laptop-image,
   .entertainment-section .iphone-image {
-    width: 40%;
     max-width: 200px;
+    height: auto;
+    object-fit: contain;
   }
   
   .entertainment-section .description {
-    text-align: center;
-    max-width: 100%;
     font-size: 2rem;
+    max-width: 90%;
+    margin-left: auto;
+    margin-right: auto;
   }
 }
 
