@@ -2,7 +2,11 @@
   <a id="home" aria-hidden="true" class="hidden-anchor" aria-label="Home section"></a>
   <section id="hero-section" class="hero-section">
     <div class="background-image">
-      <img src="<%= asset_path("landing/2c3859877d455431b5dcb950642ec157.jpg") %>" alt="woman gets emotional watching movie" loading="lazy" class="hero-background">
+      <picture>
+        <source srcset="<%= asset_path("landing/hero-image.webp") %>" type="image/webp">
+        <source srcset="<%= asset_path("landing/2c3859877d455431b5dcb950642ec157.jpg") %>" type="image/jpeg">
+        <img src="<%= asset_path("landing/2c3859877d455431b5dcb950642ec157.jpg") %>" alt="Woman gets emotional watching movie" loading="eager" class="hero-background" width="1920" height="1080">
+      </picture>
     </div>
     
     <div class="hero-content">
@@ -18,7 +22,7 @@
         <a href="<%= new_user_registration_path %>" class="cta-button">
           Get Started
         </a>
-      </div>
+      </div>  
     </div>
   </section>
 
@@ -46,39 +50,22 @@
     </div>
   </section>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const heroContent = document.querySelector('.hero-content');
-      const featureList = document.querySelector('.feature-list');
-      
-      function fadeInLeft(element, delay) {
-        element.style.opacity = '0';
-        element.style.transform = 'translateX(-20px)';
-        element.style.transition = 'opacity 0.8s ease-out, transform 0.8s ease-out';
-        
-        setTimeout(() => {
-          element.style.opacity = '1';
-          element.style.transform = 'translateX(0)';
-        }, delay);
-      }
-
-      fadeInLeft(heroContent, 100);
-
-      const features = featureList.querySelectorAll('.feature');
-      features.forEach((feature, index) => {
-        fadeInLeft(feature, 100 + (index * 200));
-      });
-    });
-  </script>
-
   <a id="why" aria-hidden="true" style="visibility:hidden;" aria-label="Why Cinematch section"></a>
   <section class="entertainment-section">
     <div class="content-wrapper">
       <h2 class="heading animate-on-scroll" data-animation="baseline">
         Entertainment<br>Made Personal
       </h2>
-      <img src="<%= asset_path("landing/laptop.png") %>" alt="Laptop showcasing app" class="laptop-image animate-on-scroll" data-animation="slide-right">
-      <img src="<%= asset_path("landing/iphone.png") %>" alt="iPhone showcasing app" class="iphone-image animate-on-scroll" data-animation="slide-left">
+      <picture>
+        <source srcset="<%= asset_path("landing/laptop.webp") %>" type="image/webp">
+        <source srcset="<%= asset_path("landing/laptop.png") %>" type="image/png">
+        <img src="<%= asset_path("landing/laptop.png") %>" alt="Laptop showcasing app" class="laptop-image animate-on-scroll" data-animation="slide-right">
+      </picture>
+      <picture>
+        <source srcset="<%= asset_path("landing/iphone.webp") %>" type="image/webp">
+        <source srcset="<%= asset_path("landing/iphone.png") %>" type="image/png">
+        <img src="<%= asset_path("landing/iphone.png") %>" alt="iPhone showcasing app" class="iphone-image animate-on-scroll" data-animation="slide-left">
+      </picture>
       <p class="description animate-on-scroll" data-animation="slide-left">
         Leveraging advanced algorithms and<br>
         user data, we ensure that you always<br>
@@ -86,25 +73,6 @@
       </p>
     </div>
   </section>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const animatedElements = document.querySelectorAll('.animate-on-scroll');
-
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            setTimeout(() => {
-              entry.target.classList.add('animated');
-            }, 100);
-            observer.unobserve(entry.target);
-          }
-        });
-      }, { threshold: 0.2 });
-
-      animatedElements.forEach(el => observer.observe(el));
-    });
-  </script>
 
   <a id="testimonials" aria-hidden="true" style="visibility:hidden;" aria-label="Testimonials section"></a>
   <section id="user-testimonials" class="testimonials-section">
@@ -114,21 +82,33 @@
       <div class="testimonials-container" role="list">
         <div class="testimonial" role="listitem">
           <div class="image-container animate-on-scroll" data-animation="fade-in">
-            <img src="<%= asset_path("landing/56381ebfc97d164a0c9b128e5f82816e.jpg") %>" alt="Melissa Sanchez" class="user-image">
+            <picture>
+              <source srcset="<%= asset_path("landing/melissa-sanchez.webp") %>" type="image/webp">
+              <source srcset="<%= asset_path("landing/56381ebfc97d164a0c9b128e5f82816e.jpg") %>" type="image/jpeg">
+              <img src="<%= asset_path("landing/56381ebfc97d164a0c9b128e5f82816e.jpg") %>" alt="Melissa Sanchez" class="user-image">
+            </picture>
           </div>
           <h3 class="user-name animate-on-scroll" data-animation="slide-up">Melissa Sanchez</h3>
           <p class="user-quote animate-on-scroll" data-animation="slide-up">"Cinematch gets my personality right. The recommendations are spot on!"</p>
         </div>
         <div class="testimonial" role="listitem">
           <div class="image-container animate-on-scroll" data-animation="fade-in">
-            <img src="<%= asset_path("landing/76f32fbbd57f15e9c51b1caf545e180f.jpg") %>" alt="Michael Baker" class="user-image michael-image">
+            <picture>
+              <source srcset="<%= asset_path("landing/michael-baker.webp") %>" type="image/webp">
+              <source srcset="<%= asset_path("landing/76f32fbbd57f15e9c51b1caf545e180f.jpg") %>" type="image/jpeg">
+              <img src="<%= asset_path("landing/76f32fbbd57f15e9c51b1caf545e180f.jpg") %>" alt="Michael Baker" class="user-image michael-image">
+            </picture>
           </div>
           <h3 class="user-name animate-on-scroll" data-animation="slide-up">Michael Baker</h3>
           <p class="user-quote animate-on-scroll" data-animation="slide-up">"A game-changer for binge-watchers. I never run out of great shows to watch."</p>
         </div>
         <div class="testimonial" role="listitem">
           <div class="image-container animate-on-scroll" data-animation="fade-in">
-            <img src="<%= asset_path("landing/8d3a7bcae790dc53d49264f4ce025f43.jpg") %>" alt="Emily Stanton" class="user-image emily-image">
+            <picture>
+              <source srcset="<%= asset_path("landing/emily-stanton.webp") %>" type="image/webp">
+              <source srcset="<%= asset_path("landing/8d3a7bcae790dc53d49264f4ce025f43.jpg") %>" type="image/jpeg">
+              <img src="<%= asset_path("landing/8d3a7bcae790dc53d49264f4ce025f43.jpg") %>" alt="Emily Stanton" class="user-image emily-image">
+            </picture>
           </div>
           <h3 class="user-name animate-on-scroll" data-animation="slide-up">Emily Stanton</h3>
           <p class="user-quote animate-on-scroll" data-animation="slide-up">"The personalized recommendations have introduced me to so many new favorites."</p>
@@ -137,34 +117,44 @@
     </div>
   </section>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const animatedElements = document.querySelectorAll('.animate-on-scroll');
-
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            setTimeout(() => {
-              entry.target.classList.add('animated');
-            }, 50); // Reduced delay for faster animation start
-            observer.unobserve(entry.target);
-          }
-        });
-      }, { threshold: 0.2 });
-
-      animatedElements.forEach(el => observer.observe(el));
-    });
-  </script>
-
   <a id="demo" aria-hidden="true" style="visibility:hidden;" aria-label="Demo section"></a>
   <section id="cinematch-in-action" class="video-section">
     <div class="content-wrapper">
       <h2 class="section-title">Cinematch in Action</h2>
       <div class="video-container">
-        <iframe width="100%" height="100%" src="https://www.youtube.com/embed/PIfEJnWJzdc?si=rd7bBrzOf7ZYnv_W" title="Cinematch Product Demo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen class="video-placeholder" aria-label="Cinematch in Action demo video"></iframe>
+        <div id="video-placeholder" class="video-placeholder">
+          <picture>
+            <source srcset="<%= asset_path('landing/video-thumbnail.webp') %>" type="image/webp">
+            <source srcset="<%= asset_path('landing/demo-thumbnail.jpg') %>" type="image/jpeg">
+            <img src="<%= asset_path('landing/demo-thumbnail.jpg') %>" alt="Demo Video thumbnail" class="video-thumbnail">
+          </picture>
+          <button id="play-video" class="play-button">
+            <i class="fas fa-play"></i>
+          </button>
+        </div>
       </div>
     </div>
   </section>
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const placeholder = document.getElementById('video-placeholder');
+    const playButton = document.getElementById('play-video');
+  
+    playButton.addEventListener('click', function() {
+      const iframe = document.createElement('iframe');
+      iframe.setAttribute('width', '100%');
+      iframe.setAttribute('height', '100%');
+      iframe.setAttribute('src', 'https://www.youtube.com/embed/PIfEJnWJzdc?si=rd7bBrzOf7ZYnv_W&autoplay=1');
+      iframe.setAttribute('title', 'Cinematch Product Demo');
+      iframe.setAttribute('frameborder', '0');
+      iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+      iframe.setAttribute('allowfullscreen', '');
+  
+      placeholder.innerHTML = '';
+      placeholder.appendChild(iframe);
+    });
+  });
+  </script>
                 
   <a id="contact" aria-hidden="true" style="visibility:hidden;" aria-label="Contact section"></a>
   <section id="call-to-action" class="cta-section">
@@ -188,25 +178,6 @@
       </div>
     </div>
   </section>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const animatedElements = document.querySelectorAll('.animate-on-scroll');
-
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            setTimeout(() => {
-              entry.target.classList.add('animated');
-            }, 50); // Reduced delay for faster animation start
-            observer.unobserve(entry.target);
-          }
-        });
-      }, { threshold: 0.2 });
-
-      animatedElements.forEach(el => observer.observe(el));
-    });
-  </script>
 </div>
 
 <script>
