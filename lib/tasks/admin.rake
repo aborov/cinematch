@@ -10,10 +10,13 @@ namespace :admin do
     end
 
     user = User.find_or_initialize_by(email: email)
-    user.name = "Admin"
-    user.password = password
-    user.password_confirmation = password
+    user.name = "Admin" if user.new_record?
     user.admin = true
+
+    if user.new_record? || !user.valid_password?(password)
+      user.password = password
+      user.password_confirmation = password
+    end
 
     if user.save
       puts "Admin user created or updated successfully"
