@@ -8,10 +8,9 @@ class UsersController < ApplicationController
   def profile
     @user = current_user
     authorize @user, :profile?
-    @user_preference = current_user.user_preference || current_user.build_user_preference
-    genres = TmdbService.fetch_genres
-    @genres = genres[:user_facing_genres]
-    @all_genres = genres[:all_genres]
+    @user_preference = @user.user_preference || @user.build_user_preference
+    @genres = Genre.all
+    Rails.logger.debug "Personality Profiles: #{@user.user_preference&.personality_profiles.inspect}"
   end
 
   def edit

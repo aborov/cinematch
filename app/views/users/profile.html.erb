@@ -36,11 +36,20 @@
                     <% personality_profiles = eval(personality_profiles) %>
                   <% end %>
                   <h3>Your Big Five Personality Profile</h3>
-                  <ul class="list-group list-group-flush">
-                    <% personality_profiles.each do |trait, score| %>
-                      <li class="list-group-item"><%= trait.capitalize %>: <%= score %></li>
-                    <% end %>
-                  </ul>
+                  <div class="row">
+                    <div class="col-md-4">
+                      <ul class="list-group list-group-flush">
+                        <% personality_profiles.each do |trait, score| %>
+                          <li class="list-group-item"><%= trait.capitalize %>: <%= score %></li>
+                        <% end %>
+                      </ul>
+                    </div>
+                    <div class="col-md-8">
+                      <div style="height: 400px;">
+                        <canvas id="personalityChart"></canvas>
+                      </div>
+                    </div>
+                  </div>
                   <%= link_to "Retake Personality Survey", surveys_path, class: "btn btn-primary mt-3" %>
                 <% else %>
                   <div class="alert alert-warning" role="alert">
@@ -87,3 +96,63 @@
     </div>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('DOM loaded');
+  const canvas = document.getElementById('personalityChart');
+  console.log('Canvas element:', canvas);
+  if (!canvas) {
+    console.error('Canvas element not found');
+    return;
+  }
+  const ctx = canvas.getContext('2d');
+  const data = <%= raw personality_profiles.to_json %>;
+  console.log('Personality data:', data);
+
+  if (typeof Chart === 'undefined') {
+    console.error('Chart.js is not loaded');
+    return;
+  }
+
+  try {
+    new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: Object.keys(data).map(trait => trait.charAt(0).toUpperCase() + trait.slice(1)),
+        datasets: [{
+          label: 'Your Personality Profile',
+          data: Object.values(data),
+          backgroundColor: 'rgba(255, 99, 132, 0.2)',
+          borderColor: 'rgb(255, 99, 132)',
+          pointBackgroundColor: 'rgb(255, 99, 132)',
+          pointBorderColor: '#fff',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: 'rgb(255, 99, 132)'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          r: {
+            angleLines: {
+              display: false
+            },
+            suggestedMin: 0,
+            suggestedMax: 5
+          }
+        },
+        plugins: {
+          legend: {
+            display: false
+          }
+        }
+      }
+    });
+    console.log('Chart created successfully');
+  } catch (error) {
+    console.error('Error creating chart:', error);
+  }
+});
+</script>

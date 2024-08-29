@@ -9,6 +9,7 @@ import * as bootstrap from "bootstrap"
 window.bootstrap = bootstrap
 
 import "recaptcha"
+import "chart.js"
 
 const application = Application.start()
 
