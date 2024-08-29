@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_08_22_013933) do
+ActiveRecord::Schema[7.1].define(version: 2024_08_28_213031) do
   create_table "active_admin_comments", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -93,7 +93,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_22_013933) do
     t.datetime "remember_created_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.boolean "admin"
+    t.boolean "admin", default: false
     t.datetime "password_changed_at"
     t.string "provider"
     t.string "uid"

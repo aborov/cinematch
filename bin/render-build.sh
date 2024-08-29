@@ -8,3 +8,4 @@ bundle exec rake assets:clean
 bundle exec rake db:migrate
 # TODO: remove later, seeding should be manual through shell
 bundle exec rake db:seed
+bundle exec rake admin:create

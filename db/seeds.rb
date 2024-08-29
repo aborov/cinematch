@@ -26,4 +26,12 @@ SurveyQuestion.create([
   { question_text: "I get upset easily.", question_type: "neuroticism" },
 ])
 
-User.create!(name: "Admin", email: "admin@example.com", password: "password", password_confirmation: "password", admin: true) if Rails.env.development?
+if Rails.env.development?
+  User.find_or_initialize_by(email: "alex@aborovikov.com").tap do |user|
+    user.name = "Aleksei"
+    user.password = ENV['ADMIN_PASSWORD']
+    user.password_confirmation = ENV['ADMIN_PASSWORD']
+    user.admin = true
+    user.save!
+  end
+end

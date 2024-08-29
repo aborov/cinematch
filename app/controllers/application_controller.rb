@@ -17,7 +17,11 @@ class ApplicationController < ActionController::Base
   end
 
   def skip_authorization?
-    devise_controller? || pages_controller?
+    devise_controller? || pages_controller? || active_admin_controller?
+  end
+
+  def active_admin_controller?
+    is_a?(ActiveAdmin::BaseController)
   end
 
   def pages_controller?
@@ -31,5 +35,9 @@ class ApplicationController < ActionController::Base
   def handle_unverified_request
     flash[:alert] = "CSRF token verification failed. Please try again."
     redirect_to root_path
+  end
+
+  def authenticate_admin_user!
+    redirect_to root_path, alert: 'Not authorized.' unless current_user&.admin?
   end
 end

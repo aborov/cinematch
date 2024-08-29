@@ -15,4 +15,12 @@ class SurveyQuestion < ApplicationRecord
 
   validates :question_text, uniqueness: { scope: :question_type }, presence: true
   validates :question_type, presence: true
+
+  def self.ransackable_attributes(auth_object = nil)
+    ["created_at", "id", "question_text", "question_type", "updated_at"]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    []
+  end
 end

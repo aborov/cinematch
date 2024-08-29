@@ -5,7 +5,7 @@
 # Table name: users
 #
 #  id                     :integer          not null, primary key
-#  admin                  :boolean
+#  admin                  :boolean          default(FALSE)
 #  deleted_at             :datetime
 #  dob                    :date
 #  email                  :string           default(""), not null
@@ -50,7 +50,7 @@ class User < ApplicationRecord
   scope :admins, -> { where(admin: true) }
 
   def admin?
-    admin
+    admin == true
   end
 
   def active_for_authentication?
@@ -75,4 +75,14 @@ class User < ApplicationRecord
     return false if skip_password_complexity
     super
   end
+
+  def self.ransackable_attributes(auth_object = nil)
+    ["admin", "created_at", "deleted_at", "dob", "email", "gender", "id", "name", "provider", "uid", "updated_at"]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    ["user_preference", "survey_responses"]
+  end
+
+  attr_readonly :admin
 end

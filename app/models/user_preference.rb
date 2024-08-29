@@ -32,4 +32,12 @@ class UserPreference < ApplicationRecord
   def favorite_genres
     read_attribute(:favorite_genres) || []
   end
+
+  def self.ransackable_attributes(auth_object = nil)
+    ["created_at", "favorite_genres", "id", "personality_profiles", "updated_at", "user_id"]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    ["user"]
+  end
 end
