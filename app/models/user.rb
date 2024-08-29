@@ -83,6 +83,4 @@ class User < ApplicationRecord
   def self.ransackable_associations(auth_object = nil)
     ["user_preference", "survey_responses"]
   end
-
-  attr_readonly :admin
 end

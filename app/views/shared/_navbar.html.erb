@@ -15,9 +15,11 @@
             </span>
           </li>
           <% if current_user.admin? %>
-            <%= link_to admin_root_path, class: 'nav-link', title: 'Admin Dashboard' do %>
-              <i class="fas fa-tachometer-alt fa-2x" aria-hidden="true"></i><span class="sr-only">Admin Dashboard</span>
-            <% end %>
+            <li class="nav-item">
+              <%= link_to admin_root_path, class: 'nav-link', title: 'Admin Dashboard' do %>
+                <i class="fas fa-tachometer-alt fa-2x" aria-hidden="true"></i><span class="sr-only">Admin Dashboard</span>
+              <% end %>
+            </li>
           <% end %>
           <li class="nav-item">
             <%= link_to profile_user_path(current_user), class: "nav-link", title: "Profile" do %>
