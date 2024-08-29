@@ -11,6 +11,8 @@ window.bootstrap = bootstrap
 import "recaptcha"
 import "chart.js"
 
+import { Tooltip } from 'bootstrap'
+
 const application = Application.start()
 
 // Configure Stimulus development experience
