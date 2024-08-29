@@ -9,15 +9,15 @@ class ApplicationPolicy
   end
 
   def index?
-    false
+    user.admin?
   end
 
   def show?
-    false
+    user.admin?
   end
 
   def create?
-    false
+    user.admin?
   end
 
   def new?
@@ -25,7 +25,7 @@ class ApplicationPolicy
   end
 
   def update?
-    false
+    user.admin?
   end
 
   def edit?
@@ -33,21 +33,19 @@ class ApplicationPolicy
   end
 
   def destroy?
-    false
+    user.admin?
   end
 
   class Scope
+    attr_reader :user, :scope
+
     def initialize(user, scope)
       @user = user
       @scope = scope
     end
 
     def resolve
-      raise NoMethodError, "You must define #resolve in #{self.class}"
+      user.admin? ? scope.all : scope.none
     end
-
-    private
-
-    attr_reader :user, :scope
   end
 end
