@@ -10,6 +10,7 @@ window.bootstrap = bootstrap
 
 import "recaptcha"
 import "chart.js"
+import "./pwa/companion"
 
 import { Tooltip } from 'bootstrap'
 
@@ -18,7 +19,6 @@ const application = Application.start()
 // Configure Stimulus development experience
 application.debug = false
 window.Stimulus = application
-
 
 export { application }
 
