@@ -8,7 +8,10 @@ self.addEventListener('activate', event => {
   // Clear old caches
 });
 
-self.addEventListener('fetch', event => {
-  console.log("Service worker fetching:", event.request.url);
-  // Here you could add code to respond to the request
+self.addEventListener('fetch', function(event) {
+  event.respondWith(
+    caches.match(event.request).then(function(response) {
+      return response || fetch(event.request);
+    })
+  );
 });
