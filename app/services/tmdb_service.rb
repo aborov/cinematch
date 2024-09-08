@@ -52,11 +52,14 @@ class TmdbService
 
     genres = (movie_genres + tv_genres).uniq { |genre| genre['id'] }
 
+    # Debugging output to verify the genres fetched
+    puts "Fetched Genres: #{genres.inspect}"
+
     # Exclude combined genres from user-facing views
     combined_genres = ['Sci-Fi & Fantasy', 'Action & Adventure', 'War & Politics']
     user_facing_genres = genres.reject { |genre| combined_genres.include?(genre['name']) }
 
-    { all_genres: genres, user_facing_genres: }
+    { all_genres: genres, user_facing_genres: user_facing_genres }
   end
 
   def self.fetch_multiple_pages(url)
@@ -67,5 +70,13 @@ class TmdbService
       results += parsed_response['results']
     end
     results
+  end
+
+  def self.fetch_details(id, type)
+    if type == 'movie'
+      fetch_movie_details(id)
+    else
+      fetch_tv_show_details(id)
+    end
   end
 end

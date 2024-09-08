@@ -17,4 +17,10 @@
 class Genre < ApplicationRecord
   has_many :content_genres, class_name: 'ContentGenre', foreign_key: 'genre_id', dependent: :destroy
   has_many :contents, through: :content_genres, source: :content
+
+  scope :by_tmdb_id, ->(tmdb_id) { where(tmdb_id: tmdb_id) }
+
+  def self.find_by_tmdb_ids(tmdb_ids)
+    where(tmdb_id: tmdb_ids)
+  end
 end

@@ -19,9 +19,7 @@ class RecommendationsController < ApplicationController
       genres = TmdbService.fetch_genres[:all_genres]
       @genres_map = genres.group_by { |g| g['name'] }.transform_values { |g| g.map { |gg| gg['id'] } }
 
-      movies = TmdbService.fetch_popular_movies + TmdbService.fetch_top_rated_movies + TmdbService.fetch_upcoming_movies
-      tv_shows = TmdbService.fetch_popular_tv_shows + TmdbService.fetch_top_rated_tv_shows
-      content = (movies + tv_shows).uniq { |item| item['id'] }
+      content = Content.all
       @recommendations = calculate_recommendations(content)
       @page = params[:page].present? ? params[:page].to_i : 1
       per_page = 15
@@ -50,17 +48,16 @@ class RecommendationsController < ApplicationController
 
   def calculate_recommendations(content)
     recommendations = content.map do |item|
-      details = fetch_details(item['id'], item['media_type'] || (item['title'] ? 'movie' : 'tv'))
       {
-        id: item['id'],
-        type: item['media_type'] || (item['title'] ? 'movie' : 'tv'),
-        title: item['title'] || item['name'],
-        poster_path: item['poster_path'],
-        country: abbreviate_country(details['production_countries']&.first&.dig('name')),
-        release_year: (item['release_date'] || item['first_air_date'])&.split('-')&.first,
-        genres: details['genres']&.map { |g| g['name'] },
+        id: item.source_id,
+        type: item.content_type,
+        title: item.title,
+        poster_path: item.poster_url,
+        country: abbreviate_country(item.production_countries_array&.first&.dig('name')),
+        release_year: item.release_year,
+        genres: item.genre_names,
         match_score: calculate_match_score(item),
-        rating: details['vote_average'] # Include TMDb rating
+        rating: item.vote_average
       }
     end
     recommendations.sort_by { |r| -r[:match_score] }
@@ -75,8 +72,7 @@ class RecommendationsController < ApplicationController
   end
 
   def calculate_match_score(item)
-    genre_ids = item['genre_ids']
-    genres = genre_ids.flat_map { |id| @genres_map.keys.select { |k| @genres_map[k].include?(id) } }.uniq
+    genres = item.genre_names
     big_five_score = calculate_big_five_score(genres)
     favorite_genres_score = calculate_favorite_genres_score(genres)
     (big_five_score * 0.7) + (favorite_genres_score * 0.3)
