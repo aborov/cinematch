@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_08_28_213031) do
+ActiveRecord::Schema[7.1].define(version: 2024_09_08_221210) do
   create_table "active_admin_comments", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -44,6 +44,18 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_28_213031) do
     t.text "plot_keywords"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.float "vote_average"
+    t.integer "vote_count"
+    t.float "popularity"
+    t.string "original_language"
+    t.integer "runtime"
+    t.string "status"
+    t.text "tagline"
+    t.string "backdrop_url"
+    t.text "genre_ids"
+    t.text "production_countries"
+    t.text "directors"
+    t.text "cast"
   end
 
   create_table "genres", force: :cascade do |t|
