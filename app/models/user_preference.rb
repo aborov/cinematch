@@ -4,13 +4,14 @@
 #
 # Table name: user_preferences
 #
-#  id                   :integer          not null, primary key
-#  deleted_at           :datetime
-#  favorite_genres      :json
-#  personality_profiles :json
-#  created_at           :datetime         not null
-#  updated_at           :datetime         not null
-#  user_id              :integer          not null
+#  id                    :integer          not null, primary key
+#  deleted_at            :datetime
+#  disable_adult_content :boolean
+#  favorite_genres       :json
+#  personality_profiles  :json
+#  created_at            :datetime         not null
+#  updated_at            :datetime         not null
+#  user_id               :integer          not null
 #
 # Indexes
 #

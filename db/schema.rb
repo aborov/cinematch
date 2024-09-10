@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_09_08_221210) do
+ActiveRecord::Schema[7.1].define(version: 2024_09_09_224048) do
   create_table "active_admin_comments", force: :cascade do |t|
     t.string "namespace"
     t.text "body"
@@ -23,13 +23,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_09_08_221210) do
     t.index ["author_type", "author_id"], name: "index_active_admin_comments_on_author"
     t.index ["namespace"], name: "index_active_admin_comments_on_namespace"
     t.index ["resource_type", "resource_id"], name: "index_active_admin_comments_on_resource"
-  end
-
-  create_table "content_genres", force: :cascade do |t|
-    t.integer "content_id"
-    t.integer "genre_id"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
   end
 
   create_table "contents", force: :cascade do |t|
@@ -56,6 +49,9 @@ ActiveRecord::Schema[7.1].define(version: 2024_09_08_221210) do
     t.text "production_countries"
     t.text "directors"
     t.text "cast"
+    t.datetime "tmdb_last_update"
+    t.boolean "adult", default: false
+    t.index ["source_id"], name: "index_contents_on_source_id", unique: true
   end
 
   create_table "genres", force: :cascade do |t|
@@ -90,6 +86,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_09_08_221210) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+    t.boolean "disable_adult_content"
     t.index ["deleted_at"], name: "index_user_preferences_on_deleted_at"
     t.index ["user_id"], name: "index_user_preferences_on_user_id"
   end

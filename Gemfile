@@ -28,6 +28,7 @@ gem 'omniauth-facebook'
 gem 'omniauth-rails_csrf_protection'
 gem 'omniauth-twitter'
 gem 'openssl', '~> 3.2.0'
+gem 'parallel'
 gem 'paranoia', '~> 2.6'
 gem 'pg', '~> 1.1'
 gem 'prawn'
@@ -48,15 +49,13 @@ gem 'table_print'
 gem 'turbolinks', '~> 5'
 gem 'turbo-rails'
 gem 'tzinfo-data', platforms: %i[mingw mswin x64_mingw jruby]
+gem 'whenever'
 
 # Use Kredis to get higher-level data types in Redis [https://github.com/rails/kredis]
 # gem "kredis"
 
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"
-
-# Use Sass to process CSS
-# gem "sassc-rails"
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 # gem "image_processing", "~> 1.2"

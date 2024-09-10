@@ -15,7 +15,9 @@ class UserPreferencesController < ApplicationController
   def update
     authorize @user_preference
     genres = user_preference_params[:favorite_genres].reject(&:blank?)
-    if @user_preference.update(favorite_genres: genres)
+    disable_adult_content = user_preference_params[:disable_adult_content] == '1' # Convert to boolean
+
+    if @user_preference.update(favorite_genres: genres, disable_adult_content: disable_adult_content)
       redirect_to recommendations_path, notice: 'Preferences updated successfully.'
     else
       render :edit
@@ -30,6 +32,6 @@ class UserPreferencesController < ApplicationController
   end
 
   def user_preference_params
-    params.require(:user_preference).permit(favorite_genres: [])
+    params.require(:user_preference).permit(:disable_adult_content, favorite_genres: [])
   end
 end
