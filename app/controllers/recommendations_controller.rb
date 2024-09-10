@@ -18,7 +18,7 @@ class RecommendationsController < ApplicationController
     if @user_preference.personality_profiles.present? && @user_preference.favorite_genres.present?
       @genres_map = Genre.all.group_by(&:name).transform_values { |g| g.map(&:tmdb_id) }
 
-      content = Content.includes(:genres).all
+      content = Content.all
       @recommendations = calculate_recommendations(content)
 
       # Limit to top 100 matches
@@ -35,7 +35,7 @@ class RecommendationsController < ApplicationController
 
   def show
     authorize :recommendation, :show?
-    @item = Content.includes(:genres).find_by(source_id: params[:id], content_type: params[:type])
+    @item = Content.find_by(source_id: params[:id], content_type: params[:type])
 
     if @item
       if @item.trailer_url.nil?
@@ -98,7 +98,7 @@ class RecommendationsController < ApplicationController
         poster_path: item.poster_url,
         country: abbreviate_country(item.production_countries_array&.first&.dig('name')),
         release_year: item.release_year,
-        genres: item.genres.pluck(:name),
+        genres: item.genre_names,  # Use genre_names method
         match_score: calculate_match_score(item),
         rating: item.vote_average
       }
@@ -107,7 +107,7 @@ class RecommendationsController < ApplicationController
   end
 
   def calculate_match_score(item)
-    genres = item.genres.pluck(:name)
+    genres = item.genre_names
     big_five_score = calculate_big_five_score(genres)
     favorite_genres_score = calculate_favorite_genres_score(genres)
     

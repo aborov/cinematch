@@ -36,6 +36,8 @@
 #  index_contents_on_source_id  (source_id) UNIQUE
 #
 class Content < ApplicationRecord
+  validates :title, presence: true
+  validates :content_type, presence: true, inclusion: { in: %w[movie tv], message: "%{value} is not a valid content type" }
 
   def self.ransackable_attributes(auth_object = nil)
     ["id", "title", "description", "poster_url", "trailer_url", "source_id", "source", "release_year", "content_type", "plot_keywords", "created_at", "updated_at", "vote_average", "vote_count", "popularity", "original_language", "runtime", "status", "tagline", "backdrop_url", "genre_ids", "production_countries", "directors", "cast", "tmdb_last_update"]
@@ -47,7 +49,7 @@ class Content < ApplicationRecord
 
   def genre_ids_array
     return [] if genre_ids.blank?
-    
+
     if genre_ids.is_a?(String)
       genre_ids.split(',').map(&:to_i)
     elsif genre_ids.is_a?(Array)
@@ -71,13 +73,5 @@ class Content < ApplicationRecord
 
   def cast_array
     cast.split(',') if cast
-  end
-
-  private
-
-  def update_genre_associations
-    return unless genre_ids_changed?
-
-    self.genres = Genre.where(tmdb_id: genre_ids_array)
   end
 end
