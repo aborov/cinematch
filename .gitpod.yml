@@ -8,7 +8,7 @@ tasks:
       export PATH=/workspace/.rvm/bin:$PATH
       export PGDATA="/workspace/.pgsql/data"
       initdb -D $PGDATA || true
-      pg_ctl start || true
+      pg_ctl -D $PGDATA -l logfile start
       bin/setup
 ports:
   - port: 3000
