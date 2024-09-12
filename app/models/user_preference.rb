@@ -4,14 +4,14 @@
 #
 # Table name: user_preferences
 #
-#  id                    :integer          not null, primary key
+#  id                    :bigint           not null, primary key
 #  deleted_at            :datetime
 #  disable_adult_content :boolean
 #  favorite_genres       :json
 #  personality_profiles  :json
 #  created_at            :datetime         not null
 #  updated_at            :datetime         not null
-#  user_id               :integer          not null
+#  user_id               :bigint           not null
 #
 # Indexes
 #
@@ -20,7 +20,7 @@
 #
 # Foreign Keys
 #
-#  user_id  (user_id => users.id)
+#  fk_rails_...  (user_id => users.id)
 #
 class UserPreference < ApplicationRecord
   acts_as_paranoid

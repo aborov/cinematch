@@ -4,7 +4,7 @@
 #
 # Table name: survey_responses
 #
-#  id                 :integer          not null, primary key
+#  id                 :bigint           not null, primary key
 #  deleted_at         :datetime
 #  response           :string
 #  created_at         :datetime         not null

@@ -41,3 +41,8 @@ examples.txt
 # Un-ignore SQLite3 db
 !/db/*.sqlite3
 !/db/*.sqlite3-journal
+
+# Ignore PostgreSQL backup files
+cinematch_backup.sql
+postgresql.conf.backup
+pg_hba.conf.backup

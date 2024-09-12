@@ -1,0 +1,8 @@
+#!/bin/bash
+pg_ctl stop
+rm -rf $PGDATA
+initdb -D $PGDATA
+cp postgresql.conf.backup $PGDATA/postgresql.conf
+cp pg_hba.conf.backup $PGDATA/pg_hba.conf
+pg_ctl start
+psql -d cinematch_development -f cinematch_backup.sql

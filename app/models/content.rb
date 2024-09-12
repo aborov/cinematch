@@ -4,7 +4,7 @@
 #
 # Table name: contents
 #
-#  id                   :integer          not null, primary key
+#  id                   :bigint           not null, primary key
 #  adult                :boolean          default(FALSE)
 #  backdrop_url         :string
 #  cast                 :text
