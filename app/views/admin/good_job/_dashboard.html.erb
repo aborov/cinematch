@@ -1,0 +1,32 @@
+<div class="good-job-dashboard">
+  <h3>Queues</h3>
+  <ul>
+    <% @queues.each do |queue| %>
+      <li><%= queue %></li>
+    <% end %>
+  </ul>
+
+  <h3>Jobs</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Queue</th>
+        <th>Class</th>
+        <th>Status</th>
+        <th>Created At</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @jobs.order(created_at: :desc).limit(20).each do |job| %>
+        <tr>
+          <td><%= job.id %></td>
+          <td><%= job.queue_name %></td>
+          <td><%= job.job_class %></td>
+          <td><%= job.finished_at ? 'Finished' : (job.performed_at ? 'Running' : 'Queued') %></td>
+          <td><%= job.created_at %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

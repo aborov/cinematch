@@ -1,6 +1,9 @@
 Rails.application.routes.draw do
   # devise_for :admin_users, ActiveAdmin::Devise.config
   ActiveAdmin.routes(self)
+  authenticate :admin_user do
+    mount GoodJob::Engine => 'good_job'
+  end
 
   root to: "pages#landing"
 
@@ -29,4 +32,5 @@ Rails.application.routes.draw do
   get '/sitemap.xml.gz', to: 'sitemaps#show'
   get "/service-worker.js", to: "service_worker#service_worker"
   get "/manifest.json", to: "service_worker#manifest"
+
 end

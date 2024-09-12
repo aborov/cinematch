@@ -38,5 +38,7 @@ module RailsTemplate
     config.generators.system_tests = nil
 
     config.action_controller.allow_forgery_protection = true
+
+    config.active_job.queue_adapter = :good_job
   end
 end

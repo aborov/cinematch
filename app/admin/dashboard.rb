@@ -30,6 +30,16 @@ ActiveAdmin.register_page "Dashboard" do
           para "TV Shows: #{Content.where(content_type: 'tv').count}"
         end
       end
+
+      column do
+        panel "Background Jobs" do
+          para link_to "View Good Job Dashboard", admin_good_job_dashboard_path
+          para "Total Jobs: #{GoodJob::Job.count}"
+          para "Queued Jobs: #{GoodJob::Job.queued.count}"
+          para "Running Jobs: #{GoodJob::Job.running.count}"
+          para "Finished Jobs: #{GoodJob::Job.finished.count}"
+        end
+      end
     end
 
     columns do
