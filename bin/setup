@@ -15,7 +15,9 @@ FileUtils.chdir APP_ROOT do
   # This script is idempotent, so that you can run it at any time and get an expectable outcome.
   # Add necessary setup steps to this file.
   puts 'Setting up PostgreSQL'
-  system! 'pg_isready || pg_ctl -D $PGDATA -l logfile start'
+  system! 'initdb -D $PGDATA || true'
+  system! 'pg_ctl -D $PGDATA -l logfile start || true'
+  system! 'pg_isready -t 30'
   system! "psql -c \"ALTER USER gitpod WITH PASSWORD '#{ENV['POSTGRES_PASSWORD'] || ''}';\""
   system! "createdb cinematch_development || true"
   system! "createdb cinematch_test || true"
