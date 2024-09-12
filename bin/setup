@@ -14,13 +14,13 @@ FileUtils.chdir APP_ROOT do
   # This script is a way to set up or update your development environment automatically.
   # This script is idempotent, so that you can run it at any time and get an expectable outcome.
   # Add necessary setup steps to this file.
-  puts 'Setting up PostgreSQL'
-  system! 'initdb -D $PGDATA || true'
-  system! 'pg_ctl -D $PGDATA -l logfile start || true'
-  system! 'pg_isready -t 30'
-  system! "psql -c \"ALTER USER gitpod WITH PASSWORD '#{ENV['POSTGRES_PASSWORD'] || ''}';\""
-  system! "createdb cinematch_development || true"
-  system! "createdb cinematch_test || true"
+  if `cat /etc/passwd`.include?('gitpod')
+    puts 'updating db permissions'
+    system! 'sudo adduser gitpod dev'
+    system! 'sudo chown gitpod $PGDATA'
+    system! 'initdb -D $PGDATA'
+    system! 'pg_ctl start'
+  end
 
   puts '== Installing dependencies =='
   system!('bundle install')
@@ -31,7 +31,7 @@ FileUtils.chdir APP_ROOT do
   # end
 
   puts "\n== Preparing database =="
-  system! 'RAILS_ENV=development bin/rails db:prepare'
+  system! 'bin/rails db:prepare'
 
   puts "\n== Removing old logs and tempfiles =="
   system! 'bin/rails log:clear tmp:clear'
