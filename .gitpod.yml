@@ -9,10 +9,12 @@ tasks:
       export GEM_HOME=/workspace/.rvm
       export GEM_PATH=$GEM_HOME:$GEM_PATH
       export PATH=/workspace/.rvm/bin:$PATH
+      export PGUSER=gitpod
+      export POSTGRES_PASSWORD=''
       sudo service postgresql start
       sudo -u postgres psql -c "ALTER USER gitpod WITH PASSWORD '';"
-      sudo -u postgres psql -c "CREATE DATABASE cinematch_development;"
-      sudo -u postgres psql -c "CREATE DATABASE cinematch_test;"
+      sudo -u postgres psql -c "CREATE DATABASE cinematch_development;" || true
+      sudo -u postgres psql -c "CREATE DATABASE cinematch_test;" || true
       bin/setup
 ports:
   - port: 3000

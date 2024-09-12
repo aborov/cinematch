@@ -15,7 +15,11 @@ FileUtils.chdir APP_ROOT do
   # This script is idempotent, so that you can run it at any time and get an expectable outcome.
   # Add necessary setup steps to this file.
   puts 'Setting up PostgreSQL'
-  system! 'sudo service postgresql status || sudo service postgresql start'
+  system! 'sudo service postgresql start'
+  system! 'sudo -u postgres psql -c "ALTER USER gitpod WITH PASSWORD \'\'"'
+  system! 'sudo -u postgres psql -c "CREATE DATABASE cinematch_development" || true'
+  system! 'sudo -u postgres psql -c "CREATE DATABASE cinematch_test" || true'
+  system! 'PGPASSWORD="" psql -U gitpod -c "SELECT 1" postgres'
 
   puts '== Installing dependencies =='
   system!('bundle install')
