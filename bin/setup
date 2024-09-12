@@ -16,6 +16,7 @@ FileUtils.chdir APP_ROOT do
   # Add necessary setup steps to this file.
   puts 'Setting up PostgreSQL'
   system! 'sudo service postgresql start'
+  system! "sudo -u postgres psql -c \"ALTER USER gitpod WITH PASSWORD '#{ENV['POSTGRES_PASSWORD']}';\""
   system! 'createdb -U gitpod cinematch_development || true'
   system! 'createdb -U gitpod cinematch_test || true'
 

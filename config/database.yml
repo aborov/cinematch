@@ -22,7 +22,7 @@
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   username: gitpod
   host: localhost
-  password:
+  password: <%= ENV["POSTGRES_PASSWORD"] %>
 
 development:
   <<: *default
