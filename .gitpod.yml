@@ -9,11 +9,10 @@ tasks:
       export GEM_HOME=/workspace/.rvm
       export GEM_PATH=$GEM_HOME:$GEM_PATH
       export PATH=/workspace/.rvm/bin:$PATH
-      sudo su postgres -c "psql -c \"ALTER USER gitpod WITH PASSWORD NULL;\""
-      sudo su postgres -c "psql -c \"ALTER SYSTEM SET password_encryption TO 'scram-sha-256';\""
-      sudo su postgres -c "psql -c \"ALTER SYSTEM SET listen_addresses TO '*';\""
-      sudo su postgres -c "echo \"host all all all trust\" >> /etc/postgresql/12/main/pg_hba.conf"
-      sudo service postgresql restart
+      sudo service postgresql start
+      sudo -u postgres psql -c "ALTER USER gitpod WITH PASSWORD '';"
+      sudo -u postgres psql -c "CREATE DATABASE cinematch_development;"
+      sudo -u postgres psql -c "CREATE DATABASE cinematch_test;"
       bin/setup
 ports:
   - port: 3000

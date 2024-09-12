@@ -14,11 +14,8 @@ FileUtils.chdir APP_ROOT do
   # This script is a way to set up or update your development environment automatically.
   # This script is idempotent, so that you can run it at any time and get an expectable outcome.
   # Add necessary setup steps to this file.
-  if `cat /etc/passwd`.include?('gitpod')
-    puts 'Setting up PostgreSQL'
-    system! 'createdb -U gitpod cinematch_development || true'
-    system! 'createdb -U gitpod cinematch_test || true'
-  end
+  puts 'Setting up PostgreSQL'
+  system! 'sudo service postgresql status || sudo service postgresql start'
 
   puts '== Installing dependencies =='
   system!('bundle install')
