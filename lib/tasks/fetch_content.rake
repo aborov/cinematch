@@ -1,17 +1,11 @@
+require_relative 'tmdb_tasks'
+require 'parallel'
+
 namespace :tmdb do
   desc 'Fetch new content and update existing content from TMDb'
   task fetch_content: :environment do
-    require 'parallel'
+    genres = fetch_and_store_genres
 
-    # Fetch and store genres first
-    genres = TmdbService.fetch_genres[:all_genres]
-    Genre.upsert_all(
-      genres.map { |genre| { tmdb_id: genre['id'], name: genre['name'] } },
-      unique_by: :tmdb_id
-    )
-    puts 'Genres have been fetched and stored successfully.'
-
-    # Define the fetchers
     fetchers = [
       -> { fetch_movies_by_categories },
       -> { fetch_tv_shows_by_categories },
@@ -22,19 +16,34 @@ namespace :tmdb do
     total_fetchers = fetchers.size
     puts "Starting to fetch content from #{total_fetchers} sources..."
 
-    # Fetch new content and update existing content
-    content_list = Parallel.map(fetchers.each_with_index) do |fetcher, index|
+    content_list = []
+    fetchers.each_with_index do |fetcher, index|
       puts "Fetching from source #{index + 1} of #{total_fetchers}..."
-      fetcher.call
-    end.flatten
+      fetcher.call.each_slice(100) do |batch|
+        content_list.concat(batch)
+        process_content_in_batches(content_list)
+        content_list.clear
+      end
+    end
 
-    puts "Fetched #{content_list.size} items."
+    puts "All content has been fetched and processed."
+  end
 
-    content_list.uniq! { |item| item['id'] }
+  def fetch_and_store_genres
+    genres = TmdbService.fetch_genres[:all_genres]
+    Genre.upsert_all(
+      genres.map { |genre| { tmdb_id: genre['id'], name: genre['name'] } },
+      unique_by: :tmdb_id
+    )
+    puts 'Genres have been fetched and stored successfully.'
+    genres
+  end
 
-    update_content_batch(content_list)
-
-    puts 'Content has been fetched, stored, and updated successfully.'
+  def process_content_in_batches(content_list)
+    content_list.each_slice(20) do |batch|
+      TmdbTasks.update_content_batch(batch)
+      puts "Processed and stored a batch of #{batch.size} items."
+    end
   end
 
   def fetch_movies_by_categories
@@ -61,59 +70,5 @@ namespace :tmdb do
       TmdbService.fetch_by_decade(decade, decade + 9, 'movie') +
       TmdbService.fetch_by_decade(decade, decade + 9, 'tv')
     end
-  end
-
-  def update_content_batch(content_list)
-    content_attributes = content_list.map do |item|
-      type = item['media_type'] || (item['title'] ? 'movie' : 'tv')
-      details = TmdbService.fetch_details(item['id'], type)
-
-      {
-        source_id: item['id'].to_s,
-        source: 'tmdb',
-        title: item['title'] || item['name'],
-        description: item['overview'],
-        poster_url: item['poster_path'] ? "https://image.tmdb.org/t/p/w500#{item['poster_path']}" : nil,
-        backdrop_url: item['backdrop_path'] ? "https://image.tmdb.org/t/p/w1280#{item['backdrop_path']}" : nil,
-        release_year: parse_release_year(item['release_date'] || item['first_air_date']),
-        content_type: type,
-        vote_average: item['vote_average'],
-        vote_count: item['vote_count'],
-        popularity: item['popularity'],
-        original_language: item['original_language'],
-        runtime: type == 'movie' ? details['runtime'] : details['episode_run_time']&.first,
-        status: details['status'],
-        tagline: details['tagline'],
-        genre_ids: item['genre_ids'].is_a?(Array) ? item['genre_ids'].join(',') : item['genre_ids'],
-        production_countries: details['production_countries'].to_json,
-        directors: details['credits']['crew'].select { |c| c['job'] == 'Director' }.map { |d| d['name'] }.join(','),
-        cast: details['credits']['cast'].take(5).map { |c| c['name'] }.join(','),
-        trailer_url: fetch_trailer_url(details['videos']['results']),
-        adult: item['adult'] || details['adult'],
-        tmdb_last_update: parse_tmdb_date(item['tmdb_last_update'] || details['last_updated'])
-      }
-    end
-
-    Content.upsert_all(
-      content_attributes,
-      unique_by: :source_id,
-      update_only: content_attributes.first.keys - [:source_id, :source]
-    )
-  end
-
-  def parse_tmdb_date(date_string)
-    date_string.present? ? Time.parse(date_string) : nil
-  rescue ArgumentError
-    nil
-  end
-
-  def parse_release_year(date_string)
-    date_string.present? ? date_string.split('-').first.to_i : nil
-  end
-
-  def fetch_trailer_url(videos)
-    return nil if videos.nil? || !videos.is_a?(Array) || videos.empty?
-    trailer = videos.find { |v| v['type'] == 'Trailer' && v['site'] == 'YouTube' }
-    trailer ? "https://www.youtube.com/watch?v=#{trailer['key']}" : nil
   end
 end
