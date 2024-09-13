@@ -7,26 +7,33 @@ namespace :tmdb do
     genres = fetch_and_store_genres
 
     fetchers = [
-      -> { fetch_movies_by_categories },
-      -> { fetch_tv_shows_by_categories },
-      -> { fetch_content_by_genres(genres) },
-      -> { fetch_content_by_decades }
+      { name: 'Movies by categories', fetcher: -> { fetch_movies_by_categories } },
+      { name: 'TV shows by categories', fetcher: -> { fetch_tv_shows_by_categories } },
+      { name: 'Content by genres', fetcher: -> { fetch_content_by_genres(genres) } },
+      { name: 'Content by decades', fetcher: -> { fetch_content_by_decades } }
     ]
 
     total_fetchers = fetchers.size
     puts "Starting to fetch content from #{total_fetchers} sources..."
 
-    content_list = []
-    fetchers.each_with_index do |fetcher, index|
-      puts "Fetching from source #{index + 1} of #{total_fetchers}..."
-      fetcher.call.each_slice(100) do |batch|
-        content_list.concat(batch)
-        process_content_in_batches(content_list)
-        content_list.clear
+    total_items = 0
+    processed_items = 0
+
+    fetchers.each_with_index do |fetcher_info, index|
+      puts "Fetching from source #{index + 1} of #{total_fetchers}: #{fetcher_info[:name]}..."
+      items = fetcher_info[:fetcher].call
+      total_items += items.size
+      puts "Found #{items.size} items from #{fetcher_info[:name]}"
+
+      items.each_slice(100) do |batch|
+        process_content_in_batches(batch)
+        processed_items += batch.size
+        progress = (processed_items.to_f / total_items * 100).round(2)
+        puts "Overall progress: #{processed_items}/#{total_items} (#{progress}%)"
       end
     end
 
-    puts "All content has been fetched and processed."
+    puts "All content has been fetched and processed. Total items: #{total_items}"
   end
 
   def fetch_and_store_genres
