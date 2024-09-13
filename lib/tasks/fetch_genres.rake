@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+require_relative 'tmdb_tasks'
 
 namespace :tmdb do
   desc 'Fetch and store genres from TMDb'
