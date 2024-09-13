@@ -129,16 +129,27 @@ class TmdbService
 
     def fetch_changes(type, start_date)
       url = "#{BASE_URL}/#{type}/changes"
-      params = {
-        api_key: API_KEY,
-        start_date: start_date.strftime('%Y-%m-%d'),
-        end_date: Time.now.strftime('%Y-%m-%d')
-      }
+      all_results = []
+      page = 1
       
-      response = rate_limited_request { HTTP.get(url, params: params) }
-      data = JSON.parse(response.body.to_s)
+      loop do
+        params = {
+          api_key: API_KEY,
+          start_date: start_date.strftime('%Y-%m-%d'),
+          end_date: Time.now.strftime('%Y-%m-%d'),
+          page: page
+        }
+        
+        response = rate_limited_request { HTTP.get(url, params: params) }
+        data = JSON.parse(response.body.to_s)
+        
+        all_results.concat(data['results'].map { |item| [item['id'], type] })
+        
+        break if page >= data['total_pages'] || page >= 5  # Limit to 5 pages (1000 results) to avoid excessive API calls
+        page += 1
+      end
       
-      data['results'].map { |item| [item['id'], type] }
+      all_results
     end
   end
 end
