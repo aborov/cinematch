@@ -43,13 +43,13 @@ class TmdbService
 
     def fetch_movie_details(movie_id)
       url = "#{BASE_URL}/movie/#{movie_id}"
-      response = rate_limited_request { HTTP.get(url, params: { api_key: API_KEY, language: 'en-US', append_to_response: 'credits,videos,keywords' }) }
+      response = rate_limited_request { HTTP.get(url, params: { api_key: API_KEY, language: 'en-US', append_to_response: 'credits,videos,keywords,external_ids' }) }
       JSON.parse(response.body.to_s)
     end
 
     def fetch_tv_show_details(tv_id)
       url = "#{BASE_URL}/tv/#{tv_id}"
-      response = rate_limited_request { HTTP.get(url, params: { api_key: API_KEY, language: 'en-US', append_to_response: 'credits,videos,keywords' }) }
+      response = rate_limited_request { HTTP.get(url, params: { api_key: API_KEY, language: 'en-US', append_to_response: 'credits,videos,keywords,external_ids' }) }
       JSON.parse(response.body.to_s)
     end
 
