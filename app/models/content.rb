@@ -29,10 +29,12 @@
 #  vote_count           :integer
 #  created_at           :datetime         not null
 #  updated_at           :datetime         not null
+#  imdb_id              :string
 #  source_id            :string
 #
 # Indexes
 #
+#  index_contents_on_imdb_id    (imdb_id)
 #  index_contents_on_source_id  (source_id) UNIQUE
 #
 class Content < ApplicationRecord

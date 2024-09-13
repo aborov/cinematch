@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_09_11_225853) do
+ActiveRecord::Schema[7.1].define(version: 2024_09_13_000600) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -55,6 +55,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_09_11_225853) do
     t.text "cast"
     t.datetime "tmdb_last_update"
     t.boolean "adult", default: false
+    t.string "imdb_id"
+    t.index ["imdb_id"], name: "index_contents_on_imdb_id"
     t.index ["source_id"], name: "index_contents_on_source_id", unique: true
   end
 
