@@ -4,6 +4,9 @@ require 'parallel'
 namespace :tmdb do
   desc 'Fetch new content and update existing content from TMDb'
   task fetch_content: :environment do
+    start_time = Time.now
+    puts "Starting to fetch content at #{start_time}"
+
     genres = fetch_and_store_genres
 
     fetchers = [
@@ -16,24 +19,19 @@ namespace :tmdb do
     total_fetchers = fetchers.size
     puts "Starting to fetch content from #{total_fetchers} sources..."
 
-    total_items = 0
-    processed_items = 0
-
     fetchers.each_with_index do |fetcher_info, index|
       puts "Fetching from source #{index + 1} of #{total_fetchers}: #{fetcher_info[:name]}..."
       items = fetcher_info[:fetcher].call
-      total_items += items.size
       puts "Found #{items.size} items from #{fetcher_info[:name]}"
 
-      items.each_slice(100) do |batch|
-        process_content_in_batches(batch)
-        processed_items += batch.size
+      TmdbTasks.process_content_in_batches(items) do |processed_items, total_items|
         progress = (processed_items.to_f / total_items * 100).round(2)
-        puts "Overall progress: #{processed_items}/#{total_items} (#{progress}%)"
+        puts "Progress: #{processed_items}/#{total_items} (#{progress}%)"
       end
     end
 
-    puts "All content has been fetched and processed. Total items: #{total_items}"
+    end_time = Time.now
+    puts "All content has been fetched and processed at #{end_time}. Total duration: #{(end_time - start_time).round(2)} seconds"
   end
 
   def fetch_and_store_genres
@@ -44,13 +42,6 @@ namespace :tmdb do
     )
     puts 'Genres have been fetched and stored successfully.'
     genres
-  end
-
-  def process_content_in_batches(content_list)
-    content_list.each_slice(20) do |batch|
-      TmdbTasks.update_content_batch(batch)
-      puts "Processed and stored a batch of #{batch.size} items."
-    end
   end
 
   def fetch_movies_by_categories

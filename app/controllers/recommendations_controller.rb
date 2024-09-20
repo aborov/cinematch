@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative '../../lib/tasks/tmdb_tasks'
+
 class RecommendationsController < ApplicationController
   before_action :authenticate_user!
   before_action :ensure_user_preference
@@ -38,48 +40,42 @@ class RecommendationsController < ApplicationController
     @item = Content.find_by(source_id: params[:id], content_type: params[:type])
 
     if @item
-      if @item.trailer_url.nil?
-        # Fetch detailed information from TMDB
-        details = if @item.content_type == 'movie'
-                    TmdbService.fetch_movie_details(@item.source_id)
-                  else
-                    TmdbService.fetch_tv_show_details(@item.source_id)
-                  end
-
-        # Update the item with new information
-        @item.update(
-          trailer_url: fetch_trailer_url(details['videos']['results']),
-          runtime: details['runtime'] || details['episode_run_time']&.first,
-          directors: details['credits']['crew'].select { |c| c['job'] == 'Director' }.map { |d| d['name'] }.join(','),
-          cast: details['credits']['cast'].take(5).map { |c| c['name'] }.join(','),
-          vote_count: details['vote_count']  # Add vote count
-        )
-
-        # Fetch genre names directly
-        genre_names = details['genres'].map { |g| g['name'] }
-
-        render json: {
-          id: @item.source_id,
-          title: @item.title,
-          name: @item.title,
-          poster_path: @item.poster_url,
-          runtime: @item.runtime,
-          release_date: @item.release_year.to_s,
-          first_air_date: @item.release_year.to_s,
-          production_countries: JSON.parse(@item.production_countries || '[]'),
-          vote_average: @item.vote_average,
-          vote_count: @item.vote_count,  # Include vote count in the response
-          overview: @item.description,
-          trailer_url: @item.trailer_url,
-          genres: genre_names,  # Include genres as strings
-          credits: {
-            crew: @item.directors.split(',').map { |name| { job: 'Director', name: name.strip } },
-            cast: @item.cast.split(',').map { |name| { name: name.strip } }
-          }
-        }
-      else
-        render json: { error: 'Content not found' }, status: :not_found
+      if @item.trailer_url.nil? || @item.runtime.nil?
+        details = TmdbService.fetch_details(@item.source_id, @item.content_type)
+        TmdbTasks.update_content_batch([details])
+        @item.reload
       end
+
+      genre_names = @item.genre_names
+
+      render json: {
+        id: @item.source_id,
+        title: @item.title,
+        name: @item.title,
+        poster_path: @item.poster_url,
+        runtime: @item.runtime,
+        release_date: @item.release_year.to_s,
+        first_air_date: @item.release_year.to_s,
+        production_countries: JSON.parse(@item.production_countries || '[]'),
+        vote_average: @item.vote_average,
+        vote_count: @item.vote_count,
+        overview: @item.description,
+        trailer_url: @item.trailer_url,
+        genres: genre_names,
+        credits: {
+          crew: @item.directors.split(',').map { |name| { job: 'Director', name: name.strip } },
+          cast: @item.cast.split(',').map { |name| { name: name.strip } }
+        },
+        number_of_seasons: @item.number_of_seasons,
+        number_of_episodes: @item.number_of_episodes,
+        in_production: @item.in_production,
+        creators: @item.creators&.split(',')&.map(&:strip),
+        spoken_languages: JSON.parse(@item.spoken_languages || '[]'),
+        content_type: @item.content_type
+      }
+    else
+      Rails.logger.error("Content not found: source_id=#{params[:id]}, content_type=#{params[:type]}")
+      render json: { error: 'Content not found' }, status: :not_found
     end
   end
 
@@ -146,11 +142,5 @@ class RecommendationsController < ApplicationController
   def abbreviate_country(country)
     return 'USA' if country == 'United States of America'
     country
-  end
-
-  def fetch_trailer_url(videos)
-    return nil if videos.nil? || !videos.is_a?(Array) || videos.empty?
-    trailer = videos.find { |v| v['type'] == 'Trailer' && v['site'] == 'YouTube' }
-    trailer ? "https://www.youtube.com/watch?v=#{trailer['key']}" : nil
   end
 end

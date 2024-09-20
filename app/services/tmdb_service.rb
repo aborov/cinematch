@@ -8,17 +8,23 @@ class TmdbService
   @request_times = []
 
   class << self
-    def rate_limited_request
-      current_time = Time.now.to_f
-      @request_times = @request_times.drop_while { |t| t < current_time - RATE_LIMIT_WINDOW }
-
-      if @request_times.size >= RATE_LIMIT
-        sleep_time = @request_times.first - (current_time - RATE_LIMIT_WINDOW)
-        sleep(sleep_time) if sleep_time > 0
+    def rate_limited_request(max_retries = 3)
+      retries = 0
+      begin
+        sleep(0.25) # Rate limiting
+        yield
+      rescue OpenSSL::SSL::SSLError, HTTP::ConnectionError => e
+        if retries < max_retries
+          retries += 1
+          sleep_time = 2**retries
+          Rails.logger.warn("SSL Error occurred, retrying in #{sleep_time}s (#{retries}/#{max_retries}): #{e.message}")
+          sleep(sleep_time) # Exponential backoff
+          retry
+        else
+          Rails.logger.error("Failed after #{max_retries} retries: #{e.message}")
+          raise
+        end
       end
-
-      @request_times << Time.now.to_f
-      yield
     end
 
     def fetch_popular_movies
@@ -145,7 +151,7 @@ class TmdbService
         
         all_results.concat(data['results'].map { |item| [item['id'], type] })
         
-        break if page >= data['total_pages'] || page >= 5  # Limit to 5 pages (1000 results) to avoid excessive API calls
+        break if page >= data['total_pages'] || page >= 10  # Limit to 10 pages (2000 results) to avoid excessive API calls
         page += 1
       end
       

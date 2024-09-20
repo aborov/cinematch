@@ -9,9 +9,13 @@
 #  backdrop_url         :string
 #  cast                 :text
 #  content_type         :string
+#  creators             :text
 #  description          :text
 #  directors            :text
 #  genre_ids            :text
+#  in_production        :boolean
+#  number_of_episodes   :integer
+#  number_of_seasons    :integer
 #  original_language    :string
 #  plot_keywords        :text
 #  popularity           :float
@@ -20,11 +24,13 @@
 #  release_year         :integer
 #  runtime              :integer
 #  source               :string
+#  spoken_languages     :text
 #  status               :string
 #  tagline              :text
 #  title                :string
 #  tmdb_last_update     :datetime
 #  trailer_url          :string
+#  tv_show_type         :string
 #  vote_average         :float
 #  vote_count           :integer
 #  created_at           :datetime         not null
@@ -40,6 +46,8 @@
 class Content < ApplicationRecord
   validates :title, presence: true
   validates :content_type, presence: true, inclusion: { in: %w[movie tv], message: "%{value} is not a valid content type" }
+  validates :source_id, presence: true, uniqueness: true
+  validates :imdb_id, uniqueness: true, allow_blank: true
 
   def self.ransackable_attributes(auth_object = nil)
     ["id", "title", "description", "poster_url", "trailer_url", "source_id", "source", "release_year", "content_type", "plot_keywords", "created_at", "updated_at", "vote_average", "vote_count", "popularity", "original_language", "runtime", "status", "tagline", "backdrop_url", "genre_ids", "production_countries", "directors", "cast", "tmdb_last_update"]
