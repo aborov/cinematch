@@ -30,9 +30,11 @@
           </div>
           <div class="stretched-link show-details" data-id="<%= recommendation[:id] %>" data-type="<%= recommendation[:content_type] %>" role="button" aria-label="Show details for <%= recommendation[:title] %>"></div>
           <div class="position-absolute bottom-0 end-0 m-2 z-index-1">
-            <button class="btn btn-link p-0 watchlist-toggle" onclick="toggleWatchlist(event, '<%= recommendation[:id] %>', '<%= recommendation[:content_type] %>')" aria-label="Add to or remove from watchlist">
-              <i class="far fa-star fs-4 text-warning" id="star-outline-<%= recommendation[:id] %>"></i>
-              <i class="fas fa-star fs-4 text-warning d-none" id="star-solid-<%= recommendation[:id] %>"></i>
+            <button class="btn btn-link p-0 watchlist-toggle" 
+                    onclick="toggleWatchlist(event, '<%= recommendation[:id] %>', '<%= recommendation[:content_type] %>')" 
+                    aria-label="<%= recommendation[:in_watchlist] ? 'Remove from Watchlist' : 'Add to Watchlist' %>">
+              <i class="far fa-star fs-4 text-warning <%= 'd-none' if recommendation[:in_watchlist] %>" id="star-outline-<%= recommendation[:id] %>"></i>
+              <i class="fas fa-star fs-4 text-warning <%= 'd-none' unless recommendation[:in_watchlist] %>" id="star-solid-<%= recommendation[:id] %>"></i>
             </button>
           </div>
         </div>

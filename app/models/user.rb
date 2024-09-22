@@ -40,6 +40,8 @@ class User < ApplicationRecord
 
   has_one :user_preference, dependent: :destroy
   has_many :survey_responses, dependent: :destroy
+  has_many :watchlist_items, dependent: :destroy
+  has_many :watchlist_contents, through: :watchlist_items, source: :content
 
   validates :name, presence: true
 

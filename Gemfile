@@ -5,6 +5,7 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 ruby '3.2.1'
 gem 'activeadmin'
+gem 'acts_as_list'
 gem 'appdev_support'
 gem 'awesome_print'
 gem 'bootsnap', require: false

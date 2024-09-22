@@ -85,4 +85,7 @@ class Content < ApplicationRecord
   def cast_array
     cast.split(',') if cast
   end
+
+  has_many :watchlist_items
+  has_many :users_watchlisted, through: :watchlist_items, source: :user
 end

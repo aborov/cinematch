@@ -579,3 +579,18 @@ h6 {
 .footer-link:hover {
   text-decoration: underline;
 }
+
+#watchlistDropdown {
+  min-width: 250px;
+}
+
+#watchlistDropdown .dropdown-item {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#watchlist-count {
+  font-size: 0.75rem;
+  padding: 0.25em 0.6em;
+}

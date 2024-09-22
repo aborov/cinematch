@@ -1,6 +1,7 @@
 require_relative "boot"
 
 require "rails/all"
+require 'acts_as_list'
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.

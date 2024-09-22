@@ -24,6 +24,20 @@ Rails.application.routes.draw do
   resources :surveys, only: [:index, :create]
   resources :user_preferences, only: [:edit, :update]
   resources :recommendations, only: [:index, :show]
+  get 'recommendations/check_status', to: 'recommendations#check_status'
+  resources :watchlist_items, only: [:index, :create, :destroy, :update] do
+    collection do
+      get :status
+    end
+    member do
+      patch :reposition
+      patch :mark_watched
+      patch :mark_unwatched
+    end
+  end
+  get 'watchlist_items/count', to: 'watchlist_items#count'
+  get 'watchlist_items/recent', to: 'watchlist_items#recent'
+
   get "contact", to: "pages#contact"
   post "send_contact_email", to: "pages#send_contact_email"
   get "terms", to: "pages#terms"
@@ -32,5 +46,4 @@ Rails.application.routes.draw do
   get '/sitemap.xml.gz', to: 'sitemaps#show'
   get "/service-worker.js", to: "service_worker#service_worker"
   get "/manifest.json", to: "service_worker#manifest"
-
 end

@@ -1,59 +1,104 @@
 <h1 class="mb-4">Personalized Recommendations</h1>
 
-<div class="row">
-  <% @recommendations.each do |recommendation| %>
-    <%= render 'recommendation_card', recommendation: recommendation %>
+<div id="recommendations-container">
+  <% if @recommendations.present? %>
+    <%= render 'recommendations_list', recommendations: @recommendations, total_pages: @total_pages, current_page: @page %>
+  <% else %>
+    <div id="loading-spinner" class="text-center">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="mt-2">We're generating your recommendations. This may take a few moments...</p>
+    </div>
   <% end %>
 </div>
-
-<nav aria-label="Page navigation" class="mt-4">
-  <ul class="pagination justify-content-center">
-    <% (1..@total_pages).each do |page_num| %>
-      <li class="page-item <%= "active" if page_num == @page %>">
-        <%= link_to page_num, recommendations_path(page: page_num), class: "page-link" %>
-      </li>
-    <% end %>
-  </ul>
-</nav>
 
 <%= render "shared/footer" %>
 
 <!-- Popup Modal -->
 <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="detailsModalLabel">Details</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body">
-        <div id="popup-details"></div>
+      <div class="modal-body" id="popup-details">
+        <!-- Content will be dynamically inserted here -->
       </div>
     </div>
   </div>
 </div>
 
 <script>
-  document.querySelectorAll('.show-details').forEach(function(element) {
-    element.addEventListener('click', function(e) {
-      e.preventDefault();
-      console.log('Card clicked');
-      var id = this.dataset.id;
-      var type = this.dataset.type;
-      var matchScore = this.closest('.card').querySelector('.badge').textContent;
-      console.log('Details:', id, type, matchScore);
-      showDetails(id, type, matchScore);
-    });
+  document.addEventListener('DOMContentLoaded', function() {
+    if (!<%= @recommendations.present? %>) {
+      checkRecommendationsStatus();
+    } else {
+      attachEventListeners();
+    }
+    updateWatchlistNavbar();
   });
 
-  window.showDetails = function(id, type, matchScore) {
-    console.log('Fetching details for', id, type);
-    fetch(`/recommendations/${id}?type=${type}`)
+  function checkRecommendationsStatus() {
+    fetch('/recommendations/check_status', {
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
       .then(response => response.json())
       .then(data => {
-        console.log('Data fetched:', data);
-        var country = data.production_countries.map(c => c.name === 'United States of America' ? 'USA' : c.name).join(', ');
+        if (data.status === 'ready') {
+          window.location.reload();
+        } else {
+          setTimeout(checkRecommendationsStatus, 2000);
+        }
+      })
+      .catch(error => console.error('Error checking recommendations status:', error));
+  }
 
+  function updateRecommendations(html) {
+    const container = document.getElementById('recommendations-container');
+    container.innerHTML = html;
+  }
+
+  function showError(message) {
+    const container = document.getElementById('recommendations-container');
+    container.innerHTML = `<div class="alert alert-danger">${message}</div>`;
+  }
+
+  function attachEventListeners() {
+    document.querySelectorAll('.show-details').forEach(item => {
+      item.addEventListener('click', function() {
+        const id = this.dataset.id;
+        const type = this.dataset.type;
+        const matchScore = this.querySelector('.badge').textContent;
+        showDetails(id, type, matchScore);
+      });
+    });
+  }
+
+  window.showDetails = function(id, type, matchScore) {
+    console.log('showDetails called with:', id, type, matchScore);
+    fetch(`/recommendations/${id}?type=${type}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Recommendation data received:', data);
+        var country = data.production_countries ? data.production_countries.map(c => c.name === 'United States of America' ? 'USA' : c.name).join(', ') : 'N/A';
+
+        return fetch(`/watchlist_items/status?content_id=${data.id}&content_type=${type}`)
+          .then(response => response.json())
+          .then(watchlistData => {
+            console.log('Watchlist status received:', watchlistData);
+            return { ...data, inWatchlist: watchlistData.in_watchlist, country: country };
+          });
+      })
+      .then(data => {
         // Prepare the details HTML
         var details = `
           <div class="row">
@@ -61,18 +106,36 @@
               <img src="https://image.tmdb.org/t/p/w500${data.poster_path}" class="img-fluid rounded" alt="${data.title || data.name} poster" role="img">
             </div>
             <div class="col-md-8">
-              <h2 class="text-warning d-flex justify-content-between align-items-start mb-3">
-                <span>${data.title || data.name}</span>
-                <span class="badge badge-large" role="status" aria-label="Match score">${matchScore}</span>
-              </h2>
-              <p><strong>Runtime:</strong> ${data.runtime || 'N/A'} minutes</p>
-              <p><strong>Release Year:</strong> ${(data.release_date || data.first_air_date).substring(0, 4)}</p>
-              <p><strong>Country:</strong> ${country}</p>
+              <div class="d-flex justify-content-between align-items-start mb-3">
+                <h2 class="text-warning">${data.title || data.name}</h2>
+                <div>
+                  <span class="badge badge-large" role="status" aria-label="Match score">${matchScore}</span>
+                  <div class="watchlist-toggle mt-2">
+                    <button class="btn btn-outline-primary btn-sm" onclick="toggleWatchlist(event, '${data.id}', '${data.content_type}')">
+                      <i class="far fa-star ${data.inWatchlist ? 'd-none' : ''}" id="star-outline-${data.id}"></i>
+                      <i class="fas fa-star ${data.inWatchlist ? '' : 'd-none'}" id="star-solid-${data.id}"></i>
+                      <span id="watchlist-text-${data.id}">${data.inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              ${data.content_type === 'movie' ? 
+                `<p><strong>Runtime:</strong> ${data.runtime || 'N/A'} minutes</p>` :
+                `<p><strong>Number of Seasons:</strong> ${data.number_of_seasons || 'N/A'}</p>
+                 <p><strong>Number of Episodes:</strong> ${data.number_of_episodes || 'N/A'}</p>
+                 <p><strong>In Production:</strong> ${data.in_production ? 'Yes' : 'No'}</p>`
+              }
+              <p><strong>Release Year:</strong> ${(data.release_date || data.first_air_date || '').substring(0, 4)}</p>
+              <p><strong>Country:</strong> ${data.country}</p>
               <p><strong>TMDb Rating:</strong> ${data.vote_average} (${data.vote_count} votes)</p> 
-              <p><strong>Genres:</strong> ${data.genres.join(', ')}</p>
+              <p><strong>Genres:</strong> ${(data.genres || []).map(g => typeof g === 'string' ? g : g.name).join(', ')}</p>
               <p><strong>Description:</strong> ${data.overview}</p>
-              <p><strong>Director(s):</strong> ${data.credits.crew.filter(c => c.job === 'Director').map(d => d.name).join(', ')}</p>
-              <p><strong>Cast:</strong> ${data.credits.cast.slice(0, 5).map(c => c.name).join(', ')}</p>
+              ${data.content_type === 'movie' ?
+                `<p><strong>Director(s):</strong> ${(data.credits?.crew || []).filter(c => c.job === 'Director').map(d => d.name).join(', ') || 'N/A'}</p>` :
+                `<p><strong>Creator(s):</strong> ${data.creators ? data.creators.join(', ') : 'N/A'}</p>`
+              }
+              <p><strong>Cast:</strong> ${(data.credits?.cast || []).slice(0, 5).map(c => c.name).join(', ') || 'N/A'}</p>
+              <p><strong>Spoken Languages:</strong> ${(data.spoken_languages || []).map(l => l.name).join(', ') || 'N/A'}</p>
             </div>
           </div>
           <div class="embed-responsive embed-responsive-16by9 mb-3">
@@ -82,15 +145,136 @@
           </div>
         `;
 
-        // Update the modal content
-        document.getElementById('popup-details').innerHTML = details;
+        console.log('Modal content prepared');
+
+        var popupDetails = document.getElementById('popup-details');
+        if (!popupDetails) {
+          console.error('popup-details element not found');
+          return;
+        }
+        popupDetails.innerHTML = details;
+
         var modalElement = document.getElementById('detailsModal');
-        var modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
-        console.log('Showing modal');
+        if (!modalElement) {
+          console.error('detailsModal element not found');
+          return;
+        }
+
+        var modal = new bootstrap.Modal(modalElement);
         modal.show();
+
+        console.log('Modal shown');
       })
       .catch(error => {
-        console.error('Error fetching details:', error);
+        console.error('Error in showDetails:', error);
       });
   };
+
+  function toggleWatchlist(event, id, type) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    console.log('toggleWatchlist called');
+
+    const starOutline = document.getElementById(`star-outline-${id}`);
+    const starSolid = document.getElementById(`star-solid-${id}`);
+    const button = event.currentTarget;
+    const card = document.querySelector(`.card[data-id="${id}"]`);
+    const cardStarOutline = card ? card.querySelector('.far.fa-star') : null;
+    const cardStarSolid = card ? card.querySelector('.fas.fa-star') : null;
+
+    const inWatchlist = !starSolid.classList.contains('d-none');
+    const method = inWatchlist ? 'DELETE' : 'POST';
+    const url = inWatchlist ? `/watchlist_items/${id}` : '/watchlist_items';
+
+    fetch(url, {
+      method: method,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+      },
+      body: JSON.stringify({ content_id: id, content_type: type })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        const newInWatchlist = !inWatchlist;
+
+        // Update details popup
+        starOutline.classList.toggle('d-none');
+        starSolid.classList.toggle('d-none');
+        button.setAttribute('aria-label', newInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist');
+        button.innerHTML = `
+          <i class="far fa-star ${newInWatchlist ? 'd-none' : ''}" id="star-outline-${id}"></i>
+          <i class="fas fa-star ${newInWatchlist ? '' : 'd-none'}" id="star-solid-${id}"></i>
+          ${newInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
+        `;
+
+        // Update recommendation card
+        if (cardStarOutline && cardStarSolid) {
+          cardStarOutline.classList.toggle('d-none');
+          cardStarSolid.classList.toggle('d-none');
+          const cardButton = card.querySelector('.watchlist-toggle');
+          if (cardButton) {
+            cardButton.setAttribute('aria-label', newInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist');
+          }
+        }
+
+        console.log('Watchlist toggled:', data);
+        updateWatchlistNavbar();
+        updateWatchlistView(id, inWatchlist);
+      } else {
+        console.error('Error toggling watchlist:', data);
+      }
+    })
+    .catch(error => {
+      console.error('Error toggling watchlist:', error);
+    });
+  }
+
+  function updateWatchlistView(id, wasInWatchlist) {
+    const watchlistView = document.querySelector('.watchlist-container');
+    if (watchlistView) {
+      const item = watchlistView.querySelector(`[data-content-id="${id}"]`);
+      if (item && wasInWatchlist) {
+        item.remove();
+      }
+    }
+  }
+
+  function updateWatchlistNavbar() {
+    Promise.all([
+      fetch('/watchlist_items/count').then(response => response.json()),
+      fetch('/watchlist_items/recent').then(response => response.json())
+    ])
+      .then(([countData, recentData]) => {
+        const badge = document.querySelector('#watchlist-count');
+        if (badge) {
+          badge.textContent = countData.count;
+          badge.style.display = countData.count > 0 ? 'inline-block' : 'none';
+        }
+
+        const dropdown = document.querySelector('#watchlist-dropdown');
+        if (dropdown) {
+          if (recentData.items && recentData.items.length > 0) {
+            dropdown.innerHTML = recentData.items.map(item => `
+              <li><a class="dropdown-item" href="/watchlist_items">
+                <img src="${item.poster_url}" alt="${item.title}" class="me-2" style="width: 30px; height: 45px; object-fit: cover;">
+                <span>${item.title} (${item.year})</span>
+              </a></li>
+            `).join('') + `
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item text-primary" href="/watchlist_items">View All</a></li>
+            `;
+          } else {
+            dropdown.innerHTML = '<li><span class="dropdown-item">No items in watchlist</span></li>';
+          }
+        }
+      })
+      .catch(error => console.error('Error updating watchlist navbar:', error));
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    updateWatchlistNavbar();
+  });
 </script>
