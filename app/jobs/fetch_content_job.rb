@@ -11,6 +11,7 @@ class FetchContentJob < ApplicationJob
     end
     
     Rails.logger.info "FetchContentJob completed successfully"
+    UpdateAllRecommendationsJob.perform_later
   rescue => e
     Rails.logger.error "FetchContentJob failed: #{e.message}"
     raise e

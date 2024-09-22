@@ -62,7 +62,7 @@ class User < ApplicationRecord
   end
   
   def ensure_user_preference
-    create_user_preference if user_preference.nil?
+    user_preference || create_user_preference
   end
 
   private

@@ -1,0 +1,15 @@
+<div class="row">
+  <% recommendations.each do |recommendation| %>
+    <%= render 'recommendation_card', recommendation: recommendation %>
+  <% end %>
+</div>
+
+<nav aria-label="Page navigation" class="mt-4">
+  <ul class="pagination justify-content-center">
+    <% (1..total_pages).each do |page| %>
+      <li class="page-item <%= 'active' if page == current_page %>">
+        <a class="page-link" href="/recommendations?page=<%= page %>"><%= page %></a>
+      </li>
+    <% end %>
+  </ul>
+</nav>

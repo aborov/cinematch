@@ -14,13 +14,22 @@ class SurveysController < ApplicationController
   end
 
   def create
-    @user_preference = current_user.user_preference || current_user.build_user_preference
-    authorize @user_preference
-    if SurveyResponsesController.new.process_responses(current_user, params[:personality_responses])
-      process_genre_preferences(params[:favorite_genres])
-      redirect_to recommendations_path, notice: 'Survey completed successfully. Here are your recommendations!'
+    @user_preference = current_user.ensure_user_preference
+    authorize :survey, :create?
+    personality_responses = survey_params[:personality_responses]&.to_h || {}
+    favorite_genres = survey_params[:favorite_genres] || []
+
+    survey_response_controller = SurveyResponsesController.new
+    if survey_response_controller.process_responses(current_user, personality_responses)
+      @user_preference.update(favorite_genres: favorite_genres)
+      GenerateRecommendationsJob.perform_later(@user_preference.id)
+      redirect_to recommendations_path, notice: 'Survey completed. Your recommendations are being generated!'
     else
-      redirect_to surveys_path, alert: 'There was an error processing your survey. Please try again.'
+      @personality_questions = SurveyQuestion.all
+      genres = TmdbService.fetch_genres
+      @genres = genres[:user_facing_genres]
+      @total_questions = @personality_questions.count + 1
+      render :index
     end
   end
 
@@ -33,5 +42,13 @@ class SurveysController < ApplicationController
   def process_genre_preferences(genres)
     user_preference = current_user.user_preference || current_user.build_user_preference
     user_preference.update(favorite_genres: genres)
+  end
+
+  def user_preference_params
+    params.require(:user_preference).permit(:personality_profiles, favorite_genres: [])
+  end
+
+  def survey_params
+    params.permit(personality_responses: {}, favorite_genres: [])
   end
 end

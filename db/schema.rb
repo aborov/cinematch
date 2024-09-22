@@ -10,8 +10,9 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_09_13_163636) do
+ActiveRecord::Schema[7.1].define(version: 2024_09_21_191200) do
   # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_trgm"
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
 
@@ -61,6 +62,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_09_13_163636) do
     t.boolean "in_production"
     t.text "creators"
     t.text "spoken_languages"
+    t.string "tv_show_type"
+    t.index ["genre_ids"], name: "index_contents_on_genre_ids", opclass: :gin_trgm_ops, using: :gin
     t.index ["imdb_id"], name: "index_contents_on_imdb_id"
     t.index ["source_id"], name: "index_contents_on_source_id", unique: true
   end
@@ -186,6 +189,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_09_13_163636) do
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
     t.boolean "disable_adult_content"
+    t.integer "recommended_content_ids", default: [], array: true
+    t.datetime "recommendations_generated_at"
     t.index ["deleted_at"], name: "index_user_preferences_on_deleted_at"
     t.index ["user_id"], name: "index_user_preferences_on_user_id"
   end

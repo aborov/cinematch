@@ -40,6 +40,7 @@
 #
 # Indexes
 #
+#  index_contents_on_genre_ids  (genre_ids) USING gin
 #  index_contents_on_imdb_id    (imdb_id)
 #  index_contents_on_source_id  (source_id) UNIQUE
 #

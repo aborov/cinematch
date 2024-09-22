@@ -1,23 +1,40 @@
 <div class="col-md-6 col-lg-4 mb-4">
-  <div class="card h-100 stretched-link show-details" data-id="<%= recommendation[:id] %>" data-type="<%= recommendation[:type] %>" role="article" aria-labelledby="title-<%= recommendation[:id] %>">
+  <div class="card h-100 show-details" data-id="<%= recommendation[:id] %>" data-type="<%= recommendation[:content_type] %>" role="article" aria-labelledby="title-<%= recommendation[:id] %>">
     <div class="row no-gutters">
       <div class="col-4">
-        <%= image_tag "https://image.tmdb.org/t/p/w154#{recommendation[:poster_path]}", class: "card-img", alt: "#{recommendation[:title]} poster" %>
+        <% Rails.logger.debug "Recommendation ID: #{recommendation[:id]}, Poster URL: #{recommendation[:poster_url]}" %>
+        <% if recommendation[:poster_url].present? %>
+          <%= image_tag recommendation[:poster_url], class: "card-img", alt: "#{recommendation[:title]} poster" %>
+        <% else %>
+          <div class="card-img bg-secondary text-white d-flex justify-content-center align-items-center" style="height: 150px;">
+            <span>No image</span>
+          </div>
+        <% end %>
       </div>
       <div class="col-8">
         <div class="card-body position-relative">
           <h5 class="card-title d-flex justify-content-between align-items-start" id="title-<%= recommendation[:id] %>">
             <span class="title-text"><%= recommendation[:title] %></span>
-            <span class="badge bg-warning text-danger ms-2" role="status" aria-label="Match score"><%= recommendation[:match_score].round(2) %>%</span>
+            <% if recommendation[:match_score] %>
+              <span class="badge bg-warning text-danger ms-2" role="status" aria-label="Match score"><%= recommendation[:match_score].round(2) %>%</span>
+            <% end %>
           </h5>
           <div class="card-text-small text-muted mb-1" role="contentinfo" aria-label="Country and release year">
-            <%= [recommendation[:country], recommendation[:release_year]].compact.join(", ") %>
-            <strong>TMDb:</strong> <span aria-label="TMDb rating"><%= recommendation[:rating] %></span>
+            <%= [recommendation[:production_countries]&.first&.dig('name'), recommendation[:release_year]].compact.join(", ") %>
+          </div>
+          <div class="card-text-small text-muted mb-1" role="contentinfo" aria-label="TMDb rating">
+            <strong>TMDb:</strong> <span aria-label="TMDb rating"><%= recommendation[:vote_average] %></span>
           </div>
           <div class="card-text-small text-muted" role="contentinfo" aria-label="Genres">
-            <%= (recommendation[:genres] || []).join(", ") %>
+            <%= recommendation[:genres].join(", ") %>
           </div>
-          <div class="stretched-link show-details" data-id="<%= recommendation[:id] %>" data-type="<%= recommendation[:type] %>" role="button" aria-label="Show details for <%= recommendation[:title] %>"></div>
+          <div class="stretched-link show-details" data-id="<%= recommendation[:id] %>" data-type="<%= recommendation[:content_type] %>" role="button" aria-label="Show details for <%= recommendation[:title] %>"></div>
+          <div class="position-absolute bottom-0 end-0 m-2 z-index-1">
+            <button class="btn btn-link p-0 watchlist-toggle" onclick="toggleWatchlist(event, '<%= recommendation[:id] %>', '<%= recommendation[:content_type] %>')" aria-label="Add to or remove from watchlist">
+              <i class="far fa-star fs-4 text-warning" id="star-outline-<%= recommendation[:id] %>"></i>
+              <i class="fas fa-star fs-4 text-warning d-none" id="star-solid-<%= recommendation[:id] %>"></i>
+            </button>
+          </div>
         </div>
       </div>
     </div>
