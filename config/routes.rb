@@ -10,6 +10,7 @@ Rails.application.routes.draw do
   devise_for :users, controllers: {
             passwords: "users/passwords",
             registrations: "users/registrations",
+            sessions: "users/sessions"
           }
 
   resources :users, only: [:show, :edit, :update, :destroy] do
@@ -25,18 +26,19 @@ Rails.application.routes.draw do
   resources :user_preferences, only: [:edit, :update]
   resources :recommendations, only: [:index, :show]
   get 'recommendations/check_status', to: 'recommendations#check_status'
-  resources :watchlist_items, only: [:index, :create, :destroy, :update] do
-    collection do
-      get :status
-    end
+  resources :watchlist_items, only: [:index, :create, :destroy] do
     member do
-      patch :reposition
-      patch :mark_watched
-      patch :mark_unwatched
+      patch 'mark_watched'
+      patch 'mark_unwatched'
+    end
+    collection do
+      get 'count'
+      get 'recent'
     end
   end
   get 'watchlist_items/count', to: 'watchlist_items#count'
   get 'watchlist_items/recent', to: 'watchlist_items#recent'
+  get 'watchlist_items/status', to: 'watchlist_items#status'
 
   get "contact", to: "pages#contact"
   post "send_contact_email", to: "pages#send_contact_email"

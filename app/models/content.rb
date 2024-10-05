@@ -40,14 +40,15 @@
 #
 # Indexes
 #
-#  index_contents_on_genre_ids  (genre_ids) USING gin
-#  index_contents_on_imdb_id    (imdb_id)
-#  index_contents_on_source_id  (source_id) UNIQUE
+#  index_contents_on_genre_ids                   (genre_ids) USING gin
+#  index_contents_on_imdb_id                     (imdb_id)
+#  index_contents_on_source_id                   (source_id) UNIQUE
+#  index_contents_on_source_id_and_content_type  (source_id,content_type) UNIQUE
 #
 class Content < ApplicationRecord
   validates :title, presence: true
   validates :content_type, presence: true, inclusion: { in: %w[movie tv], message: "%{value} is not a valid content type" }
-  validates :source_id, presence: true, uniqueness: true
+  validates :source_id, presence: true, uniqueness: { scope: :content_type }
   validates :imdb_id, uniqueness: true, allow_blank: true
 
   def self.ransackable_attributes(auth_object = nil)
@@ -86,6 +87,11 @@ class Content < ApplicationRecord
     cast.split(',') if cast
   end
 
-  has_many :watchlist_items
-  has_many :users_watchlisted, through: :watchlist_items, source: :user
+  def watchlist_items
+    WatchlistItem.where(source_id: source_id, content_type: content_type)
+  end
+
+  def users_watchlisted
+    User.joins(:watchlist_items).where(watchlist_items: { source_id: source_id, content_type: content_type })
+  end
 end

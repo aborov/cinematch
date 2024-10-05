@@ -10,7 +10,7 @@ class WatchlistItemPolicy < ApplicationPolicy
   end
 
   def destroy?
-    record.user == user
+    user == record.user
   end
 
   def status?

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_09_21_191200) do
+ActiveRecord::Schema[7.1].define(version: 2024_09_29_212845) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "pgcrypto"
@@ -65,6 +65,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_09_21_191200) do
     t.string "tv_show_type"
     t.index ["genre_ids"], name: "index_contents_on_genre_ids", opclass: :gin_trgm_ops, using: :gin
     t.index ["imdb_id"], name: "index_contents_on_imdb_id"
+    t.index ["source_id", "content_type"], name: "index_contents_on_source_id_and_content_type", unique: true
     t.index ["source_id"], name: "index_contents_on_source_id", unique: true
   end
 
@@ -219,17 +220,16 @@ ActiveRecord::Schema[7.1].define(version: 2024_09_21_191200) do
 
   create_table "watchlist_items", force: :cascade do |t|
     t.bigint "user_id", null: false
-    t.bigint "content_id", null: false
     t.boolean "watched", default: false
     t.integer "position"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["content_id"], name: "index_watchlist_items_on_content_id"
-    t.index ["user_id", "content_id"], name: "index_watchlist_items_on_user_id_and_content_id", unique: true
+    t.string "source_id"
+    t.string "content_type"
+    t.index ["user_id", "source_id", "content_type"], name: "index_watchlist_items_on_user_id_and_source_id_and_content_type", unique: true
     t.index ["user_id"], name: "index_watchlist_items_on_user_id"
   end
 
   add_foreign_key "user_preferences", "users"
-  add_foreign_key "watchlist_items", "contents"
   add_foreign_key "watchlist_items", "users"
 end

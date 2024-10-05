@@ -40,3 +40,17 @@ function initializeWatchlistControllers() {
 }
 
 export { application }
+
+document.addEventListener('DOMContentLoaded', function() {
+  $(document).ajaxError(function(event, xhr, settings) {
+    if (xhr.status === 401) {
+      window.location.href = '/users/sign_in';
+    }
+  });
+
+  $(document).ajaxSuccess(function(event, xhr, settings) {
+    if (xhr.responseJSON && xhr.responseJSON.redirect) {
+      window.location.href = xhr.responseJSON.redirect;
+    }
+  });
+});

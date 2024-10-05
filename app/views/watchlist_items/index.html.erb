@@ -5,7 +5,7 @@
     <h2>Unwatched</h2>
     <div data-controller="sortable" data-sortable-resource-url="/watchlist_items/" class="watchlist-container">
       <% @unwatched_items.each do |item| %>
-        <div class="card mb-3 watchlist-item" data-content-id="<%= item.content.source_id %>">
+        <div class="card mb-3 watchlist-item" data-source-id="<%= item.source_id %>" data-content-type="<%= item.content_type %>">
           <div class="row g-0">
             <div class="col-md-4">
               <%= image_tag item.content.poster_url, alt: item.content.title, class: 'img-fluid rounded-start' %>
@@ -14,8 +14,8 @@
               <div class="card-body">
                 <h5 class="card-title"><%= item.content.title %></h5>
                 <p class="card-text"><small class="text-muted"><%= item.content.release_year %> | <%= item.content.content_type.capitalize %></small></p>
-                <button class="btn btn-sm btn-success mark-watched" data-content-id="<%= item.content.source_id %>">Mark as Watched</button>
-                <button class="btn btn-sm btn-danger remove-item" data-content-id="<%= item.content.source_id %>">Remove</button>
+                <button class="btn btn-sm btn-success mark-watched" data-source-id="<%= item.source_id %>" data-content-type="<%= item.content_type %>">Mark as Watched</button>
+                <button class="btn btn-sm btn-danger remove-item" data-source-id="<%= item.source_id %>" data-content-type="<%= item.content_type %>">Remove</button>
               </div>
             </div>
           </div>
@@ -28,7 +28,7 @@
     <h2>Watched</h2>
     <div class="watchlist-container">
       <% @watched_items.each do |item| %>
-        <div class="card mb-3 watchlist-item" data-content-id="<%= item.content.source_id %>">
+        <div class="card mb-3 watchlist-item" data-source-id="<%= item.source_id %>" data-content-type="<%= item.content_type %>">
           <div class="row g-0">
             <div class="col-md-4">
               <%= image_tag item.content.poster_url, alt: item.content.title, class: 'img-fluid rounded-start' %>
@@ -37,8 +37,8 @@
               <div class="card-body">
                 <h5 class="card-title"><%= item.content.title %></h5>
                 <p class="card-text"><small class="text-muted"><%= item.content.release_year %> | <%= item.content.content_type.capitalize %></small></p>
-                <button class="btn btn-sm btn-warning mark-unwatched" data-content-id="<%= item.content.source_id %>">Mark as Unwatched</button>
-                <button class="btn btn-sm btn-danger remove-item" data-content-id="<%= item.content.source_id %>">Remove</button>
+                <button class="btn btn-sm btn-warning mark-unwatched" data-source-id="<%= item.source_id %>" data-content-type="<%= item.content_type %>">Mark as Unwatched</button>
+                <button class="btn btn-sm btn-danger remove-item" data-source-id="<%= item.source_id %>" data-content-type="<%= item.content_type %>">Remove</button>
               </div>
             </div>
           </div>
@@ -50,41 +50,46 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  function handleWatchlistAction(action, contentId, element) {
+  function handleWatchlistAction(action, sourceId, contentType, element) {
     let url, method;
     switch(action) {
       case 'markWatched':
-        url = `/watchlist_items/${contentId}/mark_watched`;
+        url = `/watchlist_items/${sourceId}/mark_watched?content_type=${contentType}`;
         method = 'PATCH';
         break;
       case 'markUnwatched':
-        url = `/watchlist_items/${contentId}/mark_unwatched`;
+        url = `/watchlist_items/${sourceId}/mark_unwatched?content_type=${contentType}`;
         method = 'PATCH';
         break;
       case 'removeItem':
-        url = `/watchlist_items/${contentId}`;
+        url = `/watchlist_items/${sourceId}?content_type=${contentType}`;
         method = 'DELETE';
         break;
     }
-
     fetch(url, {
       method: method,
       headers: {
         'Content-Type': 'application/json',
         'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
-      }
+      },
     })
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
     .then(data => {
       if (data.status === 'success') {
         updateUI(action, element);
         updateWatchlistNavbar();
       } else {
-        console.error('Error updating watchlist item:', data);
+        console.error('Error:', data.message);
+        alert(data.message); // Show an alert to the user
       }
     })
     .catch(error => {
-      console.error('Error updating watchlist item:', error);
+      console.error('Error:', error);
     });
   }
 
@@ -120,16 +125,23 @@ document.addEventListener('DOMContentLoaded', function() {
       const action = this.classList.contains('mark-watched') ? 'markWatched' :
                      this.classList.contains('mark-unwatched') ? 'markUnwatched' :
                      'removeItem';
-      const contentId = this.dataset.contentId;
-      handleWatchlistAction(action, contentId, this);
+      const sourceId = this.dataset.sourceId;
+      const contentType = this.dataset.contentType;
+      handleWatchlistAction(action, sourceId, contentType, this);
     });
   });
 });
 
 function updateWatchlistNavbar() {
   Promise.all([
-    fetch('/watchlist_items/count').then(response => response.json()),
-    fetch('/watchlist_items/recent').then(response => response.json())
+    fetch('/watchlist_items/count').then(response => {
+      if (!response.ok) throw new Error('Count fetch failed');
+      return response.json();
+    }),
+    fetch('/watchlist_items/recent').then(response => {
+      if (!response.ok) throw new Error('Recent fetch failed');
+      return response.json();
+    })
   ])
     .then(([countData, recentData]) => {
       const badge = document.querySelector('#watchlist-count');
@@ -140,19 +152,31 @@ function updateWatchlistNavbar() {
 
       const dropdown = document.querySelector('#watchlist-dropdown');
       if (dropdown) {
-        if (recentData.items.length > 0) {
+        if (recentData.items && recentData.items.length > 0) {
           dropdown.innerHTML = recentData.items.map(item => `
-            <a class="dropdown-item" href="/watchlist_items">
-              ${item.title} (${item.year})
-            </a>
-          `).join('');
+            <li><a class="dropdown-item" href="/watchlist_items">
+              <img src="${item.poster_url}" alt="${item.title}" class="me-2" style="width: 30px; height: 45px; object-fit: cover;">
+              <span>${item.title} (${item.year})</span>
+            </a></li>
+          `).join('') + `
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item text-primary" href="/watchlist_items">View All</a></li>
+          `;
         } else {
-          dropdown.innerHTML = '<span class="dropdown-item">No items in watchlist</span>';
+          dropdown.innerHTML = '<li><span class="dropdown-item">No items in watchlist</span></li>';
         }
       }
+      console.log('Watchlist navbar updated successfully');
       console.log('Count data:', countData);
       console.log('Recent data:', recentData);
     })
-    .catch(error => console.error('Error updating watchlist navbar:', error));
+    .catch(error => {
+      console.error('Error updating watchlist navbar:', error);
+      // Optionally, you can update the UI to show an error message
+    });
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+  updateWatchlistNavbar();
+});
 </script>
