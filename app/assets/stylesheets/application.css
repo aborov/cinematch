@@ -653,3 +653,81 @@ h6 {
 .blue-background-class {
   background-color: #e0e0e0;
 }
+
+.watchlist-container {
+  max-height: 800px;
+  overflow-y: auto;
+}
+
+.watchlist-item {
+  position: relative;
+}
+
+.watchlist-item .img-fluid {
+  max-height: 200px;
+  object-fit: cover;
+}
+
+.watchlist-item .drag-handle {
+  cursor: move;
+  z-index: 10;
+}
+
+.watchlist-item .btn-sm {
+  font-size: 0.7rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.watchlist-item {
+  border: 1px solid rgba(0, 0, 0, 0.125);
+  transition: box-shadow 0.3s ease;
+  background-color: var(--mint-green);
+}
+
+.watchlist-item:hover {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.watchlist-item .card-title {
+  color: var(--engineering-orange);
+}
+
+.watchlist-item .card-text {
+  color: var(--space-cadet);
+}
+
+.watchlist-item .btn-sm {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.watchlist-item .drag-handle {
+  cursor: move;
+  z-index: 10;
+  color: var(--space-cadet);
+}
+
+.card-header.unwatched-header {
+  background-color: var(--jonquil);
+  color: var(--space-cadet);
+}
+
+.card-header.watched-header {
+  background-color: var(--engineering-orange);
+  color: var(--mint-green);
+}
+
+.card-body.unwatched-body {
+  background-color: rgba(239, 200, 26, 0.1); /* Lighter shade of jonquil */
+}
+
+.card-body.watched-body {
+  background-color: rgba(255, 65, 54, 0.1); /* Lighter shade of engineering-orange */
+}
+
+.watchlist-item {
+  margin-bottom: 1rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background-color: var(--mint-green);
+}

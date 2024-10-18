@@ -1,17 +1,29 @@
-<h1 class="mb-4">My Watchlist</h1>
-
-<div class="row">
-  <div class="col-md-6">
-    <h2>Unwatched</h2>
-    <div id="unwatched-list" class="watchlist-container" data-controller="sortable" data-sortable-resource-url="/watchlist_items/">
-      <%= render partial: 'watchlist_card', collection: @unwatched_items.compact, as: :item %>
+<div class="container-fluid mt-4">
+  <div class="row">
+    <div class="col-12 mb-4">
+      <h1 class="display-4 text-center">My Watchlist</h1>
     </div>
   </div>
-
-  <div class="col-md-6">
-    <h2>Watched</h2>
-    <div id="watched-list" class="watchlist-container" data-controller="sortable" data-sortable-resource-url="/watchlist_items/">
-      <%= render partial: 'watchlist_card', collection: @watched_items.compact, as: :item %>
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card mb-4">
+        <div class="card-header unwatched-header">
+          <h2 class="h4 mb-0">Unwatched</h2>
+        </div>
+        <div class="card-body unwatched-body" id="unwatched-list" data-controller="sortable" data-sortable-resource-url="/watchlist_items/">
+          <%= render partial: 'watchlist_card', collection: @unwatched_items.compact, as: :item %>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card mb-4">
+        <div class="card-header watched-header">
+          <h2 class="h4 mb-0">Watched</h2>
+        </div>
+        <div class="card-body watched-body" id="watched-list" data-controller="sortable" data-sortable-resource-url="/watchlist_items/">
+          <%= render partial: 'watchlist_card', collection: @watched_items.compact, as: :item %>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -19,7 +31,6 @@
 <%= render 'shared/details_modal' %>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
   function handleWatchlistAction(action, sourceId, contentType, element) {
     let url, method;
     switch(action) {
@@ -65,40 +76,50 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function updateUI(action, element) {
     const watchlistItem = element.closest('.watchlist-item');
-    const contentId = element.dataset.contentId;
+    const sourceId = element.dataset.sourceId;
+    const contentType = element.dataset.contentType;
     switch(action) {
       case 'markWatched':
-        watchlistItem.remove();
-        document.querySelector('.col-md-6:nth-child(2) .watchlist-container').appendChild(watchlistItem);
-        element.textContent = 'Mark as Unwatched';
-        element.classList.remove('btn-success', 'mark-watched');
-        element.classList.add('btn-warning', 'mark-unwatched');
-        element.onclick = function() { handleWatchlistAction('markUnwatched', contentId, this); };
-        break;
       case 'markUnwatched':
-        watchlistItem.remove();
-        document.querySelector('.col-md-6:nth-child(1) .watchlist-container').appendChild(watchlistItem);
-        element.textContent = 'Mark as Watched';
-        element.classList.remove('btn-warning', 'mark-unwatched');
-        element.classList.add('btn-success', 'mark-watched');
-        element.onclick = function() { handleWatchlistAction('markWatched', contentId, this); };
+        const targetList = action === 'markWatched' ? 
+          document.querySelector('#watched-list') : 
+          document.querySelector('#unwatched-list');
+        if (targetList && watchlistItem) {
+          watchlistItem.remove();
+          targetList.appendChild(watchlistItem);
+          updateButtonState(element, action === 'markWatched');
+        }
         break;
       case 'removeItem':
-        watchlistItem.remove();
+        if (watchlistItem) {
+          watchlistItem.remove();
+        }
         break;
     }
   }
 
-  document.querySelectorAll('.mark-watched, .mark-unwatched, .remove-item').forEach(button => {
-    button.addEventListener('click', function(event) {
+  function updateButtonState(button, isWatched) {
+    button.innerHTML = isWatched ? 
+      '<i class="fas fa-eye-slash me-1"></i>Unwatched' : 
+      '<i class="fas fa-eye me-1"></i>Watched';
+    button.classList.toggle('btn-warning', isWatched);
+    button.classList.toggle('btn-success', !isWatched);
+    button.classList.toggle('mark-unwatched', isWatched);
+    button.classList.toggle('mark-watched', !isWatched);
+  }
+
+document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('click', function(event) {
+    const button = event.target.closest('.mark-watched, .mark-unwatched, .remove-item');
+    if (button) {
       event.preventDefault();
-      const action = this.classList.contains('mark-watched') ? 'markWatched' :
-                     this.classList.contains('mark-unwatched') ? 'markUnwatched' :
+      const action = button.classList.contains('mark-watched') ? 'markWatched' :
+                     button.classList.contains('mark-unwatched') ? 'markUnwatched' :
                      'removeItem';
-      const sourceId = this.dataset.sourceId;
-      const contentType = this.dataset.contentType;
-      handleWatchlistAction(action, sourceId, contentType, this);
-    });
+      const sourceId = button.dataset.sourceId;
+      const contentType = button.dataset.contentType;
+      handleWatchlistAction(action, sourceId, contentType, button);
+    }
   });
 
   document.querySelectorAll('.watchlist-item').forEach(card => {
@@ -360,30 +381,8 @@ function toggleWatched(event, id, type) {
   // Immediately update UI
   updateWatchedUI(sourceId, watched);
 
-  const url = `/watchlist_items/${sourceId}/${watched ? 'mark_watched' : 'mark_unwatched'}?content_type=${type}`;
-  fetch(url, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
-    },
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.status === 'success') {
-      console.log('Watched status updated:', data);
-      updateWatchlistNavbar();
-    } else {
-      console.error('Error updating watched status:', data);
-      // Revert UI change if the server request failed
-      updateWatchedUI(sourceId, !watched);
-    }
-  })
-  .catch(error => {
-    console.error('Error updating watched status:', error);
-    // Revert UI change if there was a network error
-    updateWatchedUI(sourceId, !watched);
-  });
+  const action = watched ? 'markWatched' : 'markUnwatched';
+  handleWatchlistAction(action, sourceId, type, button);
 }
 
 function updateWatchedUI(sourceId, watched) {
@@ -409,19 +408,14 @@ function updateWatchedUI(sourceId, watched) {
 
   if (card) {
     console.log(`Updating card UI for sourceId:`, sourceId);
-    const watchedButton = card.querySelector('.mark-watched, .mark-unwatched');
-    if (watchedButton) {
-      watchedButton.classList.toggle('btn-success', !watched);
-      watchedButton.classList.toggle('btn-warning', watched);
-      watchedButton.classList.toggle('mark-watched', !watched);
-      watchedButton.classList.toggle('mark-unwatched', watched);
-      watchedButton.textContent = watched ? 'Mark as Unwatched' : 'Mark as Watched';
+    const watchButton = card.querySelector('.btn-success, .btn-warning');
+    if (watchButton) {
+      updateButtonState(watchButton, watched);
     }
     
-    // Move the card to the appropriate list
     const sourceList = watched ? document.getElementById('unwatched-list') : document.getElementById('watched-list');
     const targetList = watched ? document.getElementById('watched-list') : document.getElementById('unwatched-list');
-    if (sourceList.contains(card)) {
+    if (sourceList && targetList && sourceList.contains(card)) {
       targetList.appendChild(card);
     }
   }
@@ -460,4 +454,17 @@ function removeWatchlistItem(event, sourceId, contentType) {
     updateWatchlistUI(sourceId, true);
   });
 }
+
+document.addEventListener('click', function(event) {
+  const button = event.target.closest('.mark-watched, .mark-unwatched, .remove-item');
+  if (button) {
+    event.preventDefault();
+    const action = button.classList.contains('mark-watched') ? 'markWatched' :
+                   button.classList.contains('mark-unwatched') ? 'markUnwatched' :
+                   'removeItem';
+    const sourceId = button.dataset.sourceId;
+    const contentType = button.dataset.contentType;
+    handleWatchlistAction(action, sourceId, contentType, button);
+  }
+});
 </script>
