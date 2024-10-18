@@ -185,9 +185,9 @@ h6 {
 }
 
 .card-img {
+  height: 225px; /* Adjust this value as needed */
   object-fit: cover;
   width: 100%;
-  height: 100%;
 }
 
 .card:hover {
@@ -196,18 +196,18 @@ h6 {
 }
 
 .card-body {
-  padding: 0.75rem; 
+  display: flex;
+  flex-direction: column;
 }
 
 .card-title {
-  display: flex;
-  justify-content: space-between;
-  align-items: start;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .card-text-small {
-  font-size: 0.7rem; 
-  margin: 0; 
+  font-size: 0.8rem;
+  margin-bottom: 0.25rem;
 }
 
 .badge {
@@ -580,17 +580,67 @@ h6 {
   text-decoration: underline;
 }
 
-#watchlistDropdown {
-  min-width: 250px;
-}
-
 #watchlistDropdown .dropdown-item {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.card.bg-secondary {
+  transition: background-color 0.3s ease;
+}
+
+.card.bg-secondary .card-title,
+.card.bg-secondary .card-text {
+  transition: color 0.3s ease;
+}
+
+.card.bg-primary-dark {
+  background-color: #1a237e; /* Dark blue from your color scheme */
+}
+
+.card.bg-primary-light {
+  background-color: #3f51b5; /* Light blue from your color scheme */
+}
+
+.card .fa-bookmark {
+  font-size: 1.5rem;
+  filter: drop-shadow(0 0 2px rgba(0,0,0,0.5));
+  position: absolute;
+  bottom: 0.75rem;
+  right: 1rem;
+  margin: 0;
+}
+
+.navbar-nav .watchlist-group {
+  margin-right: 1rem;
+}
+
+.navbar-nav .watchlist-content {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--jonquil);
+  border-radius: 2rem;  /* Increased border-radius for a rounder look */
+  transition: all 0.3s ease;
+}
+
+.navbar-nav .watchlist-group:hover .watchlist-content {
+  background-color: rgba(239, 200, 26, 0.1);
+}
+
+.navbar-nav .watchlist-content .fa-bookmark {
+  color: var(--jonquil);
+}
+
+.navbar-nav .watchlist-content .font-weight-bold {
+  color: var(--mint-green);
+  margin-left: 0.5rem;
+}
+
 #watchlist-count {
-  font-size: 0.75rem;
-  padding: 0.25em 0.6em;
+  background-color: var(--engineering-orange);
+  color: var(--mint-green);
+  border-radius: 1rem;  /* Rounded corners for the count badge */
+  padding: 0.25rem 0.5rem;
 }

@@ -13,9 +13,8 @@ class RecommendationsController < ApplicationController
     @page = params[:page].present? ? params[:page].to_i : 1
     per_page = 15
 
-    @recommendations = Rails.cache.fetch("user_#{current_user.id}_recommendations_page_#{@page}", expires_in: 1.hour) do
-      load_recommendations(@page, per_page)
-    end
+    @recommendations = load_recommendations(@page, per_page)
+    set_watchlist_status(@recommendations)
 
     @total_pages = (@user_preference.recommended_content_ids.length.to_f / per_page).ceil
 
@@ -81,9 +80,12 @@ class RecommendationsController < ApplicationController
   end
 
   def check_status
-    user_preference = current_user.user_preference
-    if user_preference.recommended_content_ids.present?
-      render json: { status: 'ready', recommendations: load_recommendations(1, 15) }
+    @page = 1
+    per_page = 15
+    recommendations = load_recommendations(@page, per_page)
+    
+    if recommendations.present?
+      render json: { status: 'ready' }
     else
       render json: { status: 'processing' }
     end
@@ -113,6 +115,15 @@ class RecommendationsController < ApplicationController
         vote_average: content.vote_average,
         match_score: @user_preference.calculate_match_score(content.genre_ids_array)
       }
+    end
+  end
+
+  def set_watchlist_status(recommendations)
+    watchlist_items = current_user.watchlist_items.pluck(:source_id, :content_type, :watched)
+    recommendations.each do |recommendation|
+      watchlist_item = watchlist_items.find { |item| item[0] == recommendation[:source_id].to_s && item[1] == recommendation[:content_type] }
+      recommendation[:in_watchlist] = !watchlist_item.nil?
+      recommendation[:watched] = watchlist_item&.last || false
     end
   end
 end

@@ -14,11 +14,13 @@
               Hi, <%= current_user.name %>!
             </span>
           </li>
-          <li class="nav-item dropdown">
+          <li class="nav-item dropdown watchlist-group">
             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="watchlistDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="fas fa-bookmark fa-lg me-2"></i>
-              <span class="font-weight-bold">Watchlist</span>
-              <span id="watchlist-count" class="badge bg-warning text-dark rounded-pill ms-2"></span>
+              <div class="watchlist-content">
+                <i class="fas fa-bookmark fa-lg"></i>
+                <span class="font-weight-bold">Watchlist</span>
+                <span id="watchlist-count" class="badge bg-warning text-dark rounded-pill ms-2"></span>
+              </div>
             </a>
             <ul class="dropdown-menu dropdown-menu-end shadow" id="watchlist-dropdown" aria-labelledby="watchlistDropdown">
               <!-- Dropdown items will be dynamically inserted here by JavaScript -->

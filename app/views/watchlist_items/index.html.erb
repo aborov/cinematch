@@ -4,49 +4,19 @@
   <div class="col-md-6">
     <h2>Unwatched</h2>
     <div data-controller="sortable" data-sortable-resource-url="/watchlist_items/" class="watchlist-container">
-      <% @unwatched_items.each do |item| %>
-        <div class="card mb-3 watchlist-item" data-source-id="<%= item.source_id %>" data-content-type="<%= item.content_type %>">
-          <div class="row g-0">
-            <div class="col-md-4">
-              <%= image_tag item.content.poster_url, alt: item.content.title, class: 'img-fluid rounded-start' %>
-            </div>
-            <div class="col-md-8">
-              <div class="card-body">
-                <h5 class="card-title"><%= item.content.title %></h5>
-                <p class="card-text"><small class="text-muted"><%= item.content.release_year %> | <%= item.content.content_type.capitalize %></small></p>
-                <button class="btn btn-sm btn-success mark-watched" data-source-id="<%= item.source_id %>" data-content-type="<%= item.content_type %>">Mark as Watched</button>
-                <button class="btn btn-sm btn-danger remove-item" data-source-id="<%= item.source_id %>" data-content-type="<%= item.content_type %>">Remove</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      <% end %>
+      <%= render partial: 'watchlist_card', collection: @unwatched_items.compact, as: :item %>
     </div>
   </div>
 
   <div class="col-md-6">
     <h2>Watched</h2>
     <div class="watchlist-container">
-      <% @watched_items.each do |item| %>
-        <div class="card mb-3 watchlist-item" data-source-id="<%= item.source_id %>" data-content-type="<%= item.content_type %>">
-          <div class="row g-0">
-            <div class="col-md-4">
-              <%= image_tag item.content.poster_url, alt: item.content.title, class: 'img-fluid rounded-start' %>
-            </div>
-            <div class="col-md-8">
-              <div class="card-body">
-                <h5 class="card-title"><%= item.content.title %></h5>
-                <p class="card-text"><small class="text-muted"><%= item.content.release_year %> | <%= item.content.content_type.capitalize %></small></p>
-                <button class="btn btn-sm btn-warning mark-unwatched" data-source-id="<%= item.source_id %>" data-content-type="<%= item.content_type %>">Mark as Unwatched</button>
-                <button class="btn btn-sm btn-danger remove-item" data-source-id="<%= item.source_id %>" data-content-type="<%= item.content_type %>">Remove</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      <% end %>
+      <%= render partial: 'watchlist_card', collection: @watched_items.compact, as: :item %>
     </div>
   </div>
 </div>
+
+<%= render 'shared/details_modal' %>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -130,7 +100,102 @@ document.addEventListener('DOMContentLoaded', function() {
       handleWatchlistAction(action, sourceId, contentType, this);
     });
   });
+
+  document.querySelectorAll('.watchlist-item').forEach(card => {
+    card.addEventListener('click', function(event) {
+      if (!event.target.closest('.btn')) {
+        const id = this.dataset.sourceId;
+        const type = this.dataset.contentType;
+        showDetails(id, type);
+      }
+    });
+  });
 });
+
+function showDetails(id, type) {
+  fetch(`/recommendations/${id}?type=${type}`)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Recommendation data received:', data);
+      var country = data.production_countries ? data.production_countries.map(c => c.name === 'United States of America' ? 'USA' : c.name).join(', ') : 'N/A';
+
+      return fetch(`/watchlist_items/status?source_id=${data.source_id}&content_type=${type}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Watchlist status fetch failed');
+          }
+          return response.json();
+        })
+        .then(watchlistData => {
+          console.log('Watchlist status received:', watchlistData);
+          return { ...data, inWatchlist: watchlistData.in_watchlist, country: country };
+        });
+    })
+    .then(data => {
+      const modalContent = generateModalContent(data);
+      document.getElementById('popup-details').innerHTML = modalContent;
+      new bootstrap.Modal(document.getElementById('detailsModal')).show();
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('An error occurred while fetching details. Please try again.');
+    });
+}
+
+function generateModalContent(data) {
+  var details = `
+    <div class="row">
+      <div class="col-md-4">
+        <img src="https://image.tmdb.org/t/p/w500${data.poster_path}" class="img-fluid rounded" alt="${data.title || data.name} poster" role="img">
+      </div>
+      <div class="col-md-8">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <h2 class="text-warning mb-0">${data.title || data.name}</h2>
+          <div class="d-flex flex-column align-items-end">
+            <button class="btn btn-primary watchlist-toggle ${data.inWatchlist ? 'in-watchlist' : ''}" 
+                    onclick="toggleWatchlist(event, '${data.id}', '${data.content_type}')"
+                    data-id="${data.id}"
+                    data-source-id="${data.source_id}"
+                    data-content-type="${data.content_type}"
+                    aria-label="${data.inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}">
+              <i class="fas fa-bookmark ${data.inWatchlist ? 'text-warning' : 'text-muted'}" 
+                 alt="${data.inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}"></i>
+              <span class="watchlist-text ms-1">${data.inWatchlist ? 'Remove' : 'Add'}</span>
+            </button>
+          </div>
+        </div>
+        ${data.content_type === 'movie' ? 
+          `<p><strong>Runtime:</strong> ${data.runtime || 'N/A'} minutes</p>` :
+          `<p><strong>Number of Seasons:</strong> ${data.number_of_seasons || 'N/A'}</p>
+           <p><strong>Number of Episodes:</strong> ${data.number_of_episodes || 'N/A'}</p>
+           <p><strong>In Production:</strong> ${data.in_production ? 'Yes' : 'No'}</p>`
+        }
+        <p><strong>Release Year:</strong> ${(data.release_date || data.first_air_date || '').substring(0, 4)}</p>
+        <p><strong>Country:</strong> ${data.country}</p>
+        <p><strong>TMDb Rating:</strong> ${data.vote_average} (${data.vote_count} votes)</p> 
+        <p><strong>Genres:</strong> ${(data.genres || []).map(g => typeof g === 'string' ? g : g.name).join(', ')}</p>
+        <p><strong>Description:</strong> ${data.overview}</p>
+        ${data.content_type === 'movie' ?
+          `<p><strong>Director(s):</strong> ${(data.credits?.crew || []).filter(c => c.job === 'Director').map(d => d.name).join(', ') || 'N/A'}</p>` :
+          `<p><strong>Creator(s):</strong> ${data.creators ? data.creators.join(', ') : 'N/A'}</p>`
+        }
+        <p><strong>Cast:</strong> ${(data.credits?.cast || []).slice(0, 5).map(c => c.name).join(', ') || 'N/A'}</p>
+        <p><strong>Spoken Languages:</strong> ${(data.spoken_languages || []).map(l => l.name).join(', ') || 'N/A'}</p>
+      </div>
+    </div>
+    <div class="embed-responsive embed-responsive-16by9 mb-3">
+      ${data.trailer_url ? `
+        <iframe class="embed-responsive-item" width="100%" height="315" src="${data.trailer_url.replace('watch?v=', 'embed/')}" allowfullscreen title="${data.title || data.name} trailer"></iframe>
+      ` : '<p>No video available</p>'}
+    </div>
+  `;
+  return details;
+}
 
 function updateWatchlistNavbar() {
   Promise.all([
@@ -170,13 +235,74 @@ function updateWatchlistNavbar() {
       console.log('Count data:', countData);
       console.log('Recent data:', recentData);
     })
-    .catch(error => {
-      console.error('Error updating watchlist navbar:', error);
-      // Optionally, you can update the UI to show an error message
-    });
+    .catch(error => console.error('Error updating watchlist navbar:', error));
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-  updateWatchlistNavbar();
-});
+function toggleWatchlist(event, id, type) {
+  event.preventDefault();
+  event.stopPropagation();
+  console.log('toggleWatchlist called');
+
+  const button = event.currentTarget;
+  const inWatchlist = !button.classList.contains('in-watchlist');
+  const sourceId = button.dataset.sourceId;
+
+  // Immediately update UI
+  updateWatchlistUI(id, inWatchlist);
+
+  const method = inWatchlist ? 'POST' : 'DELETE';
+  const url = inWatchlist ? '/watchlist_items' : `/watchlist_items/${sourceId}?content_type=${type}`;
+
+  fetch(url, {
+    method: method,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+    },
+    body: JSON.stringify({ source_id: sourceId, content_type: type })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.status === 'success') {
+      console.log('Watchlist toggled:', data);
+      updateWatchlistNavbar();
+    } else {
+      console.error('Error toggling watchlist:', data);
+      // Revert UI change if the server request failed
+      updateWatchlistUI(id, !inWatchlist);
+    }
+  })
+  .catch(error => {
+    console.error('Error toggling watchlist:', error);
+    // Revert UI change if there was a network error
+    updateWatchlistUI(id, !inWatchlist);
+  });
+}
+
+function updateWatchlistUI(id, inWatchlist) {
+  console.log('updateWatchlistUI called with:', id, inWatchlist);
+  
+  const popupButton = document.querySelector(`#popup-details .watchlist-toggle[data-id="${id}"]`);
+  const card = document.querySelector(`.watchlist-item[data-source-id="${id}"]`);
+
+  if (popupButton) {
+    console.log(`Updating button UI for popup with id:`, id);
+    popupButton.classList.toggle('in-watchlist', inWatchlist);
+    const icon = popupButton.querySelector('i.fa-bookmark');
+    if (icon) {
+      icon.classList.toggle('text-warning', inWatchlist);
+      icon.classList.toggle('text-muted', !inWatchlist);
+    }
+    const span = popupButton.querySelector('.watchlist-text');
+    if (span) {
+      span.textContent = inWatchlist ? 'Remove' : 'Add';
+    }
+    popupButton.setAttribute('aria-label', inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist');
+  }
+
+  if (card && !inWatchlist) {
+    console.log(`Removing card UI for id:`, id);
+    card.remove();
+  }
+}
 </script>

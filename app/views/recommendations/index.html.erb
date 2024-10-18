@@ -182,7 +182,6 @@
   function toggleWatchlist(event, id, type) {
     event.preventDefault();
     event.stopPropagation();
-    // Immediately update UI
     console.log('toggleWatchlist called');
 
     const button = event.currentTarget;
@@ -243,6 +242,20 @@
 
     if (card) {
       console.log(`Updating card UI for id:`, id);
+      card.classList.toggle('bg-primary-light', inWatchlist && !watched);
+      card.classList.toggle('bg-primary-dark', inWatchlist && watched);
+      
+      const cardTitle = card.querySelector('.card-title');
+      if (cardTitle) {
+        cardTitle.classList.toggle('text-white', inWatchlist);
+      }
+      
+      const cardTexts = card.querySelectorAll('.card-text-small');
+      cardTexts.forEach(text => {
+        text.classList.toggle('text-white-50', inWatchlist);
+        text.classList.toggle('text-muted', !inWatchlist);
+      });
+
       const cardIcon = card.querySelector('.fa-bookmark');
       if (inWatchlist && !cardIcon) {
         const iconElement = document.createElement('i');

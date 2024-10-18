@@ -24,8 +24,8 @@ Rails.application.routes.draw do
 
   resources :surveys, only: [:index, :create]
   resources :user_preferences, only: [:edit, :update]
-  resources :recommendations, only: [:index, :show]
   get 'recommendations/check_status', to: 'recommendations#check_status'
+  resources :recommendations, only: [:index, :show]
   resources :watchlist_items, only: [:index, :create, :destroy] do
     member do
       patch 'mark_watched'

@@ -4,18 +4,18 @@
        data-type="<%= recommendation[:content_type] %>" 
        role="article" 
        aria-labelledby="title-<%= recommendation[:id] %>">
-    <div class="row no-gutters">
+    <div class="row g-1">
       <div class="col-4">
         <% if recommendation[:poster_url].present? %>
           <%= image_tag recommendation[:poster_url], class: "card-img", alt: "#{recommendation[:title]} poster" %>
         <% else %>
-          <div class="card-img bg-secondary text-white d-flex justify-content-center align-items-center" style="height: 150px;">
+          <div class="card-img bg-secondary text-white d-flex justify-content-center align-items-center" style="height: 100%;">
             <span>No image</span>
           </div>
         <% end %>
       </div>
       <div class="col-8">
-        <div class="card-body position-relative">
+        <div class="card-body position-relative p-2">
           <h5 class="card-title d-flex justify-content-between align-items-start <%= recommendation[:in_watchlist] ? 'text-white' : '' %>" id="title-<%= recommendation[:id] %>">
             <span class="title-text"><%= recommendation[:title] %></span>
             <% if recommendation[:match_score] %>
@@ -32,10 +32,10 @@
             <%= recommendation[:genres].join(", ") %>
           </div>
           <div class="stretched-link show-details" data-id="<%= recommendation[:id] %>" data-type="<%= recommendation[:content_type] %>" role="button" aria-label="Show details for <%= recommendation[:title] %>"></div>
-          <% if recommendation[:in_watchlist] %>
-            <i class="fas fa-bookmark position-absolute bottom-0 end-0 m-2 text-warning" aria-hidden="true"></i>
-          <% end %>
         </div>
+          <% if recommendation[:in_watchlist] %>
+            <i class="fas fa-bookmark text-warning position-absolute" aria-hidden="true"></i>
+          <% end %>
       </div>
     </div>
   </div>
