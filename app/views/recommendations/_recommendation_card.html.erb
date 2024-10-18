@@ -1,11 +1,11 @@
 <div class="col-md-6 col-lg-4 mb-4">
   <div class="card h-100 show-details <%= recommendation[:in_watchlist] ? (recommendation[:watched] ? 'bg-primary-dark' : 'bg-primary-light') : '' %>" 
-      id="card-<%= recommendation[:id] %>"
-      data-id="<%= recommendation[:id] %>"
+      id="card-<%= recommendation[:source_id] %>"
+      data-id="<%= recommendation[:source_id] %>"
       data-source-id="<%= recommendation[:source_id] %>"
       data-type="<%= recommendation[:content_type] %>" 
       role="article" 
-      aria-labelledby="title-<%= recommendation[:id] %>">
+      aria-labelledby="title-<%= recommendation[:source_id] %>">
     <div class="row g-1">
       <div class="col-4">
         <% if recommendation[:poster_url].present? %>
@@ -18,7 +18,7 @@
       </div>
       <div class="col-8">
         <div class="card-body position-relative p-2">
-          <h5 class="card-title d-flex justify-content-between align-items-start <%= recommendation[:in_watchlist] ? 'text-white' : '' %>" id="title-<%= recommendation[:id] %>">
+          <h5 class="card-title d-flex justify-content-between align-items-start <%= recommendation[:in_watchlist] ? 'text-white' : '' %>" id="title-<%= recommendation[:source_id] %>">
             <span class="title-text"><%= recommendation[:title] %></span>
             <% if recommendation[:match_score] %>
               <span class="badge bg-warning text-danger ms-2" role="status" aria-label="Match score"><%= recommendation[:match_score].round(2) %>%</span>
@@ -33,7 +33,7 @@
           <div class="card-text-small <%= recommendation[:in_watchlist] ? 'text-white-50' : 'text-muted' %>" role="contentinfo" aria-label="Genres">
             <%= recommendation[:genres].join(", ") %>
           </div>
-          <div class="stretched-link show-details" data-id="<%= recommendation[:id] %>" data-type="<%= recommendation[:content_type] %>" role="button" aria-label="Show details for <%= recommendation[:title] %>"></div>
+          <div class="stretched-link show-details" data-id="<%= recommendation[:source_id] %>" data-type="<%= recommendation[:content_type] %>" role="button" aria-label="Show details for <%= recommendation[:title] %>"></div>
         </div>
           <% if recommendation[:in_watchlist] %>
             <i class="fas fa-bookmark text-warning position-absolute" aria-hidden="true"></i>
