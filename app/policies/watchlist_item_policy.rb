@@ -25,6 +25,10 @@ class WatchlistItemPolicy < ApplicationPolicy
     user_owns_record?
   end
 
+  def update_position?
+    user.present? && record.user == user
+  end
+
   private
 
   def user_owns_record?

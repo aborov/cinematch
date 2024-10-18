@@ -15,20 +15,7 @@
 
 <%= render "shared/footer" %>
 
-<!-- Popup Modal -->
-<div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="detailsModalLabel">Details</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body" id="popup-details">
-        <!-- Content will be dynamically inserted here -->
-      </div>
-    </div>
-  </div>
-</div>
+<%= render 'shared/details_modal' %>
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
@@ -93,7 +80,7 @@
         console.log('Recommendation data received:', data);
         var country = data.production_countries ? data.production_countries.map(c => c.name === 'United States of America' ? 'USA' : c.name).join(', ') : 'N/A';
 
-        return fetch(`/watchlist_items/status?source_id=${data.id}&content_type=${type}`)
+        return fetch(`/watchlist_items/status?source_id=${data.source_id}&content_type=${type}`)
           .then(response => {
             if (!response.ok) {
               throw new Error('Watchlist status fetch failed');
@@ -120,6 +107,8 @@
                   <button class="btn btn-primary watchlist-toggle ${data.inWatchlist ? 'in-watchlist' : ''}" 
                           onclick="toggleWatchlist(event, '${data.id}', '${data.content_type}')"
                           data-id="${data.id}"
+                          data-source-id="${data.source_id}"
+                          data-content-type="${data.content_type}"
                           aria-label="${data.inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}">
                     <i class="fas fa-bookmark ${data.inWatchlist ? 'text-warning' : 'text-muted'}" 
                        alt="${data.inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}"></i>
@@ -185,13 +174,14 @@
     console.log('toggleWatchlist called');
 
     const button = event.currentTarget;
-    const inWatchlist = button.classList.contains('in-watchlist');
+    const inWatchlist = !button.classList.contains('in-watchlist');
+    const sourceId = button.dataset.sourceId;
 
     // Immediately update UI
-    updateWatchlistUI(id, !inWatchlist);
+    updateWatchlistUI(id, inWatchlist);
 
-    const method = inWatchlist ? 'DELETE' : 'POST';
-    const url = inWatchlist ? `/watchlist_items/${id}?content_type=${type}` : '/watchlist_items';
+    const method = inWatchlist ? 'POST' : 'DELETE';
+    const url = inWatchlist ? '/watchlist_items' : `/watchlist_items/${sourceId}?content_type=${type}`;
 
     fetch(url, {
       method: method,
@@ -199,7 +189,7 @@
         'Content-Type': 'application/json',
         'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
       },
-      body: JSON.stringify({ source_id: id, content_type: type })
+      body: JSON.stringify({ source_id: sourceId, content_type: type })
     })
     .then(response => response.json())
     .then(data => {
@@ -209,13 +199,13 @@
       } else {
         console.error('Error toggling watchlist:', data);
         // Revert UI change if the server request failed
-        updateWatchlistUI(id, inWatchlist);
+        updateWatchlistUI(id, !inWatchlist);
       }
     })
     .catch(error => {
       console.error('Error toggling watchlist:', error);
       // Revert UI change if there was a network error
-      updateWatchlistUI(id, inWatchlist);
+      updateWatchlistUI(id, !inWatchlist);
     });
   }
 
@@ -223,7 +213,7 @@
     console.log('updateWatchlistUI called with:', id, inWatchlist);
     
     const popupButton = document.querySelector(`#popup-details .watchlist-toggle[data-id="${id}"]`);
-    const card = document.querySelector(`.card[data-id="${id}"]`);
+    const card = document.querySelector(`.card[data-source-id="${id}"]`);  // Change this from data-id to data-source-id
 
     if (popupButton) {
       console.log(`Updating button UI for popup with id:`, id);
@@ -242,8 +232,8 @@
 
     if (card) {
       console.log(`Updating card UI for id:`, id);
-      card.classList.toggle('bg-primary-light', inWatchlist && !watched);
-      card.classList.toggle('bg-primary-dark', inWatchlist && watched);
+      card.classList.toggle('bg-primary-light', inWatchlist);
+      card.classList.toggle('bg-primary-dark', inWatchlist && card.classList.contains('watched'));
       
       const cardTitle = card.querySelector('.card-title');
       if (cardTitle) {

@@ -37,7 +37,7 @@ class RecommendationsController < ApplicationController
 
   def show
     authorize :recommendation, :show?
-    @item = Content.find_by(id: params[:id])
+    @item = Content.find_by(source_id: params[:id], content_type: params[:type])
 
     if @item
       if @item.trailer_url.nil? || @item.runtime.nil?
@@ -49,7 +49,8 @@ class RecommendationsController < ApplicationController
       genre_names = @item.genre_names
 
       render json: {
-        id: @item.source_id,
+        id: @item.id,
+        source_id: @item.source_id,
         title: @item.title,
         name: @item.title,
         poster_path: @item.poster_url,

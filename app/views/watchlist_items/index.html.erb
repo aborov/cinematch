@@ -3,14 +3,14 @@
 <div class="row">
   <div class="col-md-6">
     <h2>Unwatched</h2>
-    <div data-controller="sortable" data-sortable-resource-url="/watchlist_items/" class="watchlist-container">
+    <div id="unwatched-list" class="watchlist-container" data-controller="sortable" data-sortable-resource-url="/watchlist_items/">
       <%= render partial: 'watchlist_card', collection: @unwatched_items.compact, as: :item %>
     </div>
   </div>
 
   <div class="col-md-6">
     <h2>Watched</h2>
-    <div class="watchlist-container">
+    <div id="watched-list" class="watchlist-container" data-controller="sortable" data-sortable-resource-url="/watchlist_items/">
       <%= render partial: 'watchlist_card', collection: @watched_items.compact, as: :item %>
     </div>
   </div>
@@ -110,6 +110,45 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   });
+
+  // Add this new code for Sortable
+  const unwatchedList = document.getElementById('unwatched-list');
+  const watchedList = document.getElementById('watched-list');
+
+  [unwatchedList, watchedList].forEach(list => {
+    new Sortable(list, {
+      animation: 150,
+      ghostClass: 'blue-background-class',
+      handle: '.drag-handle', // Add this line
+      onEnd: function(evt) {
+        const itemId = evt.item.getAttribute('data-id');
+        const newIndex = evt.newIndex;
+        const watched = evt.to.id === 'watched-list';
+
+        updateItemPosition(itemId, newIndex, watched);
+      }
+    });
+  });
+
+  function updateItemPosition(itemId, newIndex, watched) {
+    fetch(`/watchlist_items/${itemId}/update_position`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+      },
+      body: JSON.stringify({ position: newIndex, watched: watched })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        console.log('Position updated successfully');
+      } else {
+        console.error('Error updating position:', data.message);
+      }
+    })
+    .catch(error => console.error('Error:', error));
+  }
 });
 
 function showDetails(id, type) {

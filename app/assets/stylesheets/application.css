@@ -644,3 +644,12 @@ h6 {
   border-radius: 1rem;  /* Rounded corners for the count badge */
   padding: 0.25rem 0.5rem;
 }
+
+.drag-handle {
+  cursor: move;
+  user-select: none;
+}
+
+.blue-background-class {
+  background-color: #e0e0e0;
+}

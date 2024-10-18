@@ -1,9 +1,11 @@
 <div class="col-md-6 col-lg-4 mb-4">
   <div class="card h-100 show-details <%= recommendation[:in_watchlist] ? (recommendation[:watched] ? 'bg-primary-dark' : 'bg-primary-light') : '' %>" 
-       data-id="<%= recommendation[:id] %>" 
-       data-type="<%= recommendation[:content_type] %>" 
-       role="article" 
-       aria-labelledby="title-<%= recommendation[:id] %>">
+      id="card-<%= recommendation[:id] %>"
+      data-id="<%= recommendation[:id] %>"
+      data-source-id="<%= recommendation[:source_id] %>"
+      data-type="<%= recommendation[:content_type] %>" 
+      role="article" 
+      aria-labelledby="title-<%= recommendation[:id] %>">
     <div class="row g-1">
       <div class="col-4">
         <% if recommendation[:poster_url].present? %>

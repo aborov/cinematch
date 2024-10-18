@@ -39,6 +39,7 @@ Rails.application.routes.draw do
   get 'watchlist_items/count', to: 'watchlist_items#count'
   get 'watchlist_items/recent', to: 'watchlist_items#recent'
   get 'watchlist_items/status', to: 'watchlist_items#status'
+  patch 'watchlist_items/:id/update_position', to: 'watchlist_items#update_position'
 
   get "contact", to: "pages#contact"
   post "send_contact_email", to: "pages#send_contact_email"

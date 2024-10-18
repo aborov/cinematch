@@ -1,0 +1,31 @@
+<div class="card mb-3 watchlist-item" data-id="<%= item[:id] %>" data-source-id="<%= item[:source_id] %>" data-content-type="<%= item[:content_type] %>">
+  <div class="row g-0">
+    <div class="col-md-4 position-relative">
+      <%= image_tag item[:poster_url], alt: item[:title], class: 'img-fluid rounded-start' %>
+      <div class="drag-handle position-absolute top-0 start-0 p-2 text-white bg-dark bg-opacity-50">
+        <i class="fas fa-grip-vertical"></i>
+      </div>
+    </div>
+    <div class="col-md-8">
+      <div class="card-body">
+        <h5 class="card-title"><%= item[:title] %></h5>
+        <div class="card-text-small text-muted mb-1">
+          <%= [item[:release_year], item[:content_type].capitalize, item[:production_countries]].compact.join(" | ") %>
+        </div>
+        <div class="card-text-small text-muted mb-2">
+          <strong>Rating:</strong> <%= item[:vote_average] %> | <strong>Genres:</strong> <%= item[:genres].join(', ') %>
+        </div>
+        <button class="btn btn-sm <%= item[:watched] ? 'btn-warning mark-unwatched' : 'btn-success mark-watched' %>" 
+                data-source-id="<%= item[:source_id] %>" 
+                data-content-type="<%= item[:content_type] %>">
+          <%= item[:watched] ? 'Mark as Unwatched' : 'Mark as Watched' %>
+        </button>
+        <button class="btn btn-sm btn-danger remove-item" 
+                data-source-id="<%= item[:source_id] %>" 
+                data-content-type="<%= item[:content_type] %>">
+          Remove
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
