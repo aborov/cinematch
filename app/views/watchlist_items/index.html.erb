@@ -440,18 +440,12 @@ function updateWatchlistUI(sourceId, inWatchlist) {
   if (popupButton) {
     console.log(`Updating button UI for popup with sourceId:`, sourceId);
     popupButton.classList.toggle('in-watchlist', inWatchlist);
-    const icon = popupButton.querySelector('i.fa-bookmark');
-    if (icon) {
-      icon.classList.toggle('text-warning', inWatchlist);
-      icon.classList.toggle('text-muted', !inWatchlist);
-    }
-    const span = popupButton.querySelector('.watchlist-text');
-    if (span) {
-      span.textContent = inWatchlist ? 'Remove' : 'Add';
-    }
+    popupButton.innerHTML = `
+      <i class="fas fa-bookmark ${inWatchlist ? 'text-warning' : 'text-muted'}" 
+         alt="${inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}"></i>
+      <span class="watchlist-text ms-1">${inWatchlist ? 'Remove' : 'Add'}</span>
+    `;
     popupButton.setAttribute('aria-label', inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist');
-    
-    // Update the onclick attribute
     popupButton.setAttribute('onclick', `toggleWatchlist(event, '${sourceId}', '${popupButton.dataset.contentType}')`);
   }
 
@@ -486,15 +480,11 @@ function updateWatchedUI(sourceId, watched) {
   if (popupButton) {
     console.log(`Updating button UI for popup with sourceId:`, sourceId);
     popupButton.classList.toggle('watched', watched);
-    const icon = popupButton.querySelector('i');
-    if (icon) {
-      icon.classList.toggle('fa-eye', !watched);
-      icon.classList.toggle('fa-eye-slash', watched);
-    }
-    const span = popupButton.querySelector('.watched-text');
-    if (span) {
-      span.textContent = watched ? 'Mark as Unwatched' : 'Mark as Watched';
-    }
+    popupButton.innerHTML = `
+      <i class="fas ${watched ? 'fa-eye-slash' : 'fa-eye'}" 
+         alt="${watched ? 'Mark as Unwatched' : 'Mark as Watched'}"></i>
+      <span class="watched-text ms-1">${watched ? 'Mark as Unwatched' : 'Mark as Watched'}</span>
+    `;
     popupButton.setAttribute('aria-label', watched ? 'Mark as Unwatched' : 'Mark as Watched');
   }
 

@@ -178,7 +178,7 @@
     const sourceId = button.dataset.sourceId;
 
     // Immediately update UI
-    updateWatchlistUI(id, inWatchlist);
+    updateWatchlistUI(sourceId, inWatchlist);
 
     const method = inWatchlist ? 'POST' : 'DELETE';
     const url = inWatchlist ? '/watchlist_items' : `/watchlist_items/${sourceId}?content_type=${type}`;
@@ -199,41 +199,39 @@
       } else {
         console.error('Error toggling watchlist:', data);
         // Revert UI change if the server request failed
-        updateWatchlistUI(id, !inWatchlist);
+        updateWatchlistUI(sourceId, !inWatchlist);
       }
     })
     .catch(error => {
       console.error('Error toggling watchlist:', error);
       // Revert UI change if there was a network error
-      updateWatchlistUI(id, !inWatchlist);
+      updateWatchlistUI(sourceId, !inWatchlist);
     });
   }
 
-  function updateWatchlistUI(id, inWatchlist) {
-    console.log('updateWatchlistUI called with:', id, inWatchlist);
+  function updateWatchlistUI(sourceId, inWatchlist) {
+    console.log('updateWatchlistUI called with:', sourceId, inWatchlist);
     
-    const popupButton = document.querySelector(`#popup-details .watchlist-toggle[data-id="${id}"]`);
-    const card = document.querySelector(`.card[data-source-id="${id}"]`);  // Change this from data-id to data-source-id
+    const popupButton = document.querySelector(`#popup-details .watchlist-toggle[data-source-id="${sourceId}"]`);
+    const card = document.querySelector(`.card[data-source-id="${sourceId}"]`);
 
     if (popupButton) {
-      console.log(`Updating button UI for popup with id:`, id);
+      console.log(`Updating button UI for popup with sourceId:`, sourceId);
       popupButton.classList.toggle('in-watchlist', inWatchlist);
-      const icon = popupButton.querySelector('i.fa-bookmark');
-      if (icon) {
-        icon.classList.toggle('text-warning', inWatchlist);
-        icon.classList.toggle('text-muted', !inWatchlist);
-      }
-      const span = popupButton.querySelector('.watchlist-text');
-      if (span) {
-        span.textContent = inWatchlist ? 'Remove' : 'Add';
-      }
+      popupButton.innerHTML = `
+        <i class="fas fa-bookmark ${inWatchlist ? 'text-warning' : 'text-muted'}" 
+           alt="${inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}"></i>
+        <span class="watchlist-text ms-1">${inWatchlist ? 'Remove' : 'Add'}</span>
+      `;
       popupButton.setAttribute('aria-label', inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist');
+      console.log('Button content updated');
+    } else {
+      console.log('popupButton not found');
     }
 
     if (card) {
-      console.log(`Updating card UI for id:`, id);
+      console.log(`Updating card UI for sourceId:`, sourceId);
       card.classList.toggle('bg-primary-light', inWatchlist);
-      card.classList.toggle('bg-primary-dark', inWatchlist && card.classList.contains('watched'));
       
       const cardTitle = card.querySelector('.card-title');
       if (cardTitle) {
@@ -246,12 +244,12 @@
         text.classList.toggle('text-muted', !inWatchlist);
       });
 
-      const cardIcon = card.querySelector('.fa-bookmark');
+      let cardIcon = card.querySelector('.fa-bookmark');
       if (inWatchlist && !cardIcon) {
-        const iconElement = document.createElement('i');
-        iconElement.className = 'fas fa-bookmark position-absolute bottom-0 end-0 m-2 text-warning';
-        iconElement.setAttribute('aria-hidden', 'true');
-        card.querySelector('.card-body').appendChild(iconElement);
+        cardIcon = document.createElement('i');
+        cardIcon.className = 'fas fa-bookmark text-warning position-absolute';
+        cardIcon.setAttribute('aria-hidden', 'true');
+        card.querySelector('.col-8').appendChild(cardIcon);
       } else if (!inWatchlist && cardIcon) {
         cardIcon.remove();
       }
