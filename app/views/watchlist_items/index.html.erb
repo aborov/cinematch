@@ -310,9 +310,6 @@ function toggleWatchlist(event, id, type) {
   const inWatchlist = !button.classList.contains('in-watchlist');
   const sourceId = button.dataset.sourceId;
 
-  // Immediately update UI
-  updateWatchlistUI(id, inWatchlist);
-
   const method = inWatchlist ? 'POST' : 'DELETE';
   const url = inWatchlist ? '/watchlist_items' : `/watchlist_items/${sourceId}?content_type=${type}`;
 
@@ -328,18 +325,110 @@ function toggleWatchlist(event, id, type) {
   .then(data => {
     if (data.status === 'success') {
       console.log('Watchlist toggled:', data);
+      updateWatchlistUI(sourceId, inWatchlist);
       updateWatchlistNavbar();
+      if (inWatchlist && data.item) {
+        createWatchlistCard(data.item);
+      }
     } else {
       console.error('Error toggling watchlist:', data);
-      // Revert UI change if the server request failed
-      updateWatchlistUI(id, !inWatchlist);
+      updateWatchlistUI(sourceId, !inWatchlist);
     }
   })
   .catch(error => {
     console.error('Error toggling watchlist:', error);
-    // Revert UI change if there was a network error
-    updateWatchlistUI(id, !inWatchlist);
+    updateWatchlistUI(sourceId, !inWatchlist);
   });
+}
+
+function createWatchlistCard(item) {
+  console.log('Creating watchlist card for item:', item);
+  const targetList = item.watched ? document.getElementById('watched-list') : document.getElementById('unwatched-list');
+  if (targetList) {
+    const newCard = document.createElement('div');
+    newCard.className = 'card mb-3 watchlist-item';
+    newCard.setAttribute('data-id', item.id);
+    newCard.setAttribute('data-source-id', item.source_id);
+    newCard.setAttribute('data-content-type', item.content_type);
+    newCard.setAttribute('role', 'article');
+    newCard.setAttribute('aria-labelledby', `title-${item.source_id}`);
+
+    newCard.innerHTML = `
+      <div class="row g-0">
+        <div class="col-4">
+          <img src="${item.poster_url}" class="img-fluid rounded-start" alt="${item.title} poster">
+        </div>
+        <div class="col-8">
+          <div class="card-body position-relative">
+            <h5 class="card-title mb-1" id="title-${item.source_id}">${item.title}</h5>
+            <div class="card-text small">
+              ${[item.release_year, item.content_type.charAt(0).toUpperCase() + item.content_type.slice(1)].filter(Boolean).join(", ")}<br>
+              <strong>TMDb:</strong> ${item.vote_average}<br>
+              ${item.genres.join(", ")}
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-2">
+              <button class="btn btn-sm ${item.watched ? 'btn-warning mark-unwatched' : 'btn-success mark-watched'}" 
+                      data-source-id="${item.source_id}" 
+                      data-content-type="${item.content_type}">
+                <i class="fas ${item.watched ? 'fa-eye-slash' : 'fa-eye'} me-1"></i>
+                ${item.watched ? 'Unwatched' : 'Watched'}
+              </button>
+              <button class="btn btn-sm btn-danger remove-item" 
+                      data-source-id="${item.source_id}" 
+                      data-content-type="${item.content_type}">
+                <i class="fas fa-trash-alt me-1"></i>
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="drag-handle position-absolute top-0 start-0 p-2 text-white">
+        <i class="fas fa-grip-vertical"></i>
+      </div>
+    `;
+
+    targetList.appendChild(newCard);
+    console.log('New card added to the DOM:', newCard);
+
+    // Attach event listeners to the new card
+    attachCardEventListeners(newCard);
+  } else {
+    console.error('Target list not found for item:', item);
+  }
+}
+
+function attachCardEventListeners(card) {
+  card.addEventListener('click', function(event) {
+    if (!event.target.closest('.btn')) {
+      const id = this.dataset.sourceId;
+      const type = this.dataset.contentType;
+      const watched = this.querySelector('.mark-unwatched') !== null;
+      showDetails(id, type, watched);
+    }
+  });
+
+  const watchButton = card.querySelector('.mark-watched, .mark-unwatched');
+  const removeButton = card.querySelector('.remove-item');
+
+  if (watchButton) {
+    watchButton.addEventListener('click', function(event) {
+      event.preventDefault();
+      const action = this.classList.contains('mark-watched') ? 'markWatched' : 'markUnwatched';
+      const sourceId = this.dataset.sourceId;
+      const contentType = this.dataset.contentType;
+      handleWatchlistAction(action, sourceId, contentType, this);
+    });
+  }
+
+  if (removeButton) {
+    removeButton.addEventListener('click', function(event) {
+      event.preventDefault();
+      const sourceId = this.dataset.sourceId;
+      const contentType = this.dataset.contentType;
+      handleWatchlistAction('removeItem', sourceId, contentType, this);
+    });
+  }
 }
 
 function updateWatchlistUI(sourceId, inWatchlist) {
@@ -361,6 +450,9 @@ function updateWatchlistUI(sourceId, inWatchlist) {
       span.textContent = inWatchlist ? 'Remove' : 'Add';
     }
     popupButton.setAttribute('aria-label', inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist');
+    
+    // Update the onclick attribute
+    popupButton.setAttribute('onclick', `toggleWatchlist(event, '${sourceId}', '${popupButton.dataset.contentType}')`);
   }
 
   if (card && !inWatchlist) {

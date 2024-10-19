@@ -24,12 +24,14 @@ class WatchlistItemsController < ApplicationController
     authorize @watchlist_item
 
     if @watchlist_item.persisted? || @watchlist_item.save
+      item_data = item_with_details(@watchlist_item)
       render json: { 
         status: 'success', 
         message: 'Item added to watchlist', 
         in_watchlist: true, 
         content_id: content.source_id,
-        count: current_user.watchlist_items.count
+        count: current_user.watchlist_items.count,
+        item: item_data
       }
     else
       render json: { status: 'error', message: 'Failed to add item to watchlist', errors: @watchlist_item.errors.full_messages }, status: :unprocessable_entity
