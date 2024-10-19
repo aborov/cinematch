@@ -232,10 +232,12 @@
     if (card) {
       console.log(`Updating card UI for sourceId:`, sourceId);
       card.classList.toggle('bg-primary-light', inWatchlist);
+      card.classList.toggle('bg-white', !inWatchlist);
       
       const cardTitle = card.querySelector('.card-title');
       if (cardTitle) {
         cardTitle.classList.toggle('text-white', inWatchlist);
+        cardTitle.classList.toggle('text-dark', !inWatchlist);
       }
       
       const cardTexts = card.querySelectorAll('.card-text-small');
