@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_09_29_212845) do
+ActiveRecord::Schema[7.1].define(version: 2024_10_21_135027) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "pgcrypto"
@@ -226,6 +226,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_09_29_212845) do
     t.datetime "updated_at", null: false
     t.string "source_id"
     t.string "content_type"
+    t.integer "rating"
     t.index ["user_id", "source_id", "content_type"], name: "index_watchlist_items_on_user_id_and_source_id_and_content_type", unique: true
     t.index ["user_id"], name: "index_watchlist_items_on_user_id"
   end

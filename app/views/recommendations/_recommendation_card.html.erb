@@ -1,9 +1,12 @@
 <div class="col-md-6 col-lg-4 mb-4">
-  <div class="card h-100 show-details <%= recommendation[:in_watchlist] ? (recommendation[:watched] ? 'bg-primary-dark' : 'bg-primary-light') : '' %>" 
+  <div class="card h-100 show-details <%= recommendation[:in_watchlist] ? (recommendation[:rating] ? 'card-bg-watchlist-rated' : (recommendation[:watched] ? 'card-bg-watchlist-watched' : 'card-bg-watchlist-unwatched')) : '' %>" 
       id="card-<%= recommendation[:source_id] %>"
       data-id="<%= recommendation[:source_id] %>"
       data-source-id="<%= recommendation[:source_id] %>"
-      data-type="<%= recommendation[:content_type] %>" 
+      data-type="<%= recommendation[:content_type] %>"
+      data-in-watchlist="<%= recommendation[:in_watchlist] %>"
+      data-watched="<%= recommendation[:watched] %>"
+      data-rating="<%= recommendation[:rating] %>"
       role="article" 
       aria-labelledby="title-<%= recommendation[:source_id] %>">
     <div class="row g-1">
@@ -18,26 +21,36 @@
       </div>
       <div class="col-8">
         <div class="card-body position-relative p-2">
-          <h5 class="card-title d-flex justify-content-between align-items-start <%= recommendation[:in_watchlist] ? 'text-white' : '' %>" id="title-<%= recommendation[:source_id] %>">
+          <h5 class="card-title d-flex justify-content-between align-items-start" id="title-<%= recommendation[:source_id] %>">
             <span class="title-text"><%= recommendation[:title] %></span>
             <% if recommendation[:match_score] %>
               <span class="badge bg-warning text-danger ms-2" role="status" aria-label="Match score"><%= recommendation[:match_score].round(2) %>%</span>
             <% end %>
           </h5>
-          <div class="card-text-small <%= recommendation[:in_watchlist] ? 'text-white-50' : 'text-muted' %> mb-1" role="contentinfo" aria-label="Country and release year">
+          <div class="card-text-small text-muted mb-1" role="contentinfo" aria-label="Country and release year">
             <%= [recommendation[:production_countries]&.first&.dig('name'), recommendation[:release_year]].compact.join(", ") %>
           </div>
-          <div class="card-text-small <%= recommendation[:in_watchlist] ? 'text-white-50' : 'text-muted' %> mb-1" role="contentinfo" aria-label="TMDb rating">
+          <div class="card-text-small text-muted mb-1" role="contentinfo" aria-label="TMDb rating">
             <strong>TMDb:</strong> <span aria-label="TMDb rating"><%= recommendation[:vote_average] %></span>
           </div>
-          <div class="card-text-small <%= recommendation[:in_watchlist] ? 'text-white-50' : 'text-muted' %>" role="contentinfo" aria-label="Genres">
+          <div class="card-text-small text-muted" role="contentinfo" aria-label="Genres">
             <%= recommendation[:genres].join(", ") %>
           </div>
           <div class="stretched-link show-details" data-id="<%= recommendation[:source_id] %>" data-type="<%= recommendation[:content_type] %>" role="button" aria-label="Show details for <%= recommendation[:title] %>"></div>
         </div>
-          <% if recommendation[:in_watchlist] %>
-            <i class="fas fa-bookmark text-warning position-absolute" aria-hidden="true"></i>
-          <% end %>
+        <% if recommendation[:in_watchlist] %>
+          <div class="position-absolute bottom-0 end-0 m-3">
+            <% if recommendation[:rating] %>
+              <span class="badge bg-warning text-dark" title="Your rating">
+                <%= recommendation[:rating] %> <i class="fas fa-star"></i>
+              </span>
+            <% elsif recommendation[:watched] %>
+              <i class="fas fa-eye fs-5" title="Watched"></i>
+            <% else %>
+              <i class="fas fa-bookmark fs-5" title="In Watchlist"></i>
+            <% end %>
+          </div>
+        <% end %>
       </div>
     </div>
   </div>

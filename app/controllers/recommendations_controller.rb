@@ -102,7 +102,7 @@ class RecommendationsController < ApplicationController
     offset = (page - 1) * per_page
     content_ids = @user_preference.recommended_content_ids[offset, per_page] || []
 
-    Content.where(id: content_ids).map do |content|
+    recommendations = Content.where(id: content_ids).map do |content|
       Rails.logger.debug "Content ID: #{content.id}, Poster URL: #{content.poster_url}"
       {
         id: content.id,
@@ -117,14 +117,24 @@ class RecommendationsController < ApplicationController
         match_score: @user_preference.calculate_match_score(content.genre_ids_array)
       }
     end
+
+    # Sort recommendations by match_score in descending order
+    recommendations.sort_by { |r| -r[:match_score] }
   end
 
   def set_watchlist_status(recommendations)
-    watchlist_items = current_user.watchlist_items.pluck(:source_id, :content_type, :watched)
+    watchlist_items = current_user.watchlist_items.pluck(:source_id, :content_type, :watched, :rating)
     recommendations.each do |recommendation|
       watchlist_item = watchlist_items.find { |item| item[0] == recommendation[:source_id].to_s && item[1] == recommendation[:content_type] }
-      recommendation[:in_watchlist] = !watchlist_item.nil?
-      recommendation[:watched] = watchlist_item&.last || false
+      if watchlist_item
+        recommendation[:in_watchlist] = true
+        recommendation[:watched] = watchlist_item[2]
+        recommendation[:rating] = watchlist_item[3]
+      else
+        recommendation[:in_watchlist] = false
+        recommendation[:watched] = false
+        recommendation[:rating] = nil
+      end
     end
   end
 end

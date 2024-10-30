@@ -26,19 +26,19 @@ Rails.application.routes.draw do
   resources :user_preferences, only: [:edit, :update]
   get 'recommendations/check_status', to: 'recommendations#check_status'
   resources :recommendations, only: [:index, :show]
-  resources :watchlist_items, only: [:index, :create, :destroy] do
-    member do
-      patch 'mark_watched'
-      patch 'mark_unwatched'
-    end
+  resources :watchlist_items do
     collection do
-      get 'count'
-      get 'recent'
+      get :status
+      get :count
+      get :recent
+      post :rate
+    end
+    member do
+      post :toggle_watched
     end
   end
   get 'watchlist_items/count', to: 'watchlist_items#count'
   get 'watchlist_items/recent', to: 'watchlist_items#recent'
-  get 'watchlist_items/status', to: 'watchlist_items#status'
   patch 'watchlist_items/:id/update_position', to: 'watchlist_items#update_position'
 
   get "contact", to: "pages#contact"
