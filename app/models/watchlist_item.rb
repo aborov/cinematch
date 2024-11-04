@@ -5,6 +5,7 @@
 #  id           :bigint           not null, primary key
 #  content_type :string
 #  position     :integer
+#  rating       :integer
 #  watched      :boolean          default(FALSE)
 #  created_at   :datetime         not null
 #  updated_at   :datetime         not null
@@ -23,6 +24,7 @@
 class WatchlistItem < ApplicationRecord
   belongs_to :user
   validates :user_id, uniqueness: { scope: [:source_id, :content_type] }
+  validates :rating, inclusion: { in: 1..10 }, allow_nil: true
   
   acts_as_list scope: [:user_id, watched: false]
 

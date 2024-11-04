@@ -1,113 +1,98 @@
 class WatchlistItemsController < ApplicationController
   before_action :authenticate_user!
+  before_action :set_watchlist_item, only: [:destroy, :toggle_watched, :reposition]
   after_action :verify_authorized, except: [:index, :status, :count, :recent]
   after_action :verify_policy_scoped, only: :index
 
   def index
-    @watchlist_items = policy_scope(WatchlistItem)
-    @unwatched_items = @watchlist_items.unwatched
-    @watched_items = @watchlist_items.watched
+    base_items = policy_scope(WatchlistItem)
+    @watchlist_items = base_items.map do |item|
+      content = Content.find_by(source_id: item.source_id, content_type: item.content_type)
+      next unless content
 
-    @unwatched_items = @unwatched_items.map { |item| item_with_details(item) }
-    @watched_items = @watched_items.map { |item| item_with_details(item) }
+      {
+        id: item.id,
+        source_id: item.source_id,
+        content_type: item.content_type,
+        title: content.title,
+        poster_url: content.poster_url,
+        release_year: content.release_year,
+        vote_average: content.vote_average,
+        genres: content.genre_names,
+        country: content.production_countries_array&.first&.dig('name'),
+        watched: item.watched,
+        rating: item.rating
+      }
+    end.compact
+    
+    @watched_items = @watchlist_items.select { |item| item[:watched] }
+    @unwatched_items = @watchlist_items.reject { |item| item[:watched] }
   end
 
   def create
-    content = Content.find_by(source_id: params[:source_id], content_type: params[:content_type])
-
-    if content.nil?
+    # First find the content in contents table
+    @content = Content.find_by(
+      source_id: params.dig(:watchlist_item, :source_id),
+      content_type: params.dig(:watchlist_item, :content_type)
+    )
+    
+    if @content.nil?
       render json: { status: 'error', message: 'Content not found' }, status: :not_found
       return
     end
 
-    @watchlist_item = current_user.watchlist_items.find_or_initialize_by(source_id: content.source_id, content_type: content.content_type)
+    # Create new watchlist item
+    @watchlist_item = current_user.watchlist_items.new(watchlist_item_params)
     authorize @watchlist_item
-
-    if @watchlist_item.persisted? || @watchlist_item.save
-      item_data = item_with_details(@watchlist_item)
+    
+    if @watchlist_item.save
       render json: { 
         status: 'success', 
-        message: 'Item added to watchlist', 
         in_watchlist: true, 
-        content_id: content.source_id,
-        count: current_user.watchlist_items.count,
-        item: item_data
+        watched: @watchlist_item.watched, 
+        rating: @watchlist_item.rating 
       }
     else
-      render json: { status: 'error', message: 'Failed to add item to watchlist', errors: @watchlist_item.errors.full_messages }, status: :unprocessable_entity
+      render json: { 
+        status: 'error', 
+        message: @watchlist_item.errors.full_messages.join(', ') 
+      }, status: :unprocessable_entity
     end
   end
 
   def destroy
-    @watchlist_item = current_user.watchlist_items.find_by(source_id: params[:id], content_type: params[:content_type])
-    if @watchlist_item
-      authorize @watchlist_item
-      if @watchlist_item.destroy
-        render json: { 
-          status: 'success', 
-          message: 'Item removed from watchlist',
-          content_id: params[:id],
-          content_type: params[:content_type],
-          count: current_user.watchlist_items.count
-        }
-      else
-        render json: { status: 'error', message: 'Failed to remove item from watchlist' }, status: :unprocessable_entity
-      end
-    else
-      skip_authorization
-      render json: { status: 'error', message: 'Item not found in watchlist' }, status: :not_found
-    end
-  end
-
-  def mark_watched
-    content = Content.find_by(source_id: params[:id])
-    @watchlist_item = current_user.watchlist_items.find_by(source_id: params[:id], content_type: params[:content_type])
-    authorize @watchlist_item, :mark_watched?
-    if @watchlist_item.update(watched: true)
-      render json: { 
-        status: 'success', 
-        message: 'Item marked as watched', 
-        content_id: content.source_id,
-        count: current_user.watchlist_items.count
-      }
-    else
-      render json: { status: 'error', message: 'Failed to mark item as watched' }, status: :unprocessable_entity
-    end
-  end
-
-  def mark_unwatched
-    content = Content.find_by(source_id: params[:id], content_type: params[:content_type])
-    @watchlist_item = current_user.watchlist_items.find_by(source_id: params[:id], content_type: params[:content_type])
-    authorize @watchlist_item, :mark_unwatched?
-    if @watchlist_item.update(watched: false)
-      render json: { 
-        status: 'success', 
-        message: 'Item marked as unwatched', 
-        source_id: content.source_id,
-        count: current_user.watchlist_items.count
-      }
-    else
-      render json: { status: 'error', message: 'Failed to mark item as unwatched' }, status: :unprocessable_entity
-    end
+    authorize @watchlist_item
+    @watchlist_item.destroy
+    render json: { status: 'success', message: 'Item removed from watchlist' }
+  rescue ActiveRecord::RecordNotFound
+    render json: { status: 'error', message: 'Item not found in watchlist' }, status: :not_found
   end
 
   def status
-    content = Content.find_by(source_id: params[:source_id], content_type: params[:content_type])
-    authorize :watchlist_item, :status?
-    in_watchlist = current_user.watchlist_items.exists?(source_id: params[:source_id], content_type: params[:content_type])
-    render json: { in_watchlist: in_watchlist }
+    Rails.logger.debug "Status params: #{params.inspect}"
+    item = current_user.watchlist_items.find_by(source_id: params[:source_id], content_type: params[:content_type])
+    Rails.logger.debug "Found item: #{item.inspect}"
+    render json: {
+      in_watchlist: item.present?,
+      watched: item&.watched || false,
+      rating: item&.rating
+    }
   end
 
   def count
+    Rails.logger.debug "Count action called"
     count = current_user.watchlist_items.count
+    Rails.logger.debug "Watchlist count: #{count}"
     render json: { count: count }
   end
 
   def recent
+    Rails.logger.debug "Recent action called"
     items = current_user.watchlist_items.order(created_at: :desc).limit(5).map do |item|
       content = item.content
       { title: content.title, year: content.release_year, poster_url: content.poster_url }
     end
+    Rails.logger.debug "Recent items: #{items.inspect}"
     render json: { items: items }
   rescue => e
     Rails.logger.error "Error in recent action: #{e.message}"
@@ -115,28 +100,96 @@ class WatchlistItemsController < ApplicationController
     render json: { error: 'An error occurred while fetching recent items' }, status: :internal_server_error
   end
 
-  def update_position
-    @item = current_user.watchlist_items.find(params[:id])
-    authorize @item
-
-    if @item.update(position: params[:position], watched: params[:watched])
-      # Reorder other items
-      if params[:watched] == @item.watched_before_last_save
-        reorder_items(@item)
+  def reposition
+    authorize @watchlist_item
+    
+    new_position = params.dig(:watchlist_item, :position)
+    watched_status = params.dig(:watchlist_item, :watched)
+    
+    WatchlistItem.transaction do
+      old_position = @watchlist_item.position
+      old_watched_status = @watchlist_item.watched
+      
+      if old_watched_status == watched_status
+        # Moving within same list - reorder all items to ensure no gaps
+        items = current_user.watchlist_items.where(watched: watched_status).order(:position)
+        items_array = items.to_a
+        moved_item = items_array.delete(@watchlist_item)
+        items_array.insert(new_position - 1, moved_item)
+        
+        # Update all positions sequentially
+        items_array.each_with_index do |item, index|
+          item.update_column(:position, index + 1)
+        end
       else
-        reorder_items_after_status_change(@item)
+        # Moving between lists - similar to current code but with sequential reordering
+        # Update old list positions
+        old_list_items = current_user.watchlist_items
+          .where(watched: old_watched_status)
+          .where('position > ?', old_position)
+          .order(:position)
+        
+        old_list_items.each_with_index do |item, index|
+          item.update_column(:position, old_position + index)
+        end
+        
+        # Update new list positions
+        new_list_items = current_user.watchlist_items
+          .where(watched: watched_status)
+          .order(:position)
+        
+        @watchlist_item.update!(watched: watched_status)
+        @watchlist_item.insert_at(new_position)
       end
-
-      render json: { status: 'success' }
-    else
-      render json: { status: 'error', message: @item.errors.full_messages.join(', ') }, status: :unprocessable_entity
     end
+    
+    render json: { status: 'success' }
+  rescue ActiveRecord::RecordNotFound
+    render json: { status: 'error', message: 'Item not found' }, status: :not_found
+  end
+
+  def toggle_watched
+    authorize @watchlist_item
+    new_watched_state = !@watchlist_item.watched
+    
+    # Clear rating when marking as unwatched
+    if !new_watched_state
+      @watchlist_item.update(watched: false, rating: nil)
+    else
+      @watchlist_item.update(watched: true)
+    end
+    
+    render json: { 
+      status: 'success', 
+      in_watchlist: true, 
+      watched: @watchlist_item.watched, 
+      rating: @watchlist_item.rating 
+    }
+  end
+
+  def rate
+    @watchlist_item = current_user.watchlist_items.find_by!(
+      source_id: params.dig(:watchlist_item, :source_id),
+      content_type: params.dig(:watchlist_item, :content_type)
+    )
+    authorize @watchlist_item
+
+    if @watchlist_item.update(rating: params[:watchlist_item][:rating])
+      render json: { status: 'success', rating: @watchlist_item.rating }
+    else
+      render json: { 
+        status: 'error', 
+        message: @watchlist_item.errors.full_messages.join(', ') 
+      }, status: :unprocessable_entity
+    end
+  rescue ActiveRecord::RecordNotFound
+    render json: { status: 'error', message: 'Item not found in watchlist' }, status: :not_found
   end
 
   private
 
   def watchlist_item_params
-    params.require(:watchlist_item).permit(:content_id, :content_type)
+    params.require(:watchlist_item).permit(:source_id, :content_type, :rating, :watched)
   end
 
   def item_with_details(item)
@@ -157,38 +210,14 @@ class WatchlistItemsController < ApplicationController
     }
   end
 
-  def reorder_items(item)
-    items_to_update = current_user.watchlist_items
-                                  .where(watched: item.watched)
-                                  .where.not(id: item.id)
-                                  .order(:position)
-
-    items_to_update.each_with_index do |other_item, index|
-      new_position = index >= item.position ? index + 1 : index
-      other_item.update_column(:position, new_position)
-    end
+  def set_watchlist_item
+    @watchlist_item = current_user.watchlist_items.find_by!(
+      source_id: params[:id],
+      content_type: params.dig(:watchlist_item, :content_type) || params[:content_type]
+    )
   end
 
-  def reorder_items_after_status_change(item)
-    # Reorder items in the old list (watched/unwatched)
-    old_list_items = current_user.watchlist_items
-                                 .where(watched: !item.watched)
-                                 .where('position > ?', item.position_before_last_save)
-                                 .order(:position)
-
-    old_list_items.each_with_index do |other_item, index|
-      other_item.update_column(:position, item.position_before_last_save + index)
-    end
-
-    # Reorder items in the new list
-    new_list_items = current_user.watchlist_items
-                                 .where(watched: item.watched)
-                                 .where.not(id: item.id)
-                                 .order(:position)
-
-    new_list_items.each_with_index do |other_item, index|
-      new_position = index >= item.position ? index + 1 : index
-      other_item.update_column(:position, new_position)
-    end
+  def watchlist_params
+    params.require(:watchlist_item).permit(:position, :content_type, :watched)
   end
 end

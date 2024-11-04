@@ -27,19 +27,19 @@ Rails.application.routes.draw do
   get 'recommendations/check_status', to: 'recommendations#check_status'
   resources :recommendations, only: [:index, :show]
   resources :watchlist_items do
+    member do
+      post :toggle_watched
+      post :reposition
+    end
     collection do
       get :status
       get :count
       get :recent
       post :rate
     end
-    member do
-      post :toggle_watched
-    end
   end
   get 'watchlist_items/count', to: 'watchlist_items#count'
   get 'watchlist_items/recent', to: 'watchlist_items#recent'
-  patch 'watchlist_items/:id/update_position', to: 'watchlist_items#update_position'
 
   get "contact", to: "pages#contact"
   post "send_contact_email", to: "pages#send_contact_email"

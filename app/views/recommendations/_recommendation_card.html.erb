@@ -28,7 +28,7 @@
             <% end %>
           </h5>
           <div class="card-text-small text-muted mb-1" role="contentinfo" aria-label="Country and release year">
-            <%= [recommendation[:production_countries]&.first&.dig('name'), recommendation[:release_year]].compact.join(", ") %>
+            <%= [recommendation[:production_countries]&.first&.dig('name')&.gsub('United States of America', 'USA'), recommendation[:release_year]].compact.join(", ") %>
           </div>
           <div class="card-text-small text-muted mb-1" role="contentinfo" aria-label="TMDb rating">
             <strong>TMDb:</strong> <span aria-label="TMDb rating"><%= recommendation[:vote_average] %></span>

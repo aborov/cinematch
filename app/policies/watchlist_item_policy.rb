@@ -10,23 +10,23 @@ class WatchlistItemPolicy < ApplicationPolicy
   end
 
   def destroy?
-    user == record.user
+    user.present? && record.user == user
   end
 
   def status?
     user.present?
   end
 
-  def mark_watched?
-    user_owns_record?
-  end
-
-  def mark_unwatched?
-    user_owns_record?
-  end
-
-  def update_position?
+  def reposition?
     user.present? && record.user == user
+  end
+
+  def toggle_watched?
+    user.present? && record.user == user
+  end
+
+  def rate?
+    record.user == user
   end
 
   private
