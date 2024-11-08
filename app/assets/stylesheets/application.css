@@ -595,14 +595,6 @@ h6 {
   transition: color 0.3s ease;
 }
 
-.card.bg-primary-dark {
-  background-color: #1a237e; /* Dark blue from your color scheme */
-}
-
-.card.bg-primary-light {
-  background-color: #3f51b5; /* Light blue from your color scheme */
-}
-
 .navbar-nav .watchlist-group {
   margin-right: 1rem;
 }
@@ -612,7 +604,7 @@ h6 {
   align-items: center;
   padding: 0.5rem 1rem;
   border: 2px solid var(--jonquil);
-  border-radius: 2rem;  /* Increased border-radius for a rounder look */
+  border-radius: 2rem;
   transition: all 0.3s ease;
 }
 
@@ -632,13 +624,28 @@ h6 {
 #watchlist-count {
   background-color: var(--engineering-orange);
   color: var(--mint-green);
-  border-radius: 1rem;  /* Rounded corners for the count badge */
+  border-radius: 1rem;
   padding: 0.25rem 0.5rem;
 }
 
 .drag-handle {
   cursor: move;
   user-select: none;
+  z-index: 10;
+  color: rgba(255, 255, 255, 0.7);
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 0 0 4px 0;
+  transition: all 0.2s ease;
+}
+
+.drag-handle:hover {
+  color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.watchlist-item:hover .drag-handle {
+  color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(0, 0, 0, 0.7);
 }
 
 .blue-background-class {
@@ -648,54 +655,24 @@ h6 {
 .watchlist-container {
   max-height: 800px;
   overflow-y: auto;
+  padding: 0.5rem;
 }
 
-.watchlist-item {
-  position: relative;
+.container-fluid {
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
 }
 
-.watchlist-item .img-fluid {
-  max-height: 200px;
-  object-fit: cover;
+@media (min-width: 768px) {
+  .container-fluid {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
 }
 
-.watchlist-item .drag-handle {
-  cursor: move;
-  z-index: 10;
-}
-
-.watchlist-item .btn-sm {
-  font-size: 0.7rem;
-  padding: 0.25rem 0.5rem;
-}
-
-.watchlist-item {
-  border: 1px solid rgba(0, 0, 0, 0.125);
-  transition: box-shadow 0.3s ease;
-  background-color: var(--mint-green);
-}
-
-.watchlist-item:hover {
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-}
-
-.watchlist-item .card-title {
-  color: var(--engineering-orange);
-}
-
-.watchlist-item .card-text {
-  color: var(--space-cadet);
-}
-
-.watchlist-item .btn-sm {
-  font-size: 0.75rem;
-  padding: 0.25rem 0.5rem;
-}
-
-.watchlist-item .drag-handle {
-  cursor: move;
-  z-index: 10;
-  color: var(--space-cadet);
+.card-header.unwatched-header,
+.card-header.watched-header {
+  padding: 0.5rem 0.75rem;
 }
 
 .card-header.unwatched-header {
@@ -708,82 +685,191 @@ h6 {
   color: var(--mint-green);
 }
 
-.card-body.unwatched-body {
-  background-color: rgba(239, 200, 26, 0.1); /* Lighter shade of jonquil */
+.card-header .badge {
+  font-size: 0.875rem;
+  padding: 0.35em 0.65em;
+  min-width: 1.5rem;
 }
 
-.card-body.watched-body {
-  background-color: rgba(255, 65, 54, 0.1); /* Lighter shade of engineering-orange */
+.unwatched-header .badge {
+  background-color: var(--engineering-orange) !important;
+  color: var(--mint-green) !important;
+  border-radius: 1rem !important;
+  padding: 0.35em 0.65em !important;
+}
+
+.watched-header .badge {
+  background-color: var(--mint-green) !important;
+  color: var(--space-cadet) !important;
+  border-radius: 1rem !important;
+  padding: 0.35em 0.65em !important;
+  border: none !important;
 }
 
 .watchlist-item {
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   border-radius: 0.5rem;
   overflow: hidden;
-  background-color: var(--mint-green);
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
+}
+
+.watchlist-item:hover {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.watchlist-item .card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.watchlist-item .card-title {
+  font-size: 0.9rem;
+  line-height: 1.2;
+  color: var(--engineering-orange);
+  transition: font-size 0.2s ease;
+}
+
+.watchlist-item .card-text-small {
+  font-size: 0.75rem;
+  line-height: 1.3;
+}
+
+.watchlist-item .button-container {
+  display: flex;
+  gap: 0.25rem;
+  align-items: stretch;
+}
+
+.watchlist-item .action-buttons {
+  display: flex;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.watchlist-item .btn {
+  height: 32px;
+  font-size: 0.75rem;
+  padding: 0 0.5rem;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.watchlist-item .btn i {
+  font-size: 0.875rem;
+}
+
+.watchlist-item .mark-watched,
+.watchlist-item .mark-unwatched {
+  width: 32px;
+  padding: 0;
+}
+
+.watchlist-item .rate-item {
+  flex: 1;
+  min-width: 70px;
+}
+
+.watchlist-item .square-button {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  flex: 0 0 32px;
+}
+
+@media (min-width: 1024px) {
+  .watchlist-item .mark-watched,
+  .watchlist-item .mark-unwatched {
+    width: auto;
+    padding: 0 0.5rem;
+  }
+  
+  .watchlist-item .square-button {
+    width: auto;
+    padding: 0 0.5rem;
+    flex: 0 0 auto;
+    min-width: 85px;
+  }
 }
 
 .rating-popup {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background-color: white;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1050;
+}
+
+.rating-popup-content {
+  background-color: var(--space-cadet);
+  color: var(--mint-green);
+  padding: 2rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.5);
+  text-align: center;
+  max-width: 90%;
+  width: 400px;
+}
+
+.rating-popup h3 {
+  margin-bottom: 1.5rem;
+  color: var(--jonquil);
 }
 
 .rating-stars {
-  font-size: 24px;
-  color: #ffd700;
-  cursor: pointer;
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .rating-stars .star {
-  color: #ccc;
   cursor: pointer;
-  transition: color 0.2s;
+  color: rgba(255, 255, 255, 0.2);
+  transition: color 0.2s ease;
 }
 
 .rating-stars .star:hover,
 .rating-stars .star.active {
-  color: #ffc107;
+  color: var(--jonquil);
 }
 
-.card[data-in-watchlist="true"][data-rating]:not([data-rating=""]) .watchlist-status-icon::before {
-  content: attr(data-rating) " \f005"; /* star icon */
-  font-family: "Font Awesome 5 Free";
-  font-weight: 900;
-  background-color: #ffc107;
-  color: #212529;
-  padding: 0.25em 0.5em;
-  border-radius: 0.25rem;
+.rating-stars:hover .star {
+  color: var(--jonquil);
 }
 
-.card[data-in-watchlist="true"][data-watched="true"] .watchlist-status-icon:not([data-rating])::before {
-  content: "\f06e"; /* eye icon */
-  font-family: "Font Awesome 5 Free";
-  font-weight: 900;
-  color: #ffc107;
+.rating-stars .star:hover ~ .star {
+  color: rgba(255, 255, 255, 0.2);
 }
 
-.card[data-in-watchlist="true"][data-watched="false"] .watchlist-status-icon:not([data-rating])::before {
-  content: "\f02e"; /* bookmark icon */
-  font-family: "Font Awesome 5 Free";
-  font-weight: 900;
-  color: #ffc107;
+.rating-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
 }
 
-
+.rating-actions button {
+  min-width: 100px;
+  padding: 0.5rem 1rem;
+}
 
 .card-bg-watchlist-rated {
   background-color: var(--space-cadet);
 }
 
 .card-bg-watchlist-watched {
-  background-color: #284B63; /* Indigo Dye */
+  background-color: #284B63;
 }
 
 .card-bg-watchlist-unwatched {
@@ -905,4 +991,38 @@ h6 {
 
 .rating-actions button {
   min-width: 80px;
+}
+
+.watchlist-item .card-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.watchlist-item .card-buttons .btn {
+  flex: 1 1 auto;
+  min-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0.375rem 0.75rem;
+  height: 31px;
+}
+
+@media (max-width: 768px) {
+  .watchlist-item .card-buttons {
+    flex-direction: column;
+  }
+  
+  .watchlist-item .card-buttons .btn {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .watchlist-item .card-title {
+    font-size: 1.1rem;
+    line-height: 1.3;
+  }
 }

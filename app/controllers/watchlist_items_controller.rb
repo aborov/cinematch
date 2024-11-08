@@ -1,7 +1,7 @@
 class WatchlistItemsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_watchlist_item, only: [:destroy, :toggle_watched, :reposition]
-  after_action :verify_authorized, except: [:index, :status, :count, :recent]
+  after_action :verify_authorized, except: [:index, :status, :count]
   after_action :verify_policy_scoped, only: :index
 
   def index
@@ -87,17 +87,15 @@ class WatchlistItemsController < ApplicationController
   end
 
   def recent
-    Rails.logger.debug "Recent action called"
-    items = current_user.watchlist_items.order(created_at: :desc).limit(5).map do |item|
-      content = item.content
-      { title: content.title, year: content.release_year, poster_url: content.poster_url }
-    end
-    Rails.logger.debug "Recent items: #{items.inspect}"
+    authorize WatchlistItem
+    items = current_user.watchlist_items
+                       .where(watched: false)
+                       .order(created_at: :desc)
+                       .limit(5)
+                       .map { |item| item_with_details(item) }
+                       .compact
+    
     render json: { items: items }
-  rescue => e
-    Rails.logger.error "Error in recent action: #{e.message}"
-    Rails.logger.error e.backtrace.join("\n")
-    render json: { error: 'An error occurred while fetching recent items' }, status: :internal_server_error
   end
 
   def reposition
@@ -184,6 +182,12 @@ class WatchlistItemsController < ApplicationController
     end
   rescue ActiveRecord::RecordNotFound
     render json: { status: 'error', message: 'Item not found in watchlist' }, status: :not_found
+  end
+
+  def unwatched_count
+    authorize WatchlistItem
+    count = current_user&.watchlist_items&.where(watched: false)&.count || 0
+    render json: { count: count }
   end
 
   private

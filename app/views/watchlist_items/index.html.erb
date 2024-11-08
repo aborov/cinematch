@@ -7,8 +7,9 @@
   <div class="row">
     <div class="col-md-6">
       <div class="card mb-4">
-        <div class="card-header unwatched-header">
+        <div class="card-header unwatched-header d-flex justify-content-between align-items-center">
           <h2 class="h4 mb-0">Unwatched</h2>
+          <span class="badge rounded-pill bg-warning text-dark" id="unwatched-count"><%= @unwatched_items.length %></span>
         </div>
         <div class="card-body unwatched-body" id="unwatched-list" data-controller="sortable" data-sortable-resource-url="/watchlist_items/">
           <%= render partial: 'watchlist_card', collection: @unwatched_items.compact, as: :item %>
@@ -17,8 +18,9 @@
     </div>
     <div class="col-md-6">
       <div class="card mb-4">
-        <div class="card-header watched-header">
+        <div class="card-header watched-header d-flex justify-content-between align-items-center">
           <h2 class="h4 mb-0">Watched</h2>
+          <span class="badge rounded-pill bg-light text-dark" id="watched-count"><%= @watched_items.length %></span>
         </div>
         <div class="card-body watched-body" id="watched-list" data-controller="sortable" data-sortable-resource-url="/watchlist_items/">
           <%= render partial: 'watchlist_card', collection: @watched_items.compact, as: :item %>
@@ -152,10 +154,10 @@ function updateWatchlistUI(sourceId, inWatchlist, watched, rating, showRatingPop
   // Update watched/unwatched button
   const watchButton = card.querySelector('.mark-watched, .mark-unwatched');
   if (watchButton) {
-    watchButton.className = `btn btn-sm flex-grow-1 ${watched ? 'btn-warning mark-unwatched' : 'btn-success mark-watched'}`;
+    watchButton.className = `btn btn-sm d-inline-flex align-items-center justify-content-center ${watched ? 'btn-warning mark-unwatched' : 'btn-success mark-watched'}`;
     watchButton.innerHTML = `
-      <i class="fas ${watched ? 'fa-eye-slash' : 'fa-eye'} me-1"></i>
-      <span>${watched ? 'Unwatched' : 'Watched'}</span>
+      <i class="fas ${watched ? 'fa-eye-slash' : 'fa-eye'}"></i>
+      <span class="button-text d-none d-lg-inline ms-1">${watched ? 'Unwatched' : 'Watched'}</span>
     `;
   }
 
@@ -163,12 +165,12 @@ function updateWatchlistUI(sourceId, inWatchlist, watched, rating, showRatingPop
   const rateButton = card.querySelector('.rate-item');
   if (rateButton) {
     if (rating) {
-      rateButton.className = 'btn btn-sm btn-warning rate-item rated flex-grow-1';
-      rateButton.innerHTML = `<i class="fas fa-star me-1"></i><span>Rated (${rating}/10)</span>`;
+      rateButton.className = 'btn btn-sm btn-warning rate-item rated d-inline-flex align-items-center justify-content-center flex-grow-1';
+      rateButton.innerHTML = `<i class="fas fa-star me-1"></i><span class="button-text">${rating}/10</span>`;
       rateButton.dataset.rating = rating;
     } else {
-      rateButton.className = 'btn btn-sm btn-primary rate-item flex-grow-1';
-      rateButton.innerHTML = `<i class="fas fa-star me-1"></i><span>Rate</span>`;
+      rateButton.className = 'btn btn-sm btn-primary rate-item d-inline-flex align-items-center justify-content-center flex-grow-1';
+      rateButton.innerHTML = `<i class="fas fa-star me-1"></i><span class="button-text">Rate</span>`;
       rateButton.dataset.rating = '0';
     }
   }
@@ -187,6 +189,8 @@ function updateWatchlistUI(sourceId, inWatchlist, watched, rating, showRatingPop
   if (popup && popup.querySelector(`[data-source-id="${sourceId}"]`)) {
     updatePopupUI(popup, sourceId, inWatchlist, watched, rating, showRatingPopup);
   }
+
+  updateSectionCounts();
 }
 
 function showDetailsPopup(sourceId, contentType) {
@@ -309,7 +313,7 @@ function generateModalContent(data) {
 
 function updateWatchlistNavbar() {
   Promise.all([
-    fetch('/watchlist_items/count').then(response => {
+    fetch('/watchlist_items/unwatched_count').then(response => {
       if (!response.ok) throw new Error('Count fetch failed');
       return response.json();
     }),
@@ -399,7 +403,7 @@ function createWatchlistCard(item) {
   const targetList = item.watched ? document.getElementById('watched-list') : document.getElementById('unwatched-list');
   if (targetList) {
     const newCard = document.createElement('div');
-    newCard.className = 'card mb-3 watchlist-item';
+    newCard.className = 'card mb-2 watchlist-item';
     newCard.setAttribute('data-id', item.id);
     newCard.setAttribute('data-source-id', item.source_id);
     newCard.setAttribute('data-content-type', item.content_type);
@@ -407,50 +411,68 @@ function createWatchlistCard(item) {
     newCard.setAttribute('aria-labelledby', `title-${item.source_id}`);
 
     newCard.innerHTML = `
-      <div class="row g-0">
-        <div class="col-4">
-          <img src="${item.poster_url}" class="img-fluid rounded-start" alt="${item.title} poster">
+      <div class="row g-1">
+        <div class="col-4 col-lg-3">
+          <img src="${item.poster_url}" class="card-img" alt="${item.title} poster">
         </div>
-        <div class="col-8">
-          <div class="card-body position-relative">
+        <div class="col-8 col-lg-9">
+          <div class="card-body position-relative p-2">
             <h5 class="card-title mb-1" id="title-${item.source_id}">${item.title}</h5>
-            <div class="card-text small">
-              ${[item.release_year, item.content_type.charAt(0).toUpperCase() + item.content_type.slice(1)].filter(Boolean).join(", ")}<br>
-              <strong>TMDb:</strong> ${item.vote_average}<br>
+            <div class="card-text-small text-muted mb-1">
+              ${[item.country?.replace('United States of America', 'USA'), item.release_year, item.content_type.charAt(0).toUpperCase() + item.content_type.slice(1)].filter(Boolean).join(", ")}
+            </div>
+            <div class="card-text-small text-muted mb-1">
+              <strong>TMDb:</strong> ${item.vote_average}
+            </div>
+            <div class="card-text-small text-muted mb-2">
               ${item.genres.join(", ")}
             </div>
-            <div class="d-flex justify-content-between align-items-center mt-2">
-              <button class="btn btn-sm ${item.watched ? 'btn-warning mark-unwatched' : 'btn-success mark-watched'}" 
-                      data-source-id="${item.source_id}" 
-                      data-content-type="${item.content_type}">
-                <i class="fas ${item.watched ? 'fa-eye-slash' : 'fa-eye'} me-1"></i>
-                ${item.watched ? 'Unwatched' : 'Watched'}
-              </button>
-              <button class="btn btn-sm btn-danger remove-item" 
-                      data-source-id="${item.source_id}" 
-                      data-content-type="${item.content_type}">
-                <i class="fas fa-trash-alt me-1"></i>
-                Remove
+            <div class="d-flex gap-1 mt-auto button-container">
+              <div class="d-flex gap-1 flex-grow-1 action-buttons">
+                <button class="btn btn-sm d-inline-flex align-items-center justify-content-center ${item.watched ? 'btn-warning mark-unwatched' : 'btn-success mark-watched'}"
+                        data-source-id="${item.source_id}"
+                        data-content-type="${item.content_type}"
+                        aria-label="${item.watched ? 'Mark as Unwatched' : 'Mark as Watched'}">
+                  <i class="fas ${item.watched ? 'fa-eye-slash' : 'fa-eye'}"></i>
+                  <span class="button-text d-none d-lg-inline ms-1">${item.watched ? 'Unwatched' : 'Watched'}</span>
+                </button>
+                <button class="btn btn-sm d-inline-flex align-items-center justify-content-center flex-grow-1 ${item.rating ? 'btn-warning rated' : 'btn-primary'} rate-item"
+                        data-source-id="${item.source_id}"
+                        data-content-type="${item.content_type}"
+                        data-rating="${item.rating || ''}"
+                        aria-label="${item.rating ? 'Rated ' + item.rating + '/10' : 'Rate'}">
+                  <i class="fas fa-star me-1"></i>
+                  <span class="button-text">${item.rating ? `${item.rating}/10` : 'Rate'}</span>
+                </button>
+              </div>
+              <button class="btn btn-sm btn-danger d-inline-flex align-items-center justify-content-center remove-item square-button"
+                      data-source-id="${item.source_id}"
+                      data-content-type="${item.content_type}"
+                      aria-label="Remove from Watchlist">
+                <i class="fas fa-trash-alt"></i>
+                <span class="button-text d-none d-lg-inline ms-1">Remove</span>
               </button>
             </div>
           </div>
         </div>
       </div>
-      <div class="drag-handle position-absolute top-0 start-0 p-2 text-white">
+      <div class="drag-handle position-absolute top-0 start-0 p-2">
         <i class="fas fa-grip-vertical"></i>
       </div>
     `;
 
     targetList.appendChild(newCard);
-    console.log('New card added to the DOM:', newCard);
-
-    // Attach event listeners to the new card
     attachCardEventListeners(newCard);
+    
+    // Refresh Sortable instance
+    const sortableInstance = Sortable.get(targetList);
+    if (sortableInstance) {
+      sortableInstance.option("disabled", false);
+    }
   } else {
     console.error('Target list not found for item:', item);
   }
 }
-
 function handleRating(sourceId, contentType, currentRating = 0) {
   const card = document.querySelector(`.watchlist-item[data-source-id="${sourceId}"]`);
   const title = card.querySelector('.card-title').textContent.trim();
@@ -506,14 +528,18 @@ function createRatingPopup(sourceId, contentType, title, currentRating = 0) {
   popup.dataset.sourceId = sourceId;
   popup.dataset.contentType = contentType;
   popup.innerHTML = `
-    <h3>${title}</h3>
-    <div class="rating-stars">
-      ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(star => `
-        <span class="star ${star <= currentRating ? 'active' : ''}" data-value="${star}">★</span>
-      `).join('')}
+    <div class="rating-popup-content">
+      <h3>Rate "${title}"</h3>
+      <div class="rating-stars">
+        ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(star => `
+          <span class="star ${star <= currentRating ? 'active' : ''}" data-value="${star}">★</span>
+        `).join('')}
+      </div>
+      <div>
+        <button class="btn btn-sm btn-primary submit-rating">Submit</button>
+        <button class="btn btn-sm btn-secondary cancel-rating">Cancel</button>
+      </div>
     </div>
-    <button class="btn btn-sm btn-primary submit-rating">Submit</button>
-    <button class="btn btn-sm btn-secondary cancel-rating">Cancel</button>
   `;
 
   document.body.appendChild(popup);
@@ -722,61 +748,65 @@ function addItemToWatchlist(item) {
   }
 
   const newCard = document.createElement('div');
-  newCard.className = 'card mb-3 watchlist-item';
+  newCard.className = 'card mb-2 watchlist-item';
   newCard.dataset.id = item.id;
   newCard.dataset.sourceId = item.source_id;
   newCard.dataset.contentType = item.content_type;
   newCard.setAttribute('role', 'article');
   newCard.setAttribute('aria-labelledby', `title-${item.source_id}`);
 
-  // Using the structure from _watchlist_card.html.erb
   newCard.innerHTML = `
-    <div class="row g-0">
-      <div class="col-3">
-        <img src="${item.poster_url}" class="img-fluid rounded-start" alt="${item.title} poster">
+    <div class="row g-1">
+      <div class="col-4 col-lg-3">
+        <img src="${item.poster_url}" class="card-img" alt="${item.title} poster">
       </div>
-      <div class="col-9">
-        <div class="card-body position-relative">
+      <div class="col-8 col-lg-9">
+        <div class="card-body position-relative p-2">
           <h5 class="card-title mb-1" id="title-${item.source_id}">${item.title}</h5>
-          <div class="card-text small mb-2">
-            ${[item.country, item.release_year, item.content_type.charAt(0).toUpperCase() + item.content_type.slice(1)].filter(Boolean).join(", ")}<br>
-            <strong>TMDb:</strong> ${item.vote_average}<br>
+          <div class="card-text-small text-muted mb-1">
+            ${[item.country?.replace('United States of America', 'USA'), item.release_year, item.content_type.charAt(0).toUpperCase() + item.content_type.slice(1)].filter(Boolean).join(", ")}
+          </div>
+          <div class="card-text-small text-muted mb-1">
+            <strong>TMDb:</strong> ${item.vote_average}
+          </div>
+          <div class="card-text-small text-muted mb-2">
             ${item.genres.join(", ")}
           </div>
-          <div class="d-flex gap-2 flex-md-nowrap flex-wrap">
-            <button class="btn btn-sm btn-success mark-watched flex-grow-1 d-inline-flex align-items-center justify-content-center"
-                    style="height: 31px; min-width: 104px"
-                    data-source-id="${item.source_id}" 
-                    data-content-type="${item.content_type}">
-              <i class="fas fa-eye me-1"></i>
-              <span>Watched</span>
-            </button>
-            <button class="btn btn-sm btn-primary rate-item flex-grow-1 d-inline-flex align-items-center justify-content-center"
-                    style="height: 31px; min-width: 90px"
-                    data-source-id="${item.source_id}" 
+          <div class="d-flex gap-1 mt-auto button-container">
+            <div class="d-flex gap-1 flex-grow-1 action-buttons">
+              <button class="btn btn-sm d-inline-flex align-items-center justify-content-center btn-success mark-watched"
+                      data-source-id="${item.source_id}"
+                      data-content-type="${item.content_type}"
+                      aria-label="Mark as Watched">
+                <i class="fas fa-eye"></i>
+                <span class="button-text d-none d-lg-inline ms-1">Watched</span>
+              </button>
+              <button class="btn btn-sm d-inline-flex align-items-center justify-content-center flex-grow-1 btn-primary rate-item"
+                      data-source-id="${item.source_id}"
+                      data-content-type="${item.content_type}"
+                      data-rating="0"
+                      aria-label="Rate">
+                <i class="fas fa-star me-1"></i>
+                <span class="button-text">Rate</span>
+              </button>
+            </div>
+            <button class="btn btn-sm btn-danger d-inline-flex align-items-center justify-content-center remove-item square-button"
+                    data-source-id="${item.source_id}"
                     data-content-type="${item.content_type}"
-                    data-rating="0">
-              <i class="fas fa-star me-1"></i>
-              <span>Rate</span>
-            </button>
-            <button class="btn btn-sm btn-danger remove-item flex-grow-1 d-inline-flex align-items-center justify-content-center"
-                    style="height: 31px; min-width: 90px"
-                    data-source-id="${item.source_id}" 
-                    data-content-type="${item.content_type}">
-              <i class="fas fa-trash-alt me-1"></i>
-              <span>Remove</span>
+                    aria-label="Remove from Watchlist">
+              <i class="fas fa-trash-alt"></i>
+              <span class="button-text d-none d-lg-inline ms-1">Remove</span>
             </button>
           </div>
         </div>
       </div>
     </div>
-    <div class="drag-handle position-absolute top-0 start-0 p-2 text-white">
+    <div class="drag-handle position-absolute top-0 start-0 p-2">
       <i class="fas fa-grip-vertical"></i>
     </div>
   `;
 
   targetList.appendChild(newCard);
-  console.log('New card added to the DOM:', newCard);
   attachCardEventListeners(newCard);
 }
 
@@ -838,4 +868,15 @@ function attachCardEventListeners(card) {
     });
   }
 }
+
+function updateSectionCounts() {
+  const unwatchedCount = document.getElementById('unwatched-list').querySelectorAll('.watchlist-item').length;
+  const watchedCount = document.getElementById('watched-list').querySelectorAll('.watchlist-item').length;
+  
+  document.getElementById('unwatched-count').textContent = unwatchedCount;
+  document.getElementById('watched-count').textContent = watchedCount;
+}
+
+// Add this to the end of updateWatchlistUI function (around line 189):
+updateSectionCounts();
 </script>

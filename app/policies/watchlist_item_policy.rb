@@ -29,6 +29,14 @@ class WatchlistItemPolicy < ApplicationPolicy
     record.user == user
   end
 
+  def unwatched_count?
+    true
+  end
+
+  def recent?
+    true
+  end
+
   private
 
   def user_owns_record?
