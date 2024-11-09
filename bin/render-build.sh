@@ -9,3 +9,6 @@ bundle exec rake db:migrate
 # TODO: remove later, seeding should be manual through shell
 bundle exec rake db:seed
 bundle exec rake admin:create
+
+# Fetch initial content
+bundle exec rails runner "FetchContentJob.perform_now"
