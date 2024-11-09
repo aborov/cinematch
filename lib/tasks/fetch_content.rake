@@ -36,10 +36,16 @@ namespace :tmdb do
 
   def fetch_and_store_genres
     genres = TmdbService.fetch_genres[:all_genres]
-    Genre.upsert_all(
-      genres.map { |genre| { tmdb_id: genre['id'], name: genre['name'] } },
-      unique_by: :tmdb_id
-    )
+    puts "Fetched #{genres.size} genres from TMDb"
+    
+    ActiveRecord::Base.transaction do
+      result = Genre.upsert_all(
+        genres.map { |genre| { tmdb_id: genre['id'], name: genre['name'] } },
+        unique_by: :tmdb_id
+      )
+      puts "Inserted/Updated #{result.length} genres in the database"
+    end
+    
     puts 'Genres have been fetched and stored successfully.'
     genres
   end
