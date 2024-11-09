@@ -5,7 +5,7 @@ class WatchlistItemsController < ApplicationController
   after_action :verify_policy_scoped, only: :index
 
   def index
-    base_items = policy_scope(WatchlistItem)
+    base_items = policy_scope(WatchlistItem).order(:position)
     @watchlist_items = base_items.map do |item|
       content = Content.find_by(source_id: item.source_id, content_type: item.content_type)
       next unless content
@@ -30,7 +30,6 @@ class WatchlistItemsController < ApplicationController
   end
 
   def create
-    # First find the content in contents table
     @content = Content.find_by(
       source_id: params.dig(:watchlist_item, :source_id),
       content_type: params.dig(:watchlist_item, :content_type)
@@ -41,22 +40,31 @@ class WatchlistItemsController < ApplicationController
       return
     end
 
-    # Create new watchlist item
-    @watchlist_item = current_user.watchlist_items.new(watchlist_item_params)
-    authorize @watchlist_item
-    
-    if @watchlist_item.save
-      render json: { 
-        status: 'success', 
-        in_watchlist: true, 
-        watched: @watchlist_item.watched, 
-        rating: @watchlist_item.rating 
-      }
-    else
-      render json: { 
-        status: 'error', 
-        message: @watchlist_item.errors.full_messages.join(', ') 
-      }, status: :unprocessable_entity
+    WatchlistItem.transaction do
+      # Increment positions of existing unwatched items
+      current_user.watchlist_items
+                 .where(watched: false)
+                 .update_all('position = position + 1')
+      
+      # Create new item at position 1
+      @watchlist_item = current_user.watchlist_items.new(watchlist_item_params)
+      @watchlist_item.position = 1
+      authorize @watchlist_item
+      
+      if @watchlist_item.save
+        render json: { 
+          status: 'success', 
+          in_watchlist: true, 
+          watched: @watchlist_item.watched, 
+          rating: @watchlist_item.rating,
+          item: item_with_details(@watchlist_item)
+        }
+      else
+        render json: { 
+          status: 'error', 
+          message: @watchlist_item.errors.full_messages.join(', ') 
+        }, status: :unprocessable_entity
+      end
     end
   end
 
@@ -150,11 +158,18 @@ class WatchlistItemsController < ApplicationController
     authorize @watchlist_item
     new_watched_state = !@watchlist_item.watched
     
-    # Clear rating when marking as unwatched
-    if !new_watched_state
-      @watchlist_item.update(watched: false, rating: nil)
-    else
-      @watchlist_item.update(watched: true)
+    WatchlistItem.transaction do
+      # Move other items down in the target section
+      current_user.watchlist_items
+                 .where(watched: new_watched_state)
+                 .update_all('position = position + 1')
+      
+      # Update the item and move it to position 1 in its new section
+      if new_watched_state
+        @watchlist_item.update(watched: true, position: 1)
+      else
+        @watchlist_item.update(watched: false, rating: nil, position: 1)
+      end
     end
     
     render json: { 

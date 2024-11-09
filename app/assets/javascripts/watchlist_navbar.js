@@ -29,7 +29,7 @@ function updateWatchlistNavbar() {
             <li><a class="dropdown-item text-primary" href="/watchlist_items">View All</a></li>
           `;
         } else {
-          dropdown.innerHTML = '<li><span class="dropdown-item">No items in watchlist</span></li>';
+          dropdown.innerHTML = '<li><span class="dropdown-item">No unwatched items</span></li>';
         }
       }
     })

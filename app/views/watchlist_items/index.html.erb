@@ -30,6 +30,8 @@
   </div>
 </div>
 
+<%= render "shared/footer" %>
+
 <%= render 'shared/details_modal' %>
 
 <script>
@@ -143,6 +145,7 @@ function updateWatchlistUI(sourceId, inWatchlist, watched, rating, showRatingPop
   // If item is not in watchlist, remove the card
   if (!inWatchlist) {
     card.remove();
+    updateSectionCounts();
     return;
   }
 
@@ -181,7 +184,7 @@ function updateWatchlistUI(sourceId, inWatchlist, watched, rating, showRatingPop
     document.getElementById('unwatched-list');
   
   if (targetList && card.parentElement !== targetList) {
-    targetList.appendChild(card);
+    targetList.insertBefore(card, targetList.firstChild);
   }
 
   // Update popup if open
@@ -335,14 +338,14 @@ function updateWatchlistNavbar() {
           dropdown.innerHTML = recentData.items.map(item => `
             <li><a class="dropdown-item" href="/watchlist_items">
               <img src="${item.poster_url}" alt="${item.title}" class="me-2" style="width: 30px; height: 45px; object-fit: cover;">
-              <span>${item.title} (${item.year})</span>
+              <span>${item.title} (${item.release_year})</span>
             </a></li>
           `).join('') + `
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item text-primary" href="/watchlist_items">View All</a></li>
           `;
         } else {
-          dropdown.innerHTML = '<li><span class="dropdown-item">No items in watchlist</span></li>';
+          dropdown.innerHTML = '<li><span class="dropdown-item">No unwatched items</span></li>';
         }
       }
       console.log('Watchlist navbar updated successfully');
@@ -675,7 +678,10 @@ function removeWatchlistItem(event, sourceId, contentType) {
   event.preventDefault();
   event.stopPropagation();
   
-  handleWatchlistAction('removeItem', sourceId, contentType, null);
+  handleWatchlistAction('removeItem', sourceId, contentType, null)
+    .then(() => {
+      updateSectionCounts();
+    });
 }
 
 function toggleWatched(event, sourceId, contentType) {
@@ -806,8 +812,16 @@ function addItemToWatchlist(item) {
     </div>
   `;
 
-  targetList.appendChild(newCard);
+  // Insert at the beginning of the list
+  targetList.insertBefore(newCard, targetList.firstChild);
   attachCardEventListeners(newCard);
+  updateSectionCounts();
+
+  // Refresh Sortable instance
+  const sortableInstance = Sortable.get(targetList);
+  if (sortableInstance) {
+    sortableInstance.option("disabled", false);
+  }
 }
 
 function extractDataFromPopup(popup, sourceId, contentType) {
