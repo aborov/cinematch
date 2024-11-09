@@ -6,7 +6,7 @@ Rails.application.configure do
   config.good_job.queues = '*'
   config.good_job.max_threads = 5
   config.good_job.poll_interval = 30 # seconds
-  config.good_job.shutdown_timeout = 25 # seconds
+  config.good_job.shutdown_timeout = 300 # 5 minutes
   config.good_job.enable_cron = true
   config.good_job.cron = {
     fetch_content: {

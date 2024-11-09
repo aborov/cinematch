@@ -7,15 +7,31 @@ class FetchContentJob < ApplicationJob
     
     Rails.logger.info "Starting FetchContentJob with options: #{options}"
     
-    # Execute each task in its own transaction
-    fetch_new_content if options[:fetch_new] || options.empty?
-    update_existing_content if options[:update_existing] || options.empty?
-    fill_missing_details if options[:fill_missing] || options.empty?
+    begin
+      fetch_new_content if options[:fetch_new] || options.empty?
+    rescue => e
+      Rails.logger.error "fetch_new_content failed: #{e.message}\n#{e.backtrace.join("\n")}"
+      raise e
+    end
+    
+    begin
+      update_existing_content if options[:update_existing] || options.empty?
+    rescue => e
+      Rails.logger.error "update_existing_content failed: #{e.message}\n#{e.backtrace.join("\n")}"
+      raise e
+    end
+    
+    begin
+      fill_missing_details if options[:fill_missing] || options.empty?
+    rescue => e
+      Rails.logger.error "fill_missing_details failed: #{e.message}\n#{e.backtrace.join("\n")}"
+      raise e
+    end
     
     Rails.logger.info "FetchContentJob completed successfully"
     UpdateAllRecommendationsJob.perform_later
   rescue => e
-    Rails.logger.error "FetchContentJob failed: #{e.message}"
+    Rails.logger.error "FetchContentJob failed: #{e.message}\n#{e.backtrace.join("\n")}"
     raise e
   end
 
@@ -23,25 +39,19 @@ class FetchContentJob < ApplicationJob
 
   def fetch_new_content
     Rails.logger.info "Fetching new content"
-    ActiveRecord::Base.transaction do
-      Rake::Task['tmdb:fetch_content'].invoke
-      Rake::Task['tmdb:fetch_content'].reenable
-    end
+    Rake::Task['tmdb:fetch_content'].invoke
+    Rake::Task['tmdb:fetch_content'].reenable
   end
 
   def update_existing_content
     Rails.logger.info "Updating existing content"
-    ActiveRecord::Base.transaction do
-      Rake::Task['tmdb:update_content'].invoke
-      Rake::Task['tmdb:update_content'].reenable
-    end
+    Rake::Task['tmdb:update_content'].invoke
+    Rake::Task['tmdb:update_content'].reenable
   end
 
   def fill_missing_details
     Rails.logger.info "Filling missing details"
-    ActiveRecord::Base.transaction do
-      Rake::Task['tmdb:fill_missing_details'].invoke
-      Rake::Task['tmdb:fill_missing_details'].reenable
-    end
+    Rake::Task['tmdb:fill_missing_details'].invoke
+    Rake::Task['tmdb:fill_missing_details'].reenable
   end
 end

@@ -101,5 +101,5 @@ Rails.application.configure do
   # Allow POST authenticity on Codespaces in dev
   config.action_controller.forgery_protection_origin_check = false
 
-  config.good_job.execution_mode = :async
+  config.good_job.execution_mode = :inline
 end
