@@ -11,7 +11,7 @@
           <h2 class="h4 mb-0">Unwatched</h2>
           <span class="badge rounded-pill bg-warning text-dark" id="unwatched-count"><%= @unwatched_items.length %></span>
         </div>
-        <div class="card-body unwatched-body" id="unwatched-list" data-controller="sortable" data-sortable-resource-url="/watchlist_items/">
+        <div class="card-body unwatched-body" id="unwatched-list" data-controller="sortable" data-sortable-resource-url="/watchlist/">
           <%= render partial: 'watchlist_card', collection: @unwatched_items.compact, as: :item %>
         </div>
       </div>
@@ -22,7 +22,7 @@
           <h2 class="h4 mb-0">Watched</h2>
           <span class="badge rounded-pill bg-light text-dark" id="watched-count"><%= @watched_items.length %></span>
         </div>
-        <div class="card-body watched-body" id="watched-list" data-controller="sortable" data-sortable-resource-url="/watchlist_items/">
+        <div class="card-body watched-body" id="watched-list" data-controller="sortable" data-sortable-resource-url="/watchlist/">
           <%= render partial: 'watchlist_card', collection: @watched_items.compact, as: :item %>
         </div>
       </div>
@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .indexOf(evt.item) + 1;
           const isWatched = evt.item.querySelector('.mark-unwatched') !== null;
           
-          fetch(`/watchlist_items/${sourceId}/reposition`, {
+          fetch(`/watchlist/${sourceId}/reposition`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -91,13 +91,13 @@ document.addEventListener('DOMContentLoaded', function() {
 function handleWatchlistAction(action, sourceId, contentType, element) {
   let url, method;
   if (action === 'toggleWatched') {
-    url = `/watchlist_items/${sourceId}/toggle_watched`;
+    url = `/watchlist/${sourceId}/toggle_watched`;
     method = 'POST';
   } else if (action === 'removeItem') {
-    url = `/watchlist_items/${sourceId}`;
+    url = `/watchlist/${sourceId}`;
     method = 'DELETE';
   } else if (action === 'addItem') {
-    url = `/watchlist_items`;
+    url = `/watchlist`;
     method = 'POST';
   }
 
@@ -207,7 +207,7 @@ function showDetailsPopup(sourceId, contentType) {
     })
     .then(data => {
       console.log('Recommendation data received:', data);
-      return fetch(`/watchlist_items/status?source_id=${sourceId}&content_type=${contentType}`)
+      return fetch(`/watchlist/status?source_id=${sourceId}&content_type=${contentType}`)
         .then(response => {
           if (!response.ok) {
             throw new Error('Watchlist status fetch failed');
@@ -316,11 +316,11 @@ function generateModalContent(data) {
 
 function updateWatchlistNavbar() {
   Promise.all([
-    fetch('/watchlist_items/unwatched_count').then(response => {
+    fetch('/watchlist/unwatched_count').then(response => {
       if (!response.ok) throw new Error('Count fetch failed');
       return response.json();
     }),
-    fetch('/watchlist_items/recent').then(response => {
+    fetch('/watchlist/recent').then(response => {
       if (!response.ok) throw new Error('Recent fetch failed');
       return response.json();
     })
@@ -336,13 +336,13 @@ function updateWatchlistNavbar() {
       if (dropdown) {
         if (recentData.items && recentData.items.length > 0) {
           dropdown.innerHTML = recentData.items.map(item => `
-            <li><a class="dropdown-item" href="/watchlist_items">
+            <li><a class="dropdown-item" href="/watchlist">
               <img src="${item.poster_url}" alt="${item.title}" class="me-2" style="width: 30px; height: 45px; object-fit: cover;">
               <span>${item.title} (${item.release_year})</span>
             </a></li>
           `).join('') + `
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item text-primary" href="/watchlist_items">View All</a></li>
+            <li><a class="dropdown-item text-primary" href="/watchlist">View All</a></li>
           `;
         } else {
           dropdown.innerHTML = '<li><span class="dropdown-item">No unwatched items</span></li>';
@@ -367,7 +367,7 @@ function toggleWatchlist(event, sourceId, contentType) {
   updateWatchlistUI(sourceId, !inWatchlist, false);
 
   const method = inWatchlist ? 'DELETE' : 'POST';
-  const url = inWatchlist ? `/watchlist_items/${sourceId}` : '/watchlist_items';
+  const url = inWatchlist ? `/watchlist/${sourceId}` : '/watchlist';
   
   fetch(url, {
     method: method,
@@ -482,13 +482,19 @@ function handleRating(sourceId, contentType, currentRating = 0) {
   const isWatched = card.querySelector('.mark-unwatched') !== null;
   
   if (!isWatched) {
-    // If not watched, first show rating popup, then mark as watched
+    // If not watched, show rating popup first
     return createRatingPopup(sourceId, contentType, title, currentRating)
       .then(rating => {
+        // Only mark as watched if rating was successfully submitted
         return handleWatchlistAction('toggleWatched', sourceId, contentType, null)
           .then(() => {
             return submitRating(sourceId, contentType, rating);
           });
+      })
+      .catch(error => {
+        // If rating was cancelled or failed, don't change watched status
+        console.log('Rating cancelled or failed:', error);
+        return Promise.reject(error);
       });
   } else {
     // If already watched, just show rating popup
@@ -500,7 +506,7 @@ function handleRating(sourceId, contentType, currentRating = 0) {
 }
 
 function submitRating(sourceId, contentType, rating) {
-  return fetch(`/watchlist_items/rate`, {
+  return fetch(`/watchlist/rate`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

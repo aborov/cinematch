@@ -1,10 +1,14 @@
 function updateWatchlistNavbar() {
+  console.log('Fetching watchlist counts...');
   Promise.all([
-    fetch('/watchlist_items/unwatched_count').then(response => {
+    fetch('/watchlist/unwatched_count').then(response => {
       if (!response.ok) throw new Error('Count fetch failed');
       return response.json();
+    }).then(data => {
+      console.log('Received count data:', data);
+      return data;
     }),
-    fetch('/watchlist_items/recent').then(response => {
+    fetch('/watchlist/recent').then(response => {
       if (!response.ok) throw new Error('Recent fetch failed');
       return response.json();
     })
@@ -20,19 +24,19 @@ function updateWatchlistNavbar() {
       if (dropdown) {
         if (recentData.items && recentData.items.length > 0) {
           dropdown.innerHTML = recentData.items.map(item => `
-            <li><a class="dropdown-item" href="/watchlist_items">
+            <li><a class="dropdown-item" href="/watchlist">
               <img src="${item.poster_url}" alt="${item.title}" class="me-2" style="width: 30px; height: 45px; object-fit: cover;">
               <span>${item.title} (${item.release_year})</span>
             </a></li>
           `).join('') + `
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item text-primary" href="/watchlist_items">View All</a></li>
+            <li><a class="dropdown-item text-primary" href="/watchlist">View All</a></li>
           `;
         } else {
           dropdown.innerHTML = `
             <li><span class="dropdown-item text-muted">No unwatched items</span></li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item text-primary" href="/watchlist_items">View Watchlist</a></li>
+            <li><a class="dropdown-item text-primary" href="/watchlist">View Watchlist</a></li>
           `;
         }
       }

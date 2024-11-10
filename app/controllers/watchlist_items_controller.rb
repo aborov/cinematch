@@ -187,12 +187,21 @@ class WatchlistItemsController < ApplicationController
     )
     authorize @watchlist_item
 
-    if @watchlist_item.update(rating: params[:watchlist_item][:rating])
-      render json: { status: 'success', rating: @watchlist_item.rating }
+    rating = params.dig(:watchlist_item, :rating)
+    
+    if rating.present?
+      if @watchlist_item.update(rating: rating, watched: true)
+        render json: { status: 'success', rating: @watchlist_item.rating }
+      else
+        render json: { 
+          status: 'error', 
+          message: @watchlist_item.errors.full_messages.join(', ') 
+        }, status: :unprocessable_entity
+      end
     else
       render json: { 
         status: 'error', 
-        message: @watchlist_item.errors.full_messages.join(', ') 
+        message: 'Rating cannot be empty' 
       }, status: :unprocessable_entity
     end
   rescue ActiveRecord::RecordNotFound
@@ -201,7 +210,8 @@ class WatchlistItemsController < ApplicationController
 
   def unwatched_count
     authorize WatchlistItem
-    count = current_user&.watchlist_items&.where(watched: false)&.count || 0
+    count = policy_scope(WatchlistItem).where(watched: false).count
+    Rails.logger.debug "Unwatched count: #{count}"
     render json: { count: count }
   end
 

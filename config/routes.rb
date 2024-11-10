@@ -26,7 +26,14 @@ Rails.application.routes.draw do
   resources :user_preferences, only: [:edit, :update]
   get 'recommendations/check_status', to: 'recommendations#check_status'
   resources :recommendations, only: [:index, :show]
-  resources :watchlist_items do
+
+  # Profile and watchlist routes
+  get 'profile', to: 'users#show'
+  get 'profile/edit', to: 'users#edit'
+  patch 'profile', to: 'users#update'
+  
+  get 'watchlist', to: 'watchlist_items#index'
+  resources :watchlist_items, path: 'watchlist', only: [:create, :destroy] do
     collection do
       get 'unwatched_count'
       get 'count'
@@ -39,7 +46,7 @@ Rails.application.routes.draw do
       post 'reposition'
     end
   end
-  
+
   get "contact", to: "pages#contact"
   post "send_contact_email", to: "pages#send_contact_email"
   get "terms", to: "pages#terms"
