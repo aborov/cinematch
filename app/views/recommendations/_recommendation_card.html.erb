@@ -27,8 +27,20 @@
               <span class="badge bg-warning text-danger ms-2" role="status" aria-label="Match score"><%= recommendation[:match_score].round(2) %>%</span>
             <% end %>
           </h5>
-          <div class="card-text-small text-muted mb-1" role="contentinfo" aria-label="Country and release year">
-            <%= [recommendation[:production_countries]&.first&.dig('name')&.gsub('United States of America', 'USA'), recommendation[:release_year]].compact.join(", ") %>
+          <div class="card-text-small text-muted mb-1" role="contentinfo" aria-label="Countries and release year">
+            <%= [
+              case recommendation[:production_countries]&.size
+              when nil, 0
+                nil
+              when 1
+                recommendation[:production_countries][0]['name'].gsub('United States of America', 'USA')
+              when 2
+                recommendation[:production_countries].map { |c| c['name'].gsub('United States of America', 'USA') }.join(' & ')
+              else
+                "#{recommendation[:production_countries][0]['name'].gsub('United States of America', 'USA')}, #{recommendation[:production_countries][1]['name'].gsub('United States of America', 'USA')} & #{recommendation[:production_countries].size - 2} more"
+              end,
+              recommendation[:release_year]
+            ].compact.join(", ") %>
           </div>
           <div class="card-text-small text-muted mb-1" role="contentinfo" aria-label="TMDb rating">
             <strong>TMDb:</strong> <span aria-label="TMDb rating"><%= recommendation[:vote_average] %></span>

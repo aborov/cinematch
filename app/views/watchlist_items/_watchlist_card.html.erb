@@ -14,7 +14,20 @@
           <%= item[:title] %>
         </h5>
         <div class="card-text-small text-muted mb-1">
-          <%= [item[:country]&.gsub('United States of America', 'USA'), item[:release_year], item[:content_type].capitalize].compact.join(", ") %>
+          <%= [
+            case item[:production_countries]&.size
+            when nil, 0
+              nil
+            when 1
+              item[:production_countries][0]['name'].gsub('United States of America', 'USA')
+            when 2
+              item[:production_countries].map { |c| c['name'].gsub('United States of America', 'USA') }.join(' & ')
+            else
+              "#{item[:production_countries][0]['name'].gsub('United States of America', 'USA')}, #{item[:production_countries][1]['name'].gsub('United States of America', 'USA')} & #{item[:production_countries].size - 2} more"
+            end,
+            item[:release_year],
+            item[:content_type].capitalize
+          ].compact.join(", ") %>
         </div>
         <div class="card-text-small text-muted mb-1">
           <strong>TMDb:</strong> <%= item[:vote_average] %>
