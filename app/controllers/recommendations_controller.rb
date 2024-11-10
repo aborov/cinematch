@@ -100,10 +100,18 @@ class RecommendationsController < ApplicationController
 
   def load_recommendations(page, per_page)
     offset = (page - 1) * per_page
-    content_ids = @user_preference.recommended_content_ids[offset, per_page] || []
-
-    recommendations = Content.where(id: content_ids).map do |content|
-      Rails.logger.debug "Content ID: #{content.id}, Poster URL: #{content.poster_url}"
+    
+    recommendations = Content.where(id: @user_preference.recommended_content_ids)
+    
+    if @user_preference.disable_adult_content
+      recommendations = recommendations.where(adult: [false, nil])
+    end
+    
+    recommendations = recommendations.offset(offset).limit(per_page)
+    
+    mapped_recommendations = recommendations.map do |content|
+      match_score = @user_preference.calculate_match_score(content.genre_ids_array) || 0
+      
       {
         id: content.id,
         source_id: content.source_id,
@@ -114,12 +122,11 @@ class RecommendationsController < ApplicationController
         release_year: content.release_year,
         genres: Genre.where(tmdb_id: content.genre_ids_array).pluck(:name),
         vote_average: content.vote_average,
-        match_score: @user_preference.calculate_match_score(content.genre_ids_array)
+        match_score: match_score
       }
     end
 
-    # Sort recommendations by match_score in descending order
-    recommendations.sort_by { |r| -r[:match_score] }
+    mapped_recommendations.sort_by { |r| -r[:match_score] }
   end
 
   def set_watchlist_status(recommendations)

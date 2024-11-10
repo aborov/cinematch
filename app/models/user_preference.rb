@@ -39,7 +39,10 @@ class UserPreference < ApplicationRecord
   def generate_recommendations
     return [] if personality_profiles.blank? || favorite_genres.blank?
 
-    content_with_scores = Content.all.map do |content|
+    base_content = Content.all
+    base_content = base_content.where(adult: [false, nil]) if disable_adult_content
+
+    content_with_scores = base_content.map do |content|
       {
         id: content.id,
         match_score: calculate_match_score(content.genre_ids_array)
