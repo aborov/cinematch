@@ -1,32 +1,65 @@
 <div class="good-job-dashboard">
-  <h3>Queues</h3>
-  <ul>
-    <% @queues.each do |queue| %>
-      <li><%= queue %></li>
-    <% end %>
-  </ul>
+  <div class="stats-panel">
+    <h3>Job Statistics</h3>
+    <div class="stats-grid">
+      <div class="stat-box">
+        <h4>Total Jobs</h4>
+        <p><%= GoodJob::Job.count %></p>
+      </div>
+      <div class="stat-box">
+        <h4>Last Content Fetch</h4>
+        <p><%= GoodJob::Job.where(job_class: 'FetchContentJob').finished.maximum(:finished_at)&.strftime('%Y-%m-%d %H:%M:%S') || 'Never' %></p>
+      </div>
+      <div class="stat-box">
+        <h4>Last Recommendations Update</h4>
+        <p><%= GoodJob::Job.where(job_class: 'UpdateAllRecommendationsJob').finished.maximum(:finished_at)&.strftime('%Y-%m-%d %H:%M:%S') || 'Never' %></p>
+      </div>
+    </div>
+  </div>
 
-  <h3>Jobs</h3>
-  <table>
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Queue</th>
-        <th>Class</th>
-        <th>Status</th>
-        <th>Created At</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% @jobs.order(created_at: :desc).limit(20).each do |job| %>
+  <div class="recent-jobs-panel">
+    <h3>Recent Jobs</h3>
+    <table class="jobs-table">
+      <thead>
         <tr>
-          <td><%= job.id %></td>
-          <td><%= job.queue_name %></td>
-          <td><%= job.job_class %></td>
-          <td><%= job.finished_at ? 'Finished' : (job.performed_at ? 'Running' : 'Queued') %></td>
-          <td><%= job.created_at %></td>
+          <th>Job</th>
+          <th>Queue</th>
+          <th>Status</th>
+          <th>Started At</th>
+          <th>Duration</th>
+          <th>Error</th>
         </tr>
-      <% end %>
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        <% @jobs.order(created_at: :desc).limit(20).each do |job| %>
+          <tr class="<%= job.error.present? ? 'error' : '' %>">
+            <td><%= job.job_class %></td>
+            <td><%= job.queue_name %></td>
+            <td><%= job_status(job) %></td>
+            <td><%= job.performed_at&.strftime('%Y-%m-%d %H:%M:%S') %></td>
+            <td><%= job.finished_at ? ((job.finished_at - job.performed_at).round(2) rescue nil) : nil %> sec</td>
+            <td><%= truncate(job.error, length: 50) if job.error.present? %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="content-stats-panel">
+    <h3>Content Statistics</h3>
+    <div class="stats-grid">
+      <div class="stat-box">
+        <h4>Total Content Items</h4>
+        <p><%= Content.count %></p>
+      </div>
+      <div class="stat-box">
+        <h4>Added Last 24h</h4>
+        <p><%= Content.where('created_at > ?', 24.hours.ago).count %></p>
+      </div>
+      <div class="stat-box">
+        <h4>Updated Last 24h</h4>
+        <p><%= Content.where('updated_at > ?', 24.hours.ago).count %></p>
+      </div>
+    </div>
+  </div>
 </div>

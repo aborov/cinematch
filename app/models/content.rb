@@ -52,23 +52,32 @@ class Content < ApplicationRecord
   validates :imdb_id, uniqueness: true, allow_blank: true
 
   def self.ransackable_attributes(auth_object = nil)
-    ["id", "title", "description", "poster_url", "trailer_url", "source_id", "source", "release_year", "content_type", "plot_keywords", "created_at", "updated_at", "vote_average", "vote_count", "popularity", "original_language", "runtime", "status", "tagline", "backdrop_url", "genre_ids", "production_countries", "directors", "cast", "tmdb_last_update"]
+    ["id", "title", "description", "poster_url", "trailer_url", "source_id", "source", "release_year", "content_type", "plot_keywords", "created_at", "updated_at", "vote_average", "vote_count", "popularity", "original_language", "runtime", "status", "tagline", "backdrop_url", "genre_ids", "production_countries", "directors", "cast", "tmdb_last_update", "adult"]
   end
 
   def self.ransackable_associations(auth_object = nil)
     []
   end
 
-  def genre_ids_array
-    return [] if genre_ids.blank?
-
-    if genre_ids.is_a?(String)
-      genre_ids.split(',').map(&:to_i)
-    elsif genre_ids.is_a?(Array)
-      genre_ids.map(&:to_i)
+  def parse_array_field(field)
+    return [] if self[field].blank?
+    
+    case self[field]
+    when String
+      begin
+        JSON.parse(self[field])
+      rescue JSON::ParserError
+        self[field].split(',').map(&:strip)
+      end
+    when Array
+      self[field]
     else
       []
     end
+  end
+
+  def genre_ids_array
+    parse_array_field(:genre_ids)
   end
 
   def genre_names
@@ -93,5 +102,24 @@ class Content < ApplicationRecord
 
   def users_watchlisted
     User.joins(:watchlist_items).where(watchlist_items: { source_id: source_id, content_type: content_type })
+  end
+
+  def safe_array_display(field)
+    value = self[field]
+    return "[]" if value.blank?
+    
+    begin
+      case value
+      when String
+        parsed = JSON.parse(value)
+        parsed.is_a?(Array) ? parsed.inspect : "[]"
+      when Array
+        value.inspect
+      else
+        "[]"
+      end
+    rescue JSON::ParserError
+      "[]"
+    end
   end
 end
