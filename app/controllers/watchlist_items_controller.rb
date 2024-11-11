@@ -10,7 +10,7 @@ class WatchlistItemsController < ApplicationController
       content = Content.find_by(source_id: item.source_id, content_type: item.content_type)
       next unless content
 
-      {
+      item_hash = {
         id: item.id,
         source_id: item.source_id,
         content_type: item.content_type,
@@ -19,7 +19,7 @@ class WatchlistItemsController < ApplicationController
         release_year: content.release_year,
         vote_average: content.vote_average,
         genres: content.genre_names,
-        country: content.production_countries_array&.first&.dig('name'),
+        production_countries: content.production_countries_array,
         watched: item.watched,
         rating: item.rating
       }

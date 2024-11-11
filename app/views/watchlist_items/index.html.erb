@@ -197,7 +197,6 @@ function updateWatchlistUI(sourceId, inWatchlist, watched, rating, showRatingPop
 }
 
 function showDetailsPopup(sourceId, contentType) {
-  console.log('showDetailsPopup called with:', sourceId, contentType);
   fetch(`/recommendations/${sourceId}?type=${contentType}`)
     .then(response => {
       if (!response.ok) {
@@ -206,7 +205,6 @@ function showDetailsPopup(sourceId, contentType) {
       return response.json();
     })
     .then(data => {
-      console.log('Recommendation data received:', data);
       return fetch(`/watchlist/status?source_id=${sourceId}&content_type=${contentType}`)
         .then(response => {
           if (!response.ok) {
@@ -215,7 +213,6 @@ function showDetailsPopup(sourceId, contentType) {
           return response.json();
         })
         .then(watchlistData => {
-          console.log('Watchlist status received:', watchlistData);
           const country = data.production_countries 
             ? data.production_countries.map(c => c.name === 'United States of America' ? 'USA' : c.name).join(', ') 
             : 'N/A';
@@ -348,9 +345,6 @@ function updateWatchlistNavbar() {
           dropdown.innerHTML = '<li><span class="dropdown-item">No unwatched items</span></li>';
         }
       }
-      console.log('Watchlist navbar updated successfully');
-      console.log('Count data:', countData);
-      console.log('Recent data:', recentData);
     })
     .catch(error => console.error('Error updating watchlist navbar:', error));
 }
@@ -358,7 +352,6 @@ function updateWatchlistNavbar() {
 function toggleWatchlist(event, sourceId, contentType) {
   event.preventDefault();
   event.stopPropagation();
-  console.log('toggleWatchlist called');
 
   const button = event.currentTarget;
   const inWatchlist = button.classList.contains('in-watchlist');
@@ -402,7 +395,6 @@ function toggleWatchlist(event, sourceId, contentType) {
 }
 
 function createWatchlistCard(item) {
-  console.log('Creating watchlist card for item:', item);
   const targetList = item.watched ? document.getElementById('watched-list') : document.getElementById('unwatched-list');
   if (targetList) {
     const newCard = document.createElement('div');
@@ -422,7 +414,10 @@ function createWatchlistCard(item) {
           <div class="card-body position-relative p-2">
             <h5 class="card-title mb-1" id="title-${item.source_id}">${item.title}</h5>
             <div class="card-text-small text-muted mb-1">
-              ${[formatCountries(item.production_countries), item.release_year, item.content_type.charAt(0).toUpperCase() + item.content_type.slice(1)].filter(Boolean).join(", ")}
+              ${[formatCountries(item.production_countries || [{ name: item.country }]), 
+                 item.release_year, 
+                 item.content_type.charAt(0).toUpperCase() + item.content_type.slice(1)
+               ].filter(Boolean).join(", ")}
             </div>
             <div class="card-text-small text-muted mb-1">
               <strong>TMDb:</strong> ${item.vote_average}
@@ -776,7 +771,7 @@ function addItemToWatchlist(item) {
         <div class="card-body position-relative p-2">
           <h5 class="card-title mb-1" id="title-${item.source_id}">${item.title}</h5>
           <div class="card-text-small text-muted mb-1">
-            ${[formatCountries(item.production_countries), item.release_year, item.content_type.charAt(0).toUpperCase() + item.content_type.slice(1)].filter(Boolean).join(", ")}
+            ${[formatCountries(item.production_countries || [{ name: item.country }]), item.release_year, item.content_type.charAt(0).toUpperCase() + item.content_type.slice(1)].filter(Boolean).join(", ")}
           </div>
           <div class="card-text-small text-muted mb-1">
             <strong>TMDb:</strong> ${item.vote_average}
@@ -901,6 +896,12 @@ function updateSectionCounts() {
 updateSectionCounts();
 
 const formatCountries = countries => {
+  // Handle legacy single country string
+  if (typeof countries === 'string') {
+    return countries.replace('United States of America', 'USA');
+  }
+  
+  // Handle array of country objects
   if (!countries || !countries.length) return '';
   if (countries.length === 1) {
     return countries[0].name.replace('United States of America', 'USA');
