@@ -414,10 +414,11 @@ function createWatchlistCard(item) {
           <div class="card-body position-relative p-2">
             <h5 class="card-title mb-1" id="title-${item.source_id}">${item.title}</h5>
             <div class="card-text-small text-muted mb-1">
-              ${[formatCountries(item.production_countries || [{ name: item.country }]), 
-                 item.release_year, 
-                 item.content_type.charAt(0).toUpperCase() + item.content_type.slice(1)
-               ].filter(Boolean).join(", ")}
+              ${[
+                formatCountries(item.production_countries || [{ name: item.country }]),
+                item.release_year,
+                item.content_type.charAt(0).toUpperCase() + item.content_type.slice(1)
+              ].filter(Boolean).join(", ")}
             </div>
             <div class="card-text-small text-muted mb-1">
               <strong>TMDb:</strong> ${item.vote_average}
@@ -762,6 +763,14 @@ function addItemToWatchlist(item) {
   newCard.setAttribute('role', 'article');
   newCard.setAttribute('aria-labelledby', `title-${item.source_id}`);
 
+  // Transform countries data if it's a comma-separated string
+  let productionCountries = item.production_countries;
+  if (typeof item.production_countries === 'string') {
+    productionCountries = item.production_countries.split(', ').map(name => ({
+      name: name
+    }));
+  }
+  
   newCard.innerHTML = `
     <div class="row g-1">
       <div class="col-4 col-lg-3">
@@ -771,7 +780,11 @@ function addItemToWatchlist(item) {
         <div class="card-body position-relative p-2">
           <h5 class="card-title mb-1" id="title-${item.source_id}">${item.title}</h5>
           <div class="card-text-small text-muted mb-1">
-            ${[formatCountries(item.production_countries || [{ name: item.country }]), item.release_year, item.content_type.charAt(0).toUpperCase() + item.content_type.slice(1)].filter(Boolean).join(", ")}
+            ${[
+              formatCountries(productionCountries || [{ name: item.country }]),
+              item.release_year,
+              item.content_type.charAt(0).toUpperCase() + item.content_type.slice(1)
+            ].filter(Boolean).join(", ")}
           </div>
           <div class="card-text-small text-muted mb-1">
             <strong>TMDb:</strong> ${item.vote_average}
@@ -840,12 +853,18 @@ function extractDataFromPopup(popup, sourceId, contentType) {
   const ratingPara = findParagraphByText('TMDb Rating:');
   const genresPara = findParagraphByText('Genres:');
 
+  // Split the countries string back into an array of objects
+  const countries = countryPara ? 
+    countryPara.textContent.split(':')[1].trim().split(', ').map(name => ({
+      name: name
+    })) : [];
+
   return {
     source_id: sourceId,
     content_type: contentType,
     title: title,
     poster_url: posterUrl,
-    country: countryPara ? countryPara.textContent.split(':')[1].trim() : 'N/A',
+    production_countries: countries,
     release_year: yearPara ? yearPara.textContent.split(':')[1].trim() : 'N/A',
     vote_average: ratingPara ? ratingPara.textContent.split(':')[1].split('(')[0].trim() : 'N/A',
     genres: genresPara ? genresPara.textContent.split(':')[1].trim().split(', ') : []
@@ -903,12 +922,16 @@ const formatCountries = countries => {
   
   // Handle array of country objects
   if (!countries || !countries.length) return '';
-  if (countries.length === 1) {
-    return countries[0].name.replace('United States of America', 'USA');
+  
+  switch (countries.length) {
+    case 0:
+      return '';
+    case 1:
+      return countries[0].name.replace('United States of America', 'USA');
+    case 2:
+      return countries.map(c => c.name.replace('United States of America', 'USA')).join(' & ');
+    default:
+      return `${countries[0].name.replace('United States of America', 'USA')}, ${countries[1].name.replace('United States of America', 'USA')} & ${countries.length - 2} more`;
   }
-  if (countries.length === 2) {
-    return countries.map(c => c.name.replace('United States of America', 'USA')).join(' & ');
-  }
-  return `${countries[0].name.replace('United States of America', 'USA')}, ${countries[1].name.replace('United States of America', 'USA')} & ${countries.length - 2} more`;
 };
 </script>
