@@ -6,11 +6,11 @@ class SurveyResponsesController < ApplicationController
   def process_responses(user, responses)
     ActiveRecord::Base.transaction do
       responses.each do |question_id, response|
-        SurveyResponse.create!(
-          user:,
-          survey_question_id: question_id,
-          response:
+        survey_response = SurveyResponse.find_or_initialize_by(
+          user: user,
+          survey_question_id: question_id
         )
+        survey_response.update!(response: response)
       end
       process_personality_profile(user)
     end
@@ -35,5 +35,7 @@ class SurveyResponsesController < ApplicationController
     else
       Rails.logger.error "Failed to update personality profile for user #{user.id}"
     end
+
+    GenerateRecommendationsJob.perform_now(user.user_preference.id)
   end
 end

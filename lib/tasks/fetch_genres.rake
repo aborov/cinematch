@@ -1,19 +1,23 @@
 # frozen_string_literal: true
+require_relative 'tmdb_tasks'
 
 namespace :tmdb do
   desc 'Fetch and store genres from TMDb'
   task fetch_genres: :environment do
-    genres = TmdbService.fetch_genres
+    puts "Starting to fetch genres..."
+    genres = TmdbService.fetch_genres[:all_genres]
+    puts "Fetched #{genres.size} genres from TMDb"
 
-    genres.each do |genre|
-      existing_genre = Genre.find_by(tmdb_id: genre['id'])
-      if existing_genre
-        existing_genre.update(name: genre['name'])
-      else
-        Genre.create(tmdb_id: genre['id'], name: genre['name'])
+    ActiveRecord::Base.transaction do
+      genres.each do |genre|
+        Genre.find_or_create_by!(tmdb_id: genre['id']) do |g|
+          g.name = genre['name']
+          puts "Creating genre: #{g.name} (#{g.tmdb_id})"
+        end
       end
     end
 
+    puts "Genres in database after update: #{Genre.count}"
     puts 'Genres have been fetched and stored successfully.'
   end
 end

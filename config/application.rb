@@ -1,6 +1,7 @@
 require_relative "boot"
 
 require "rails/all"
+require 'acts_as_list'
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
@@ -38,5 +39,7 @@ module RailsTemplate
     config.generators.system_tests = nil
 
     config.action_controller.allow_forgery_protection = true
+
+    config.active_job.queue_adapter = :good_job
   end
 end

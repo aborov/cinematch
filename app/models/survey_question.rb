@@ -4,7 +4,7 @@
 #
 # Table name: survey_questions
 #
-#  id            :integer          not null, primary key
+#  id            :bigint           not null, primary key
 #  question_text :string
 #  question_type :string
 #  created_at    :datetime         not null

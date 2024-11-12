@@ -40,4 +40,8 @@ class ApplicationController < ActionController::Base
   def authenticate_admin_user!
     redirect_to root_path, alert: 'Not authorized.' unless current_user&.admin?
   end
+
+  def set_watchlist_count
+    @watchlist_count = current_user&.watchlist_items&.where(watched: false)&.count || 0
+  end
 end

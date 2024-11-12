@@ -14,11 +14,37 @@ class UserPreferencesController < ApplicationController
 
   def update
     authorize @user_preference
-    genres = user_preference_params[:favorite_genres].reject(&:blank?)
-    if @user_preference.update(favorite_genres: genres)
-      redirect_to recommendations_path, notice: 'Preferences updated successfully.'
+    genres = process_genre_preferences(user_preference_params[:favorite_genres])
+    disable_adult_content = user_preference_params[:disable_adult_content] == '1'
+
+    if @user_preference.update(favorite_genres: genres, disable_adult_content: disable_adult_content)
+      Rails.logger.info "User preference updated: #{@user_preference.attributes}"
+      new_recommendations = @user_preference.generate_recommendations
+      if new_recommendations.present?
+        redirect_to recommendations_path, notice: 'Preferences updated successfully. Your recommendations have been updated.'
+      else
+        redirect_to recommendations_path, alert: 'Preferences updated, but we couldn\'t generate new recommendations. Please try again later.'
+      end
     else
+      Rails.logger.error "Failed to update user preference: #{@user_preference.errors.full_messages}"
+      @genres = TmdbService.fetch_genres[:user_facing_genres]
       render :edit
+    end
+  end
+
+  def create
+    @user_preference = current_user.ensure_user_preference
+    @user_preference.recommendations_generated_at = Time.current if @user_preference.new_record?
+
+    if @user_preference.update(survey_params)
+      recommendations = @user_preference.generate_recommendations
+      if recommendations.present?
+        redirect_to recommendations_path, notice: 'Survey completed. Here are your personalized recommendations!'
+      else
+        redirect_to recommendations_path, alert: 'Survey completed, but we couldn\'t generate recommendations. Please try again later.'
+      end
+    else
+      render :index
     end
   end
 
@@ -30,6 +56,23 @@ class UserPreferencesController < ApplicationController
   end
 
   def user_preference_params
-    params.require(:user_preference).permit(favorite_genres: [])
+    params.require(:user_preference).permit(:disable_adult_content, favorite_genres: [])
+  end
+
+  def process_genre_preferences(genres)
+    return [] if genres.blank?
+
+    genres.reject(&:blank?).map do |genre|
+      case genre
+      when 'Sci-Fi & Fantasy'
+        ['Science Fiction', 'Fantasy']
+      when 'Action & Adventure'
+        ['Action', 'Adventure']
+      when 'War & Politics'
+        ['War', 'Politics']
+      else
+        genre
+      end
+    end.flatten.uniq
   end
 end

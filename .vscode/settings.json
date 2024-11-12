@@ -6,7 +6,7 @@
   "editor.dragAndDrop": false,
   "editor.guides.bracketPairs": true,
   "editor.linkedEditing": true,
-  "editor.minimap.enabled": false,
+  "editor.minimap.enabled": true,
   "editor.smoothScrolling": false,
   "editor.wordWrap": "on",
   "editor.wrappingIndent": "deepIndent",

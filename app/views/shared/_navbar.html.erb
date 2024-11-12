@@ -14,6 +14,20 @@
               Hi, <%= current_user.name %>!
             </span>
           </li>
+          <li class="nav-item dropdown watchlist-group">
+            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="watchlistDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <div class="watchlist-content">
+                <i class="fas fa-bookmark fa-lg"></i>
+                <span class="font-weight-bold">Watchlist</span>
+                <span id="watchlist-count" class="badge bg-warning text-dark rounded-pill ms-2"></span>
+              </div>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end shadow" id="watchlist-dropdown" aria-labelledby="watchlistDropdown">
+              <!-- Dropdown items will be dynamically inserted here by JavaScript -->
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item text-primary" href="/watchlist">View All</a></li>
+            </ul>
+          </li>
           <% if current_user.admin? %>
             <li class="nav-item">
               <%= link_to admin_root_path, class: 'nav-link', title: 'Admin Dashboard' do %>
@@ -22,7 +36,7 @@
             </li>
           <% end %>
           <li class="nav-item">
-            <%= link_to profile_user_path(current_user), class: "nav-link", title: "Profile" do %>
+            <%= link_to profile_path, class: "nav-link", title: "Profile" do %>
               <i class="fa-solid fa-circle-user fa-2x" aria-hidden="true"></i><span class="sr-only">Profile</span>
             <% end %>
           </li>

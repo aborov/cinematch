@@ -5,12 +5,12 @@ class UsersController < ApplicationController
   skip_before_action :verify_authenticity_token, only: [:restore]
   skip_after_action :verify_authorized, only: [:restore_account_form, :restore]
   
-  def profile
+  def show
     @user = current_user
-    authorize @user, :profile?
+    authorize @user
     @user_preference = @user.user_preference || @user.build_user_preference
     @genres = Genre.all
-    Rails.logger.debug "Personality Profiles: #{@user.user_preference&.personality_profiles.inspect}"
+    render :show
   end
 
   def edit
@@ -22,7 +22,7 @@ class UsersController < ApplicationController
     @user = current_user
     authorize @user
     if @user.update(user_params)
-      redirect_to profile_user_path(@user), notice: 'Profile was successfully updated.'
+      redirect_to profile_path, notice: 'Profile was successfully updated.'
     else
       render :edit
     end

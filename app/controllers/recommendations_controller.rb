@@ -1,121 +1,147 @@
 # frozen_string_literal: true
 
+require_relative '../../lib/tasks/tmdb_tasks'
+
 class RecommendationsController < ApplicationController
   before_action :authenticate_user!
-  before_action :ensure_user_preference
-
-  GENRE_MAPPING = {
-    openness: %w[Science-Fiction Fantasy Animation],
-    conscientiousness: %w[Drama Biography History],
-    extraversion: %w[Comedy Action Adventure],
-    agreeableness: %w[Romance Family Music],
-    neuroticism: %w[Thriller Mystery Horror]
-  }.freeze
+  before_action :set_user_preference, only: [:index]
 
   def index
     authorize :recommendation, :index?
-    @user_preference = current_user.user_preference
-    if @user_preference.personality_profiles.present? && @user_preference.favorite_genres.present?
-      genres = TmdbService.fetch_genres[:all_genres]
-      @genres_map = genres.group_by { |g| g['name'] }.transform_values { |g| g.map { |gg| gg['id'] } }
+    @user_preference = current_user.ensure_user_preference
 
-      movies = TmdbService.fetch_popular_movies + TmdbService.fetch_top_rated_movies + TmdbService.fetch_upcoming_movies
-      tv_shows = TmdbService.fetch_popular_tv_shows + TmdbService.fetch_top_rated_tv_shows
-      content = (movies + tv_shows).uniq { |item| item['id'] }
-      @recommendations = calculate_recommendations(content)
-      @page = params[:page].present? ? params[:page].to_i : 1
-      per_page = 15
-      @total_pages = (@recommendations.length.to_f / per_page).ceil
-      @recommendations = @recommendations.slice((@page - 1) * per_page, per_page)
-    else
-      redirect_to surveys_path, alert: 'Please complete the survey to get personalized recommendations.'
+    @page = params[:page].present? ? params[:page].to_i : 1
+    per_page = 15
+
+    @recommendations = load_recommendations(@page, per_page)
+    set_watchlist_status(@recommendations)
+
+    @total_pages = (@user_preference.recommended_content_ids.length.to_f / per_page).ceil
+
+    respond_to do |format|
+      format.html
+      format.json do
+        if @recommendations.empty?
+          render json: { status: 'error', message: "We're having trouble displaying your recommendations. Please try refreshing the page." }
+        else
+          render json: { 
+            status: 'ready', 
+            html: render_to_string(partial: 'recommendations_list', locals: { recommendations: @recommendations, total_pages: @total_pages, current_page: @page }),
+            total_pages: @total_pages,
+            current_page: @page
+          }
+        end
+      end
     end
   end
 
   def show
     authorize :recommendation, :show?
-    @item = if params[:type] == 'movie'
-              TmdbService.fetch_movie_details(params[:id])
-            else
-              TmdbService.fetch_tv_show_details(params[:id])
-            end
-    render json: @item
+    @item = Content.find_by(source_id: params[:id], content_type: params[:type])
+
+    if @item
+      if @item.trailer_url.nil? || @item.runtime.nil?
+        details = TmdbService.fetch_details(@item.source_id, @item.content_type)
+        TmdbTasks.update_content_batch([details])
+        @item.reload
+      end
+
+      genre_names = @item.genre_names
+
+      render json: {
+        id: @item.id,
+        source_id: @item.source_id,
+        title: @item.title,
+        name: @item.title,
+        poster_path: @item.poster_url,
+        runtime: @item.runtime,
+        release_date: @item.release_year.to_s,
+        first_air_date: @item.release_year.to_s,
+        production_countries: JSON.parse(@item.production_countries || '[]'),
+        vote_average: @item.vote_average,
+        vote_count: @item.vote_count,
+        overview: @item.description,
+        trailer_url: @item.trailer_url,
+        genres: genre_names,
+        credits: {
+          crew: @item.directors.split(',').map { |name| { job: 'Director', name: name.strip } },
+          cast: @item.cast.split(',').map { |name| { name: name.strip } }
+        },
+        number_of_seasons: @item.number_of_seasons,
+        number_of_episodes: @item.number_of_episodes,
+        in_production: @item.in_production,
+        creators: @item.creators&.split(',')&.map(&:strip),
+        spoken_languages: JSON.parse(@item.spoken_languages || '[]'),
+        content_type: @item.content_type
+      }
+    else
+      Rails.logger.error("Content not found: source_id=#{params[:id]}, content_type=#{params[:type]}")
+      render json: { error: 'Content not found' }, status: :not_found
+    end
+  end
+
+  def check_status
+    @page = 1
+    per_page = 15
+    recommendations = load_recommendations(@page, per_page)
+    
+    if recommendations.present?
+      render json: { status: 'ready' }
+    else
+      render json: { status: 'processing' }
+    end
   end
 
   private
 
-  def ensure_user_preference
-    current_user.ensure_user_preference
+  def set_user_preference
+    @user_preference = current_user.user_preference || current_user.build_user_preference
   end
 
-  def calculate_recommendations(content)
-    recommendations = content.map do |item|
-      details = fetch_details(item['id'], item['media_type'] || (item['title'] ? 'movie' : 'tv'))
+  def load_recommendations(page, per_page)
+    offset = (page - 1) * per_page
+    
+    recommendations = Content.where(id: @user_preference.recommended_content_ids)
+    
+    if @user_preference.disable_adult_content
+      recommendations = recommendations.where(adult: [false, nil])
+    end
+    
+    recommendations = recommendations.offset(offset).limit(per_page)
+    
+    mapped_recommendations = recommendations.map do |content|
+      match_score = @user_preference.calculate_match_score(content.genre_ids_array) || 0
+      
       {
-        id: item['id'],
-        type: item['media_type'] || (item['title'] ? 'movie' : 'tv'),
-        title: item['title'] || item['name'],
-        poster_path: item['poster_path'],
-        country: abbreviate_country(details['production_countries']&.first&.dig('name')),
-        release_year: (item['release_date'] || item['first_air_date'])&.split('-')&.first,
-        genres: details['genres']&.map { |g| g['name'] },
-        match_score: calculate_match_score(item),
-        rating: details['vote_average'] # Include TMDb rating
+        id: content.id,
+        source_id: content.source_id,
+        content_type: content.content_type,
+        title: content.title,
+        poster_url: content.poster_url,
+        production_countries: content.production_countries_array,
+        release_year: content.release_year,
+        genres: Genre.where(tmdb_id: content.genre_ids_array).pluck(:name),
+        vote_average: content.vote_average,
+        match_score: match_score
       }
     end
-    recommendations.sort_by { |r| -r[:match_score] }
+
+    mapped_recommendations.sort_by { |r| -r[:match_score] }
   end
 
-  def fetch_details(id, type)
-    if type == 'movie'
-      TmdbService.fetch_movie_details(id)
-    else
-      TmdbService.fetch_tv_show_details(id)
+  def set_watchlist_status(recommendations)
+    watchlist_items = current_user.watchlist_items.pluck(:source_id, :content_type, :watched, :rating)
+    recommendations.each do |recommendation|
+      watchlist_item = watchlist_items.find { |item| item[0] == recommendation[:source_id].to_s && item[1] == recommendation[:content_type] }
+      if watchlist_item
+        recommendation[:in_watchlist] = true
+        recommendation[:watched] = watchlist_item[2]
+        recommendation[:rating] = watchlist_item[3]
+      else
+        recommendation[:in_watchlist] = false
+        recommendation[:watched] = false
+        recommendation[:rating] = nil
+      end
     end
-  end
-
-  def calculate_match_score(item)
-    genre_ids = item['genre_ids']
-    genres = genre_ids.flat_map { |id| @genres_map.keys.select { |k| @genres_map[k].include?(id) } }.uniq
-    big_five_score = calculate_big_five_score(genres)
-    favorite_genres_score = calculate_favorite_genres_score(genres)
-    (big_five_score * 0.7) + (favorite_genres_score * 0.3)
-  end
-
-  def calculate_big_five_score(genres)
-    profile = @user_preference.personality_profiles
-    score = 0
-    GENRE_MAPPING.each do |trait, trait_genres|
-      match = (genres & trait_genres).size
-      score += profile[trait.to_s].to_i * match # Ensure the value is converted to integer
-    end
-    score
-  end
-
-  def calculate_favorite_genres_score(genres)
-    favorite_genres = @user_preference.favorite_genres || []
-
-    # Split the favorite_genres if it's a String
-    favorite_genres = favorite_genres.split(',') if favorite_genres.is_a?(String)
-
-    favorite_genres = favorite_genres.map(&:strip).map(&:to_s) # Ensure all genres are strings and remove whitespace
-
-    combined_genres = {
-      'Sci-Fi & Fantasy' => ['Science Fiction', 'Fantasy'],
-      'Action & Adventure' => %w[Action Adventure],
-      'War & Politics' => %w[War Politics]
-    }
-
-    combined_genres.each do |combined, separates|
-      favorite_genres << combined if favorite_genres.intersect?(separates)
-    end
-
-    (genres & favorite_genres).size
-  end
-
-  def abbreviate_country(country)
-    return 'USA' if country == 'United States of America'
-
-    country
   end
 end

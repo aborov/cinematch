@@ -4,7 +4,7 @@
 #
 # Table name: users
 #
-#  id                     :integer          not null, primary key
+#  id                     :bigint           not null, primary key
 #  admin                  :boolean          default(FALSE)
 #  deleted_at             :datetime
 #  dob                    :date
@@ -40,6 +40,8 @@ class User < ApplicationRecord
 
   has_one :user_preference, dependent: :destroy
   has_many :survey_responses, dependent: :destroy
+  has_many :watchlist_items, dependent: :destroy
+  has_many :watchlist_contents, through: :watchlist_items, source: :content
 
   validates :name, presence: true
 
@@ -62,7 +64,7 @@ class User < ApplicationRecord
   end
   
   def ensure_user_preference
-    create_user_preference if user_preference.nil?
+    user_preference || create_user_preference
   end
 
   private
