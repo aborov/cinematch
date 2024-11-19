@@ -3,6 +3,7 @@
 module Users
   class RegistrationsController < Devise::RegistrationsController
     before_action :configure_permitted_parameters, if: :devise_controller?
+    prepend_before_action :check_captcha, only: [:create]
 
     protected
 
@@ -18,6 +19,25 @@ module Users
       else
         resource.update_with_password(params)
       end
+    end
+
+    def sign_up_params
+      params = super
+      if params[:dob].blank?
+        raise ActionController::ParameterMissing.new(:dob)
+      end
+      params
+    end
+
+    private
+
+    def check_captcha
+      return if verify_recaptcha
+
+      self.resource = resource_class.new sign_up_params
+      resource.validate
+      set_minimum_password_length
+      respond_with_navigational(resource) { render :new }
     end
   end
 end

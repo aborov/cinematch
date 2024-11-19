@@ -44,6 +44,7 @@ class User < ApplicationRecord
   has_many :watchlist_contents, through: :watchlist_items, source: :content
 
   validates :name, presence: true
+  validate :validate_age
 
   after_create :create_user_preference
 
@@ -65,6 +66,14 @@ class User < ApplicationRecord
   
   def ensure_user_preference
     user_preference || create_user_preference
+  end
+
+  def validate_age
+    return unless dob.present?
+    
+    if dob > 13.years.ago.to_date
+      errors.add(:dob, "You must be at least 13 years of age to register")
+    end
   end
 
   private
