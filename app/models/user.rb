@@ -52,7 +52,7 @@ class User < ApplicationRecord
 
   after_create :create_user_preference
 
-  attr_accessor :skip_password_complexity
+  attr_accessor :skip_password_complexity, :skip_age_validation
 
   scope :admins, -> { where(admin: true) }
   scope :underage, -> { where("dob > ? AND dob IS NOT NULL", 13.years.ago.to_date) }
@@ -78,6 +78,7 @@ class User < ApplicationRecord
   end
 
   def validate_age
+    return if skip_age_validation
     return unless dob.present?
     return if dob.nil?  # Extra safety check
     

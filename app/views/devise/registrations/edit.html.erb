@@ -39,7 +39,16 @@
 
             <div class="mb-3">
               <%= f.label :dob, "Date of Birth", class: "form-label" %>
-              <%= f.date_field :dob, start_year: 1900, end_year: Time.now.year, class: "form-control", optional: true %>
+              <%= f.date_field :dob, 
+                               start_year: 1900, 
+                               end_year: Time.current.year,
+                               class: "form-control",
+                               max: Time.current.to_date %>
+              <div id="ageRequirement" class="mt-2" style="display: none;">
+                <small class="req-age text-muted">
+                  <i class="bi bi-x-circle-fill"></i> You must be at least 13 years of age
+                </small>
+              </div>
             </div>
 
             <div class="mb-3">
@@ -54,15 +63,25 @@
                                                 }.to_json,
                                               } %>
               <small id="passwordHelp" class="form-text text-muted">leave blank if you don't want to change it</small>
-              <div id="passwordStrength" class="progress mt-2" style="height: 5px;">
+              <div id="passwordStrength" class="progress mt-2" style="height: 5px; display: none;">
                 <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
               </div>
-              <div id="passwordRequirements" class="mt-2">
-                <small class="req-length">At least 6 characters</small><br>
-                <small class="req-upper">At least one uppercase letter</small><br>
-                <small class="req-lower">At least one lowercase letter</small><br>
-                <small class="req-digit">At least one number</small><br>
-                <small class="req-symbol">At least one symbol</small>
+              <div id="passwordRequirements" class="mt-2" style="display: none;">
+                <small class="req-length text-muted">
+                  <i class="bi bi-x-circle-fill"></i> At least 6 characters
+                </small><br>
+                <small class="req-upper text-muted">
+                  <i class="bi bi-x-circle-fill"></i> At least one uppercase letter
+                </small><br>
+                <small class="req-lower text-muted">
+                  <i class="bi bi-x-circle-fill"></i> At least one lowercase letter
+                </small><br>
+                <small class="req-digit text-muted">
+                  <i class="bi bi-x-circle-fill"></i> At least one number
+                </small><br>
+                <small class="req-symbol text-muted">
+                  <i class="bi bi-x-circle-fill"></i> At least one symbol
+                </small>
               </div>
               <div id="passwordFeedback" class="invalid-feedback"></div>
             </div>
@@ -142,14 +161,19 @@
 
       Object.keys(reqs).forEach(req => {
         const el = passwordRequirements.querySelector(`.req-${req}`);
+        const icon = el.querySelector('.bi');
         if (reqs[req]) {
           el.classList.add('text-success');
-          el.classList.remove('text-muted');
+          el.classList.remove('text-muted', 'text-danger');
+          icon.classList.add('bi-check-circle-fill');
+          icon.classList.remove('bi-x-circle-fill');
           strength += 20;
         } else {
           el.classList.remove('text-success');
           el.classList.add('text-muted');
-          errors.push(el.textContent);
+          icon.classList.remove('bi-check-circle-fill');
+          icon.classList.add('bi-x-circle-fill');
+          errors.push(el.textContent.trim());
         }
       });
 
@@ -200,14 +224,78 @@
     }
 
     password.addEventListener('input', function() {
-      validatePasswordComplexity();
-      validatePasswordMatch();
+      const passwordStrength = document.getElementById('passwordStrength');
+      const passwordRequirements = document.getElementById('passwordRequirements');
+      
+      if (this.value.length > 0) {
+        passwordStrength.style.display = 'block';
+        passwordRequirements.style.display = 'block';
+        validatePasswordComplexity();
+        validatePasswordMatch();
+      } else {
+        passwordStrength.style.display = 'none';
+        passwordRequirements.style.display = 'none';
+        // Reset validation states
+        this.classList.remove('is-invalid', 'is-valid');
+        passwordConfirmation.classList.remove('is-invalid', 'is-valid');
+        passwordConfirmationHelp.textContent = '';
+      }
     });
 
     passwordConfirmation.addEventListener('input', validatePasswordMatch);
-    
-    // Initial validation
-    validatePasswordComplexity();
-    validatePasswordMatch();
   });
+</script>
+
+<script>
+  const dobField = document.querySelector('input[type="date"][name="user[dob]"]');
+  if (dobField) {
+    const ageRequirement = document.querySelector('#ageRequirement');
+    const ageIcon = ageRequirement.querySelector('.bi');
+    
+    function validateAge() {
+      const originalDate = new Date(dobField.getAttribute('data-original-value') || dobField.value);
+      const selectedDate = new Date(dobField.value);
+      
+      // Only show validation if the date has changed
+      if (selectedDate.getTime() !== originalDate.getTime()) {
+        ageRequirement.style.display = 'block';
+        
+        const thirteenYearsAgo = new Date();
+        const minDate = new Date('1900-01-01');
+        thirteenYearsAgo.setFullYear(thirteenYearsAgo.getFullYear() - 13);
+        
+        if (selectedDate > thirteenYearsAgo || selectedDate < minDate) {
+          const message = selectedDate < minDate ? 
+            'Date of birth cannot be earlier than 1900' : 
+            'You must be at least 13 years of age.';
+          dobField.setCustomValidity(message);
+          ageRequirement.querySelector('small').classList.remove('text-success');
+          ageRequirement.querySelector('small').classList.add('text-danger');
+          ageIcon.classList.remove('bi-check-circle-fill');
+          ageIcon.classList.add('bi-x-circle-fill');
+          dobField.classList.add('is-invalid');
+          dobField.classList.remove('is-valid');
+        } else {
+          dobField.setCustomValidity('');
+          ageRequirement.querySelector('small').classList.add('text-success');
+          ageRequirement.querySelector('small').classList.remove('text-danger', 'text-muted');
+          ageIcon.classList.add('bi-check-circle-fill');
+          ageIcon.classList.remove('bi-x-circle-fill');
+          dobField.classList.remove('is-invalid');
+          dobField.classList.add('is-valid');
+        }
+      } else {
+        // Hide validation if date hasn't changed
+        ageRequirement.style.display = 'none';
+        dobField.setCustomValidity('');
+        dobField.classList.remove('is-invalid', 'is-valid');
+      }
+    }
+    
+    // Store the original value when the page loads
+    dobField.setAttribute('data-original-value', dobField.value);
+    
+    dobField.addEventListener('change', validateAge);
+    dobField.addEventListener('input', validateAge);
+  }
 </script>
