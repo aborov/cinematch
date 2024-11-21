@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_10_21_135027) do
+ActiveRecord::Schema[7.1].define(version: 2024_11_21_164006) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "pgcrypto"
@@ -212,10 +212,12 @@ ActiveRecord::Schema[7.1].define(version: 2024_10_21_135027) do
     t.string "provider"
     t.string "uid"
     t.datetime "deleted_at"
+    t.datetime "warning_sent_at"
     t.index ["deleted_at"], name: "index_users_on_deleted_at"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+    t.index ["warning_sent_at"], name: "index_users_on_warning_sent_at"
   end
 
   create_table "watchlist_items", force: :cascade do |t|

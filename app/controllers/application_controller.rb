@@ -17,11 +17,7 @@ class ApplicationController < ActionController::Base
   end
 
   def skip_authorization?
-    devise_controller? || pages_controller? || active_admin_controller?
-  end
-
-  def active_admin_controller?
-    is_a?(ActiveAdmin::BaseController)
+    devise_controller? || pages_controller? || is_a?(ActiveAdmin::BaseController) || self.class.ancestors.include?(ActiveAdmin::BaseController)
   end
 
   def pages_controller?
