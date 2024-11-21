@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_11_21_164006) do
+ActiveRecord::Schema[7.1].define(version: 2024_11_21_201238) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "pgcrypto"
@@ -213,8 +213,10 @@ ActiveRecord::Schema[7.1].define(version: 2024_11_21_164006) do
     t.string "uid"
     t.datetime "deleted_at"
     t.datetime "warning_sent_at"
+    t.datetime "last_active_at"
     t.index ["deleted_at"], name: "index_users_on_deleted_at"
     t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["last_active_at"], name: "index_users_on_last_active_at"
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
     t.index ["warning_sent_at"], name: "index_users_on_warning_sent_at"

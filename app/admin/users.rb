@@ -74,6 +74,14 @@ ActiveAdmin.register User do
     column :admin
     column :provider
     column :created_at
+    column :last_active_at do |user|
+      if user.last_active_at
+        time_ago = time_ago_in_words(user.last_active_at)
+        status_tag(time_ago, class: user.last_active_at > 7.days.ago ? 'ok' : 'warning')
+      else
+        status_tag("Never", class: 'error')
+      end
+    end
     actions
   end
 
@@ -116,6 +124,13 @@ ActiveAdmin.register User do
       row :days_since_warning do |user|
         if user.warning_sent_at
           ((Time.current - user.warning_sent_at) / 1.day).floor
+        end
+      end
+      row :last_active_at do |user|
+        if user.last_active_at
+          "#{time_ago_in_words(user.last_active_at)} ago"
+        else
+          "Never active"
         end
       end
     end
@@ -183,6 +198,12 @@ ActiveAdmin.register User do
       ul do
         li "Warned: #{User.warned.count}"
         li "Underage Not Warned: #{User.not_warned.count}"
+      end
+
+      h4 "Activity Status"
+      ul do
+        li "Active this week: #{User.where('last_active_at > ?', 1.week.ago).count}"
+        li "Inactive > 30 days: #{User.where('last_active_at <= ? OR last_active_at IS NULL', 30.days.ago).count}"
       end
     end
   end

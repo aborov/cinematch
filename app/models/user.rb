@@ -11,6 +11,7 @@
 #  email                  :string           default(""), not null
 #  encrypted_password     :string           default(""), not null
 #  gender                 :string
+#  last_active_at         :datetime
 #  name                   :string
 #  password_changed_at    :datetime
 #  provider               :string
@@ -26,6 +27,7 @@
 #
 #  index_users_on_deleted_at            (deleted_at)
 #  index_users_on_email                 (email) UNIQUE
+#  index_users_on_last_active_at        (last_active_at)
 #  index_users_on_provider_and_uid      (provider,uid) UNIQUE
 #  index_users_on_reset_password_token  (reset_password_token) UNIQUE
 #  index_users_on_warning_sent_at       (warning_sent_at)
@@ -105,6 +107,10 @@ class User < ApplicationRecord
 
   def should_validate_password?
     new_record? || password.present? || password_confirmation.present?
+  end
+
+  def touch_last_active
+    update_column(:last_active_at, Time.current)
   end
 
   private

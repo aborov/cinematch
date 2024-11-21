@@ -2,6 +2,7 @@
 
 class ApplicationController < ActionController::Base
   include Pundit::Authorization
+  include UserActivityTracking
   after_action :verify_authorized, unless: :skip_authorization?
   # Ensure unauthorized access is handled
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
