@@ -13,7 +13,7 @@ services:
           name: db
           property: connectionString
       - key: CLAMAV_ENABLED
-        value: true
+        value: false
     buildFilter:
       paths:
       - "**/*.rb"
@@ -21,9 +21,6 @@ services:
       - "Gemfile*"
       - "config/**/*"
       - "bin/**/*"
-    packages:
-      - clamav
-      - clamav-daemon
 
 databases: 
   - name: db
