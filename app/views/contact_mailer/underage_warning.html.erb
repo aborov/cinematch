@@ -2,17 +2,30 @@
 
 <p>Dear <%= @user.name %>,</p>
 
-<p>Our records indicate that your account was created with a date of birth that shows you are under 13 years of age. According to our Terms of Service and legal requirements (Section 4.2), users must be at least 13 years old to use Cinematch.</p>
+<p>Our records indicate that your account was created with a date of birth that shows you are under 13 years old. According to our Terms of Service and legal requirements, users must be at least 13 years old to use Cinematch.</p>
 
-<p>As stated in our terms:</p>
+<p>Please take one of the following actions within the next 7 days:</p>
 
-<blockquote>
-"If we discover that a user is under the age of 13, we reserve the right to immediately terminate and delete their account without prior notice."
-</blockquote>
+<ol>
+  <li><strong>If this is an error:</strong>
+    <ul>
+      <li>Update your birth date in your <%= link_to "profile settings", @profile_url %></li>
+      <li>Or verify your age through our <%= link_to "contact form", @contact_url %> by:
+        <ul>
+          <li>Selecting "Age Verification" as the subject</li>
+          <li>Attaching a valid government ID, passport, or birth certificate</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><strong>If you are under 13:</strong> Your account will be automatically deleted after 7 days</li>
+</ol>
 
-<p>If you believe this is an error, please contact our support team immediately at info@cinematch.net with proof of age documentation.</p>
-
-<p><strong>Important:</strong> If we do not receive valid proof of age within 7 days, your account will be permanently deleted in accordance with our Terms of Service Section 9.2. This action cannot be undone, and all associated data will be removed from our systems.</p>
+<p><strong>Important:</strong> If we do not receive valid proof of age or a corrected birth date within 7 days, your account will be permanently deleted in accordance with our Terms of Service.</p>
 
 <p>Best regards,<br>
 The Cinematch Team</p>
+
+<p style="color: #666; font-size: 0.9em;">
+  If you did not create a Cinematch account, please ignore this email.
+</p>

@@ -6,3 +6,12 @@
 
 <h2>Message:</h2>
 <p><%= @message %></p>
+
+<% if attachments.any? %>
+  <h2>Attachments:</h2>
+  <ul>
+    <% attachments.each do |attachment| %>
+      <li><%= attachment.filename %> (<%= number_to_human_size(attachment.body.raw_source.length) %>)</li>
+    <% end %>
+  </ul>
+<% end %>

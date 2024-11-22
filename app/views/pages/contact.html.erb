@@ -6,7 +6,7 @@
       <div class="card">
         <h3 class="card-header">Contact Us</h3>
         <div class="card-body">
-          <%= form_tag(send_contact_email_path, method: :post) do %>
+          <%= form_tag(send_contact_email_path, method: :post, multipart: true) do %>
             <div class="mb-3">
               <%= label_tag 'contact[name]', 'Name', class: 'form-label' %>
               <%= text_field_tag 'contact[name]', @contact&.name, class: 'form-control', required: true %>
@@ -20,16 +20,38 @@
               <%= select_tag 'contact[subject]', options_for_select([
                 ['Technical Support', 'Technical Support'],
                 ['Account Inquiry', 'Account Inquiry'],
+                user_signed_in? ? ['Age Verification', 'Age Verification'] : nil,
                 ['Feedback', 'Feedback'],
                 ['Other', 'Other']
-              ], @contact&.subject), class: 'form-select', required: true %>
+              ].compact, @contact&.subject), 
+              class: 'form-select', 
+              required: true %>
             </div>
+
+            <div id="age_verification_section" style="display: none;" class="mb-3">
+              <div class="alert alert-info">
+                <h5>Age Verification Requirements:</h5>
+                <ul>
+                  <li>Acceptable documents: Government ID, Passport, Birth Certificate</li>
+                  <li>File must be JPG, PNG, or PDF format</li>
+                  <li>Maximum file size: 5MB</li>
+                  <li>Please ensure your document clearly shows your date of birth</li>
+                </ul>
+              </div>
+              <%= file_field_tag 'contact[attachment]', 
+                accept: "image/jpeg,image/png,application/pdf",
+                class: "form-control",
+                data: { max_size: 5.megabytes } %>
+            </div>
+
             <div class="mb-3">
               <%= label_tag 'contact[message]', 'Message', class: 'form-label' %>
               <%= text_area_tag 'contact[message]', @contact&.message, class: 'form-control', rows: 5, required: true %>
             </div>
             <div class="mb-3">
-              <%= recaptcha_tags %>
+              <% if Rails.env.production? %>
+                <%= recaptcha_tags %>
+              <% end %>
             </div>
             <%= submit_tag 'Send Message', class: 'btn btn-primary' %>
           <% end %>
@@ -38,3 +60,60 @@
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const subjectSelect = document.querySelector('select[name="contact[subject]"]');
+    const ageVerificationSection = document.getElementById('age_verification_section');
+    const fileInput = document.querySelector('input[name="contact[attachment]"]');
+
+    if (subjectSelect) {
+      // Initial check
+      if (subjectSelect.value === 'Age Verification') {
+        ageVerificationSection.style.display = 'block';
+      }
+
+      // Change event
+      subjectSelect.addEventListener('change', function() {
+        ageVerificationSection.style.display = 
+          this.value === 'Age Verification' ? 'block' : 'none';
+      });
+    }
+
+    if (fileInput) {
+      fileInput.addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const maxSize = parseInt(this.dataset.maxSize);
+        
+        if (file.size > maxSize) {
+          event.target.value = '';
+          alert('File size must be less than 5MB');
+          return;
+        }
+        
+        const validTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+        if (!validTypes.includes(file.type)) {
+          event.target.value = '';
+          alert('File must be JPG, PNG, or PDF format');
+          return;
+        }
+      });
+    }
+
+    // Get the subject from URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const subjectParam = urlParams.get('contact[subject]');
+    
+    // If there's a subject parameter, set it in the select
+    if (subjectParam) {
+      const subjectSelect = document.querySelector('select[name="contact[subject]"]');
+      if (subjectSelect) {
+        subjectSelect.value = subjectParam;
+        // Trigger change event to activate any dependent UI
+        subjectSelect.dispatchEvent(new Event('change'));
+      }
+    }
+  });
+</script>
