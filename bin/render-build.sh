@@ -2,14 +2,6 @@
 # exit on error
 set -o errexit
 
-# Install ClamAV without sudo
-apt-get update
-apt-get install -y clamav clamav-daemon
-freshclam
-mkdir -p /var/lib/clamav
-chown -R render:render /var/lib/clamav
-service clamav-daemon start
-
 bundle install
 bundle exec rake assets:precompile
 bundle exec rake assets:clean
