@@ -1,24 +1,19 @@
 if Rails.env.production?
   require 'clamav/client'
-  ClamAV.configure do |config|
-    config.location = '/usr/local/bin/clamscan'
-    config.error_clamscan_missing = true
-    config.error_file_missing = true
-    config.error_file_virus = true
-  end
-end
-
-# Add mock ClamAV client for development
-unless Rails.env.production?
-  module ClamAV
-    class MockScanner
-      def self.scan_file(_path)
-        OpenStruct.new(clean?: true)
-      end
-    end
-
-    def self.instance
-      MockScanner
-    end
-  end
+  
+  CLAM_SCANNER = ClamAV::Client.new(
+    location: '/usr/local/bin/clamscan',
+    raise_errors: true,
+    options: {
+      database: '/var/lib/clamav',
+      stdout: true,
+      recursive: true,
+      quiet: true
+    }
+  )
+else
+  # Mock scanner that matches the production interface
+  CLAM_SCANNER = OpenStruct.new(
+    scan_file: ->(_path) { OpenStruct.new(clean?: true) }
+  )
 end 

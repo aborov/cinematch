@@ -8,18 +8,17 @@ class ContactMailer < ApplicationMailer
     @subject = subject
     @message = message
     
-    if attachment && attachment.content_type.in?(['image/jpeg', 'image/png', 'application/pdf'])
+    if attachment.present?
       begin
-        # Skip virus scan in development
-        if Rails.env.production?
-          scan_result = ClamAV.instance.scan_file(attachment.tempfile.path)
-          raise SecurityError, "File failed security scan" unless scan_result.clean?
-        end
+        secure_attachment = FileSecurityService.validate_and_sanitize(attachment)
         
-        attachments[attachment.original_filename] = {
-          mime_type: attachment.content_type,
-          content: attachment.read
+        attachments[secure_attachment.original_filename] = {
+          mime_type: secure_attachment.content_type,
+          content: secure_attachment.read
         }
+      rescue FileSecurityService::FileSecurityError => e
+        Rails.logger.error "File security error: #{e.message}"
+        raise
       rescue StandardError => e
         Rails.logger.error "Attachment processing error: #{e.message}"
         raise SecurityError, "File processing failed"

@@ -12,6 +12,8 @@ services:
         fromDatabase:
           name: db
           property: connectionString
+      - key: CLAMAV_ENABLED
+        value: true
 databases: 
   - name: db
     plan: starter
