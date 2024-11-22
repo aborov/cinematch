@@ -11,10 +11,9 @@ class ContactMailer < ApplicationMailer
     if attachment.present?
       begin
         secure_attachment = FileSecurityService.validate_and_sanitize(attachment)
-        
         attachments[secure_attachment.original_filename] = {
-          mime_type: secure_attachment.content_type,
-          content: secure_attachment.read
+          content: secure_attachment.read,
+          content_type: secure_attachment.content_type
         }
       rescue FileSecurityService::FileSecurityError => e
         Rails.logger.error "File security error: #{e.message}"

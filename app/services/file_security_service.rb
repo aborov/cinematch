@@ -45,8 +45,13 @@ class FileSecurityService
   end
 
   def scan_for_viruses
+    return unless Rails.env.production? && ENV['CLAMAV_ENABLED'] == 'true'
+    
     scan_result = CLAM_SCANNER.scan_file(@attachment.tempfile.path)
     raise FileSecurityError, 'File failed security scan' unless scan_result.clean?
+  rescue StandardError => e
+    Rails.logger.error "Virus scan error: #{e.message}"
+    raise FileSecurityError, 'File security scan failed'
   end
 
   def sanitize_filename
