@@ -1,13 +1,36 @@
 class Users::SessionsController < Devise::SessionsController
-  def create
-    super do |resource|
-      if resource.persisted?
-        if request.xhr?
-          render json: { success: true, redirect: root_path } and return
-        else
-          redirect_to root_path and return
-        end
+  prepend_before_action :check_user_confirmation, only: [:create]
+  skip_before_action :verify_authenticity_token, only: :create
+  
+  def new
+    Rails.logger.info "=== Starting Sessions#new ==="
+    super
+  end
+
+  protected
+
+  def check_user_confirmation
+    Rails.logger.warn "=== Checking user confirmation ==="
+    user = User.find_by(email: sign_in_params[:email])
+    Rails.logger.warn "Found user: #{user&.id}, Confirmed: #{user&.confirmed?}, Confirmation sent at: #{user&.confirmation_sent_at}"
+    
+    if user && !user.confirmed?
+      Rails.logger.warn "User #{user.id} is unconfirmed, sending instructions"
+      begin
+        # Use Devise's public API
+        token = user.confirmation_token || user.send(:generate_confirmation_token)
+        Devise.mailer.confirmation_instructions(user, token).deliver_now
+        Rails.logger.warn "Confirmation instructions sent synchronously"
+      rescue => e
+        Rails.logger.error "Error sending confirmation: #{e.full_message}"
       end
+      flash[:notice] = t('devise.confirmations.send_instructions')
+      redirect_to new_user_session_path
+      return false
     end
+  end
+
+  def auth_options
+    { scope: resource_name, recall: "#{controller_path}#new" }
   end
 end

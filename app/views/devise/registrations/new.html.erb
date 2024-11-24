@@ -115,15 +115,20 @@
             </div>
 
             <div class="mb-3">
-              <%= recaptcha_tags %>
+              <div class="d-none d-sm-block">
+                <%= recaptcha_tags size: "normal" %>
+              </div>
+              <div class="d-block d-sm-none">
+                <%= recaptcha_tags size: "compact" %>
+              </div>
             </div>
 
-            <div class="d-flex justify-content-between align-items-center">
+            <div class="btn-group-responsive">
               <div>
-                <%= f.submit "Create Account", class: "btn btn-primary" %>
+                <%= f.submit "Create Account", class: "btn btn-primary w-100" %>
               </div>
-              <div class="d-flex align-items-center">
-                <%= link_to "Sign In", new_user_session_path, class: "btn btn-outline-primary me-2" %>
+              <div class="btn-group">
+                <%= link_to "Sign In", new_user_session_path, class: "btn btn-outline-primary" %>
                 <%= link_to "Restore", restore_account_path, class: "btn btn-outline-secondary" %>
               </div>
             </div>

@@ -8,9 +8,12 @@ Rails.application.routes.draw do
   root to: "pages#landing"
 
   devise_for :users, controllers: {
-            passwords: "users/passwords",
-            registrations: "users/registrations",
-            sessions: "users/sessions"
+            passwords: 'users/passwords',
+            registrations: 'users/registrations',
+            sessions: 'users/sessions',
+            confirmations: 'users/confirmations',
+            unlocks: 'users/unlocks',
+            omniauth_callbacks: 'users/omniauth_callbacks'
           }
 
   resources :users, only: [:show, :edit, :update, :destroy] do

@@ -1,26 +1,27 @@
-<% content_for :title, "Forgot Your Password?" %>
-<% content_for :h1, "Forgot Your Password?" %>
+<% content_for :title, "Resend Confirmation Instructions" %>
+<% content_for :h1, "Resend Confirmation Instructions" %>
+
 <div class="container">
   <div class="row justify-content-center align-items-center" style="min-height: calc(100vh - 200px);">
-    <div class="col-12 col-sm-6 col-md-6 col-lg-5 col-xl-3">
+    <div class="col-12 col-sm-8 col-md-6 col-lg-5 col-xl-3">
       <div class="card">
-        <h3 class="card-header">Forgot Your Password?</h3>
+        <h3 class="card-header">Confirm Account</h3>
 
         <div class="card-body">
-          <%= form_for(resource, as: resource_name, url: password_path(resource_name)) do |f| %>
+          <%= form_for(resource, as: resource_name, url: confirmation_path(resource_name), html: { method: :post }) do |f| %>
             <%= render "devise/shared/error_messages", resource: resource %>
 
             <div class="mb-3">
               <%= f.label :email, class: "form-label" %>
               <%= f.email_field :email, autofocus: true, class: "form-control" %>
               <small class="form-text text-muted">
-                Enter your email address and we will send you instructions to reset your password.
+                Enter your email address and we will resend the confirmation instructions.
               </small>
             </div>
 
             <div class="d-flex justify-content-between">
               <%= link_to "Back", new_user_session_path, class: "btn btn-secondary" %>
-              <%= f.submit "Send Reset Instructions", class: "btn btn-primary" %>
+              <%= f.submit "Resend Instructions", class: "btn btn-primary" %>
             </div>
           <% end %>
         </div>
