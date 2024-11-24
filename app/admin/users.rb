@@ -118,8 +118,22 @@ ActiveAdmin.register User do
       row :admin
       row :provider
       row :uid
-      row :created_at
-      row :updated_at
+      
+      # Devise Authentication Info
+      row :sign_in_count
+      row :current_sign_in_at
+      row :last_sign_in_at
+      row :current_sign_in_ip
+      row :last_sign_in_ip
+      row :failed_attempts
+      
+      # Confirmation Status
+      row :confirmed_at
+      row :confirmation_sent_at
+      row :unconfirmed_email
+      
+      # Account Status
+      row :locked_at
       row :warning_sent_at
       row :days_since_warning do |user|
         if user.warning_sent_at
@@ -133,6 +147,11 @@ ActiveAdmin.register User do
           "Never active"
         end
       end
+      
+      # Timestamps
+      row :created_at
+      row :updated_at
+      row :deleted_at
     end
 
     panel "User Preferences" do
