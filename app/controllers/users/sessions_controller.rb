@@ -17,9 +17,12 @@ class Users::SessionsController < Devise::SessionsController
     if user && !user.confirmed?
       Rails.logger.warn "User #{user.id} is unconfirmed, sending instructions"
       begin
-        # Use Devise's public API
-        token = user.confirmation_token || user.send(:generate_confirmation_token)
-        Devise.mailer.confirmation_instructions(user, token).deliver_now
+        # Only send new instructions if no token exists or it's expired
+        if user.confirmation_token.nil? || user.confirmation_period_expired?
+          user.send_confirmation_instructions
+        else
+          Devise.mailer.confirmation_instructions(user, user.confirmation_token).deliver_now
+        end
         Rails.logger.warn "Confirmation instructions sent synchronously"
       rescue => e
         Rails.logger.error "Error sending confirmation: #{e.full_message}"

@@ -1,3 +1,8 @@
 class Users::ConfirmationsController < Devise::ConfirmationsController
-  # No CAPTCHA needed for confirmation
+  protected
+
+  def after_confirmation_path_for(resource_name, resource)
+    sign_in(resource)
+    recommendations_path
+  end
 end 
