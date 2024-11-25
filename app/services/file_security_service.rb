@@ -1,6 +1,6 @@
 class FileSecurityService
   ALLOWED_CONTENT_TYPES = ['image/jpeg', 'image/png', 'application/pdf'].freeze
-  MAX_FILE_SIZE = 10.megabytes
+  MAX_FILE_SIZE = 5.megabytes
   ALLOWED_EXTENSIONS = %w[.jpg .jpeg .png .pdf].freeze
 
   class FileSecurityError < StandardError; end
