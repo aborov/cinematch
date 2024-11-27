@@ -32,7 +32,8 @@
   function checkRecommendationsStatus() {
     fetch('/recommendations/check_status', {
       headers: {
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
       }
     })
       .then(response => response.json())
@@ -137,7 +138,8 @@
       method: method,
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+        'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content,
+        'X-Requested-With': 'XMLHttpRequest'
       },
       body: body
     })
@@ -272,7 +274,8 @@
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+          'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content,
+          'X-Requested-With': 'XMLHttpRequest'
         },
         body: JSON.stringify({
           watchlist_item: {
@@ -293,7 +296,8 @@
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+        'X-Requested-With': 'XMLHttpRequest'
       },
       body: JSON.stringify({ content_type: contentType, watched: watched })
     })
@@ -321,11 +325,21 @@
 
   function updateWatchlistNavbar() {
     Promise.all([
-      fetch('/watchlist/unwatched_count').then(response => {
+      fetch('/watchlist/unwatched_count', {
+        headers: {
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      }).then(response => {
         if (!response.ok) throw new Error('Count fetch failed');
         return response.json();
       }),
-      fetch('/watchlist/recent').then(response => {
+      fetch('/watchlist/recent', {
+        headers: {
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      }).then(response => {
         if (!response.ok) throw new Error('Recent fetch failed');
         return response.json();
       })
@@ -406,7 +420,8 @@
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+          'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content,
+          'X-Requested-With': 'XMLHttpRequest'
         },
         body: JSON.stringify({
           watchlist_item: {
@@ -556,7 +571,8 @@
       method: method,
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+        'X-Requested-With': 'XMLHttpRequest'
       },
     })
     .then(response => {

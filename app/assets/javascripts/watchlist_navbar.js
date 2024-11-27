@@ -1,14 +1,24 @@
 function updateWatchlistNavbar() {
   console.log('Fetching watchlist counts...');
   Promise.all([
-    fetch('/watchlist/unwatched_count').then(response => {
+    fetch('/watchlist/unwatched_count', {
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    }).then(response => {
       if (!response.ok) throw new Error('Count fetch failed');
       return response.json();
     }).then(data => {
       console.log('Received count data:', data);
       return data;
     }),
-    fetch('/watchlist/recent').then(response => {
+    fetch('/watchlist/recent', {
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    }).then(response => {
       if (!response.ok) throw new Error('Recent fetch failed');
       return response.json();
     })
