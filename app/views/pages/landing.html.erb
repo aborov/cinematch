@@ -28,7 +28,7 @@
 
   <a id="features" aria-hidden="true" style="visibility:hidden;" aria-label="Features section"></a>
   <section id="features" class="features-section">
-    <div class="background-gradient"></div>
+    <div class="background-overlay"></div>
     <div class="content-wrapper">
       <div class="logo-container animate-on-scroll" data-animation="fade-in">
         <img src="<%= asset_path("logos/cm_logo1_glare1.svg") %>" alt="Cinematch Logo" class="logo">
@@ -125,12 +125,12 @@
       <div class="footer-content">
         <div class="logo-container animate-on-scroll" data-animation="fade-in">
           <img src="<%= asset_path("logos/cm_logo1_mint.svg") %>" alt="Cinematch Logo" class="footer-logo">
+          <p class="copyright" style="text-align: center;">© <%= Date.today.year %> Cinematch.</p>
         </div>
-        <div class="footer-links-copyright animate-on-scroll" data-animation="fade-in">
-          <%= link_to "Terms of Service", terms_path, class: "footer-link" %> 
+         <div class="footer-links-copyright animate-on-scroll" data-animation="fade-in">
+          <%= link_to "Contact Us", contact_path, class: "footer-link" %> <br>
+          <%= link_to "Terms of Service", terms_path, class: "footer-link" %> <br>
           <%= link_to "Privacy Policy", privacy_path, class: "footer-link" %>
-          <%= link_to "Contact Us", contact_path, class: "footer-link" %>
-          <p class="copyright">© <%= Date.today.year %> Cinematch.</p>
         </div>
       </div>
     </div>

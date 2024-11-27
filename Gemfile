@@ -9,6 +9,7 @@ gem 'acts_as_list'
 gem 'appdev_support'
 gem 'awesome_print'
 gem 'bootsnap', require: false
+gem 'clamav-client'
 gem 'csso-rails'
 gem 'devise'
 gem 'devise-security'

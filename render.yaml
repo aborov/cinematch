@@ -12,6 +12,16 @@ services:
         fromDatabase:
           name: db
           property: connectionString
+      - key: CLAMAV_ENABLED
+        value: false
+    buildFilter:
+      paths:
+      - "**/*.rb"
+      - "**/*.erb"
+      - "Gemfile*"
+      - "config/**/*"
+      - "bin/**/*"
+
 databases: 
   - name: db
     plan: starter

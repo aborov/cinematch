@@ -1,5 +1,5 @@
-<% content_for :title, "Create New Account" %>
-<% content_for :h1, "Create New Account" %>
+<% content_for(:title) { "Create New Account" } %>
+<% content_for(:h1) { "Create New Account" } %>
 <div class="container">
   <div class="row justify-content-center align-items-center" style="min-height: calc(100vh - 200px);">
     <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5">
@@ -45,34 +45,57 @@
 
             <div class="mb-3">
               <%= f.label :dob, class: "form-label" do %>
-                Date of Birth <span class="text-muted small">(optional)</span>
+                Date of Birth <span class="text-danger">*</span>
               <% end %>
-              <%= f.date_field :dob, start_year: 1900, end_year: Time.now.year, class: "form-control" %>
+              <%= f.date_field :dob, 
+                               start_year: 1900, 
+                               end_year: Time.current.year,
+                               class: "form-control",
+                               required: true,
+                               max: Time.current.to_date %>
+              <div id="ageRequirement" class="mt-2">
+                <small class="req-age text-muted">
+                  <i class="bi bi-x-circle-fill"></i> You must be at least 13 years of age
+                </small>
+              </div>
             </div>
 
             <div class="mb-3">
               <%= f.label :password, class: "form-label" do %>
                 Password <span class="text-danger">*</span>
               <% end %>
-              <%= f.password_field :password, autocomplete: "new-password", class: "form-control",
-                                  required: true,
-                                  data: {
-                                    complexity: {
-                                      digit: 1,
-                                      lower: 1,
-                                      symbol: 1,
-                                      upper: 1,
-                                    }.to_json,
-                                  } %>
+              <%= f.password_field :password,
+                                   id: "user_password",
+                                   autocomplete: "new-password", 
+                                   class: "form-control",
+                                   required: true,
+                                   data: {
+                                     complexity: {
+                                       digit: 1,
+                                       lower: 1,
+                                       symbol: 1,
+                                       upper: 1,
+                                     }.to_json,
+                                   } %>
               <div id="passwordStrength" class="progress mt-2" style="height: 5px;">
                 <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
               </div>
               <div id="passwordRequirements" class="mt-2">
-                <small class="req-length">At least 6 characters</small><br>
-                <small class="req-upper">At least one uppercase letter</small><br>
-                <small class="req-lower">At least one lowercase letter</small><br>
-                <small class="req-digit">At least one number</small><br>
-                <small class="req-symbol">At least one symbol</small>
+                <small class="req-length text-muted">
+                  <i class="bi bi-x-circle-fill"></i> At least 6 characters
+                </small><br>
+                <small class="req-upper text-muted">
+                  <i class="bi bi-x-circle-fill"></i> At least one uppercase letter
+                </small><br>
+                <small class="req-lower text-muted">
+                  <i class="bi bi-x-circle-fill"></i> At least one lowercase letter
+                </small><br>
+                <small class="req-digit text-muted">
+                  <i class="bi bi-x-circle-fill"></i> At least one number
+                </small><br>
+                <small class="req-symbol text-muted">
+                  <i class="bi bi-x-circle-fill"></i> At least one symbol
+                </small>
               </div>
               <div id="passwordFeedback" class="invalid-feedback"></div>
             </div>
@@ -91,12 +114,21 @@
               </p>
             </div>
 
-            <div class="d-flex justify-content-between align-items-center">
-              <div>
-                <%= f.submit "Create Account", class: "btn btn-primary" %>
+            <div class="mb-3">
+              <div class="d-none d-sm-block">
+                <%= recaptcha_tags size: "normal" %>
               </div>
-              <div class="d-flex align-items-center">
-                <%= link_to "Sign In", new_user_session_path, class: "btn btn-outline-primary me-2" %>
+              <div class="d-block d-sm-none">
+                <%= recaptcha_tags size: "compact" %>
+              </div>
+            </div>
+
+            <div class="btn-group-responsive">
+              <div>
+                <%= f.submit "Create Account", class: "btn btn-primary w-100" %>
+              </div>
+              <div class="btn-group">
+                <%= link_to "Sign In", new_user_session_path, class: "btn btn-outline-primary" %>
                 <%= link_to "Restore", restore_account_path, class: "btn btn-outline-secondary" %>
               </div>
             </div>
@@ -131,14 +163,19 @@
 
       Object.keys(reqs).forEach(req => {
         const el = passwordRequirements.querySelector(`.req-${req}`);
+        const icon = el.querySelector('.bi');
         if (reqs[req]) {
           el.classList.add('text-success');
-          el.classList.remove('text-muted');
+          el.classList.remove('text-muted', 'text-danger');
+          icon.classList.add('bi-check-circle-fill');
+          icon.classList.remove('bi-x-circle-fill');
           strength += 20;
         } else {
           el.classList.remove('text-success');
           el.classList.add('text-muted');
-          errors.push(el.textContent);
+          icon.classList.remove('bi-check-circle-fill');
+          icon.classList.add('bi-x-circle-fill');
+          errors.push(el.textContent.trim());
         }
       });
 
@@ -198,5 +235,47 @@
     // Initial validation
     validatePasswordComplexity();
     validatePasswordMatch();
+
+    const dobField = document.querySelector('input[type="date"][name="user[dob]"]');
+    if (dobField) {
+      const ageRequirement = document.querySelector('.req-age');
+      const ageIcon = ageRequirement.querySelector('.bi');
+      
+      function validateAge() {
+        const selectedDate = new Date(dobField.value);
+        const thirteenYearsAgo = new Date();
+        const minDate = new Date('1900-01-01');
+        thirteenYearsAgo.setFullYear(thirteenYearsAgo.getFullYear() - 13);
+        
+        if (selectedDate > thirteenYearsAgo || selectedDate < minDate) {
+          const message = selectedDate < minDate ? 
+            'Date of birth cannot be earlier than 1900' : 
+            'You must be at least 13 years of age to register.';
+          dobField.setCustomValidity(message);
+          ageRequirement.classList.remove('text-success');
+          ageRequirement.classList.add('text-danger');
+          ageIcon.classList.remove('bi-check-circle-fill');
+          ageIcon.classList.add('bi-x-circle-fill');
+          dobField.classList.add('is-invalid');
+          dobField.classList.remove('is-valid');
+        } else {
+          dobField.setCustomValidity('');
+          ageRequirement.classList.add('text-success');
+          ageRequirement.classList.remove('text-danger', 'text-muted');
+          ageIcon.classList.add('bi-check-circle-fill');
+          ageIcon.classList.remove('bi-x-circle-fill');
+          dobField.classList.remove('is-invalid');
+          dobField.classList.add('is-valid');
+        }
+      }
+      
+      dobField.addEventListener('change', validateAge);
+      dobField.addEventListener('input', validateAge);
+      
+      // Initial validation
+      if (dobField.value) {
+        validateAge();
+      }
+    }
   });
 </script>

@@ -1,0 +1,21 @@
+<h2>Important Notice Regarding Your Cinematch Account</h2>
+
+<p>Dear <%= @user.name %>,</p>
+
+<p>Our records indicate that your account was created with a date of birth that shows you are under 13 years old. According to our Terms of Service and legal requirements, users must be at least 13 years old to use Cinematch.</p>
+
+<p>Please take one of the following actions within the next 7 days:</p>
+
+<ol>
+  <li><strong>If this is an error:</strong> Log into your account and update your birth date in your <%= link_to "profile settings", @profile_url %></li>
+  <li><strong>If you are under 13:</strong> Your account will be automatically deleted after 7 days</li>
+</ol>
+
+<p><strong>Important:</strong> If you do not update your birth date within 7 days, your account will be permanently deleted in accordance with our Terms of Service.</p>
+
+<p>Best regards,<br>
+The Cinematch Team</p>
+
+<p style="color: #666; font-size: 0.9em;">
+  If you did not create a Cinematch account, please ignore this email.
+</p>

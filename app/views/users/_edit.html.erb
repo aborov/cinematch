@@ -21,10 +21,73 @@
   </div>
   <div class="mb-3">
     <%= f.label :dob, "Date of Birth", class: "form-label" %>
-    <%= f.date_field :dob, start_year: 1900, end_year: Time.now.year, class: "form-control" %>
+    <%= f.date_field :dob, 
+                     start_year: 1900, 
+                     end_year: Time.current.year,
+                     class: "form-control",
+                     max: Time.current.to_date %>
+    <div id="ageRequirement" class="mt-2" style="display: none;">
+      <small class="req-age text-muted">
+        <i class="bi bi-x-circle-fill"></i> You must be at least 13 years of age
+      </small>
+    </div>
   </div>
   <div>
     <%= f.submit "Update", class: "btn btn-primary" %>
     <%= link_to "Edit Account Data", edit_user_registration_path, class: "btn btn-primary" %>
   </div>
 <% end %>
+
+<script>
+  const dobField = document.querySelector('input[type="date"][name="user[dob]"]');
+  if (dobField) {
+    const ageRequirement = document.querySelector('#ageRequirement');
+    const ageIcon = ageRequirement.querySelector('.bi');
+    
+    function validateAge() {
+      const originalDate = new Date(dobField.getAttribute('data-original-value') || dobField.value);
+      const selectedDate = new Date(dobField.value);
+      
+      // Only show validation if the date has changed
+      if (selectedDate.getTime() !== originalDate.getTime()) {
+        ageRequirement.style.display = 'block';
+        
+        const thirteenYearsAgo = new Date();
+        const minDate = new Date('1900-01-01');
+        thirteenYearsAgo.setFullYear(thirteenYearsAgo.getFullYear() - 13);
+        
+        if (selectedDate > thirteenYearsAgo || selectedDate < minDate) {
+          const message = selectedDate < minDate ? 
+            'Date of birth cannot be earlier than 1900' : 
+            'You must be at least 13 years of age.';
+          dobField.setCustomValidity(message);
+          ageRequirement.querySelector('small').classList.remove('text-success');
+          ageRequirement.querySelector('small').classList.add('text-danger');
+          ageIcon.classList.remove('bi-check-circle-fill');
+          ageIcon.classList.add('bi-x-circle-fill');
+          dobField.classList.add('is-invalid');
+          dobField.classList.remove('is-valid');
+        } else {
+          dobField.setCustomValidity('');
+          ageRequirement.querySelector('small').classList.add('text-success');
+          ageRequirement.querySelector('small').classList.remove('text-danger', 'text-muted');
+          ageIcon.classList.add('bi-check-circle-fill');
+          ageIcon.classList.remove('bi-x-circle-fill');
+          dobField.classList.remove('is-invalid');
+          dobField.classList.add('is-valid');
+        }
+      } else {
+        // Hide validation if date hasn't changed
+        ageRequirement.style.display = 'none';
+        dobField.setCustomValidity('');
+        dobField.classList.remove('is-invalid', 'is-valid');
+      }
+    }
+    
+    // Store the original value when the page loads
+    dobField.setAttribute('data-original-value', dobField.value);
+    
+    dobField.addEventListener('change', validateAge);
+    dobField.addEventListener('input', validateAge);
+  }
+</script>

@@ -9,13 +9,10 @@ class RecommendationsController < ApplicationController
   def index
     authorize :recommendation, :index?
     @user_preference = current_user.ensure_user_preference
-
     @page = params[:page].present? ? params[:page].to_i : 1
     per_page = 15
-
     @recommendations = load_recommendations(@page, per_page)
     set_watchlist_status(@recommendations)
-
     @total_pages = (@user_preference.recommended_content_ids.length.to_f / per_page).ceil
 
     respond_to do |format|

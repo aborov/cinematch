@@ -169,14 +169,20 @@ img {
   align-items: center;
   grid-template-columns: auto 100rem auto;
   z-index: 0;
+  background-color: #2b2d42;
 }
 
-.background-gradient {
-  grid-area: 1 / 1 / 2 / 4;
+.features-section .background-overlay {
   position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(to bottom right, #1a8fe3, #1a4a7a 20%, #2b2d42 40%, #2b2d42);
+  background-image: url(<%= asset_path("landing/6ca309dffd8311f9efcf03dedf9e1623.png") %>);
+  background-size: cover;
+  background-position: center;
+  opacity: 0.5;
+  z-index: 0;
 }
 
 .features-section .content-wrapper {

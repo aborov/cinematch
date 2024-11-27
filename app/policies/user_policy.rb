@@ -33,6 +33,14 @@ class UserPolicy < ApplicationPolicy
     user == record
   end
 
+  def send_warning_email?
+    user.admin?
+  end
+
+  def reset_warning?
+    user.admin?
+  end
+
   class Scope < ApplicationPolicy::Scope
     def resolve
       if user.admin?

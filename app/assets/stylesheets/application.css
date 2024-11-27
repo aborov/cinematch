@@ -1026,3 +1026,22 @@ h6 {
     line-height: 1.3;
   }
 }
+
+.btn-group-responsive {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+@media (min-width: 400px) {
+  .btn-group-responsive {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .btn-group-responsive .btn-group {
+    display: flex;
+    gap: 0.5rem;
+  }
+}

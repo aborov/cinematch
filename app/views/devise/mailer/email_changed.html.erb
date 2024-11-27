@@ -1,0 +1,11 @@
+<p>Hello <%= @email %>!</p>
+
+<% if @resource.try(:unconfirmed_email?) %>
+  <p>This email confirms that your Cinematch account email is being changed to <%= @resource.unconfirmed_email %>.</p>
+<% else %>
+  <p>This email confirms that your Cinematch account email has been changed to <%= @resource.email %>.</p>
+<% end %>
+
+<p>If you did not request this change, please contact support immediately at info@cinematch.net.</p>
+
+<p>Your Cinematch Team</p>
