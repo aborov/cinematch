@@ -169,7 +169,24 @@ extended_survey_questions = [
   { question_text: "I continue thinking about stories after they end.", question_type: "narrative_transportation", survey_type: "extended" },
   { question_text: "I enjoy being immersed in fictional worlds.", question_type: "narrative_transportation", survey_type: "extended" },
   { question_text: "I relate stories to my own experiences.", question_type: "narrative_transportation", survey_type: "extended" },
-  { question_text: "I feel transformed by powerful stories.", question_type: "narrative_transportation", survey_type: "extended" }
+  { question_text: "I feel transformed by powerful stories.", question_type: "narrative_transportation", survey_type: "extended" },
+
+  # Detailed Attachment Style (8 questions)
+  # Secure Attachment
+  { question_text: "I find it natural to form deep emotional connections with others.", question_type: "attachment_secure", survey_type: "extended" },
+  { question_text: "I can rely on others while maintaining my independence.", question_type: "attachment_secure", survey_type: "extended" },
+
+  # Anxious Attachment
+  { question_text: "I often worry that others don't value me as much as I value them.", question_type: "attachment_anxious", survey_type: "extended" },
+  { question_text: "I need frequent reassurance in my relationships.", question_type: "attachment_anxious", survey_type: "extended" },
+
+  # Avoidant Attachment
+  { question_text: "I prefer not to depend too much on others.", question_type: "attachment_avoidant", survey_type: "extended" },
+  { question_text: "I maintain emotional distance to avoid getting hurt.", question_type: "attachment_avoidant", survey_type: "extended" },
+
+  # Disorganized Attachment
+  { question_text: "I have conflicting feelings about close relationships.", question_type: "attachment_disorganized", survey_type: "extended" },
+  { question_text: "I both desire and fear deep emotional connections.", question_type: "attachment_disorganized", survey_type: "extended" }
 ]
 
 puts "Creating basic survey questions..."

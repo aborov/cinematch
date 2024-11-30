@@ -31,7 +31,13 @@ class SurveyQuestion < ApplicationRecord
   scope :big_five, -> { where(question_type: ['openness', 'conscientiousness', 'extraversion', 'agreeableness', 'neuroticism']) }
   scope :hexaco, -> { where(question_type: 'honesty_humility') }
   scope :emotional_intelligence, -> { where(question_type: 'emotional_intelligence') }
-  scope :attachment, -> { where(question_type: 'attachment') }
+  scope :attachment, -> { where(question_type: [
+    'attachment',
+    'attachment_secure',
+    'attachment_anxious',
+    'attachment_avoidant',
+    'attachment_disorganized'
+  ]) }
   scope :cognitive_style, -> { where(question_type: 'cognitive_style') }
   scope :moral_foundations, -> { where(question_type: 'moral_foundations') }
   scope :dark_triad, -> { where(question_type: 'dark_triad') }
