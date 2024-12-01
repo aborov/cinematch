@@ -27,21 +27,38 @@ class SurveyQuestion < ApplicationRecord
   scope :basic, -> { where(survey_type: 'basic') }
   scope :extended, -> { where(survey_type: 'extended') }
 
-  # Helper methods for different question types
-  scope :big_five, -> { where(question_type: ['openness', 'conscientiousness', 'extraversion', 'agreeableness', 'neuroticism']) }
-  scope :hexaco, -> { where(question_type: 'honesty_humility') }
-  scope :emotional_intelligence, -> { where(question_type: 'emotional_intelligence') }
-  scope :attachment, -> { where(question_type: [
-    'attachment',
-    'attachment_secure',
-    'attachment_anxious',
-    'attachment_avoidant',
-    'attachment_disorganized'
-  ]) }
-  scope :cognitive_style, -> { where(question_type: 'cognitive_style') }
-  scope :moral_foundations, -> { where(question_type: 'moral_foundations') }
-  scope :dark_triad, -> { where(question_type: 'dark_triad') }
-  scope :narrative_transportation, -> { where(question_type: 'narrative_transportation') }
+  # Big Five Personality Traits
+  scope :big_five, -> { where("question_type LIKE 'big5_%'") }
+  scope :openness, -> { where("question_type LIKE 'big5_openness_%'") }
+  scope :conscientiousness, -> { where("question_type LIKE 'big5_conscientiousness_%'") }
+  scope :extraversion, -> { where("question_type LIKE 'big5_extraversion_%'") }
+  scope :agreeableness, -> { where("question_type LIKE 'big5_agreeableness_%'") }
+  scope :neuroticism, -> { where("question_type LIKE 'big5_neuroticism_%'") }
+
+  # HEXACO Personality Traits
+  scope :hexaco, -> { where("question_type LIKE 'hexaco_%'") }
+
+  # Emotional Intelligence
+  scope :emotional_intelligence_basic, -> { where("question_type LIKE 'ei_%' AND survey_type = 'basic'") }
+  scope :emotional_intelligence_extended, -> { where("question_type LIKE 'ei_%' AND survey_type = 'extended'") }
+
+  # Attachment Style
+  scope :attachment, -> { where("question_type LIKE 'attachment_%'") }
+
+  # Cognitive Style
+  scope :cognitive, -> { where("question_type LIKE 'cognitive_%'") }
+
+  # Moral Foundations and Values
+  scope :moral, -> { where("question_type LIKE 'moral_%'") }
+
+  # Dark Triad/Tetrad
+  scope :dark_triad, -> { where("question_type LIKE 'dark_%'") }
+
+  # Narrative Preferences
+  scope :narrative, -> { where("question_type LIKE 'narrative_%'") }
+
+  # Psychological Needs
+  scope :psychological, -> { where("question_type LIKE 'psych_%'") }
 
   def self.ransackable_attributes(auth_object = nil)
     ["created_at", "id", "question_text", "question_type", "updated_at"]

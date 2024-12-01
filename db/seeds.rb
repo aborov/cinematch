@@ -32,161 +32,128 @@ end
 # Basic Survey Questions (30 questions)
 basic_survey_questions = [
   # Big Five (15 questions)
-  # Openness (3)
-  { question_text: "I enjoy trying new things.", question_type: "openness", survey_type: "basic" },
-  { question_text: "I am imaginative and creative.", question_type: "openness", survey_type: "basic" },
-  { question_text: "I enjoy thinking about abstract concepts.", question_type: "openness", survey_type: "basic" },
-  
-  # Conscientiousness (3)
-  { question_text: "I am always prepared.", question_type: "conscientiousness", survey_type: "basic" },
-  { question_text: "I pay attention to details.", question_type: "conscientiousness", survey_type: "basic" },
-  { question_text: "I follow a schedule.", question_type: "conscientiousness", survey_type: "basic" },
-  
-  # Extraversion (3)
-  { question_text: "I am the life of the party.", question_type: "extraversion", survey_type: "basic" },
-  { question_text: "I feel comfortable around people.", question_type: "extraversion", survey_type: "basic" },
-  { question_text: "I start conversations.", question_type: "extraversion", survey_type: "basic" },
-  
-  # Agreeableness (3)
-  { question_text: "I am interested in people.", question_type: "agreeableness", survey_type: "basic" },
-  { question_text: "I sympathize with others' feelings.", question_type: "agreeableness", survey_type: "basic" },
-  { question_text: "I take time out for others.", question_type: "agreeableness", survey_type: "basic" },
-  
-  # Neuroticism (3)
-  { question_text: "I get stressed out easily.", question_type: "neuroticism", survey_type: "basic" },
-  { question_text: "I worry about things.", question_type: "neuroticism", survey_type: "basic" },
-  { question_text: "I get upset easily.", question_type: "neuroticism", survey_type: "basic" },
+  { question_text: "I seek out new experiences.", question_type: "big5_openness_experience", survey_type: "basic" },
+  { question_text: "I enjoy creative activities.", question_type: "big5_openness_creativity", survey_type: "basic" },
+  { question_text: "I am interested in abstract ideas.", question_type: "big5_openness_ideas", survey_type: "basic" },
+
+  { question_text: "I complete tasks methodically.", question_type: "big5_conscientiousness_orderliness", survey_type: "basic" },
+  { question_text: "I pay attention to details.", question_type: "big5_conscientiousness_thoroughness", survey_type: "basic" },
+  { question_text: "I follow plans consistently.", question_type: "big5_conscientiousness_reliability", survey_type: "basic" },
+
+  { question_text: "I enjoy social gatherings.", question_type: "big5_extraversion_sociability", survey_type: "basic" },
+  { question_text: "I start conversations easily.", question_type: "big5_extraversion_assertiveness", survey_type: "basic" },
+  { question_text: "I energize others.", question_type: "big5_extraversion_energy", survey_type: "basic" },
+
+  { question_text: "I empathize with others' feelings.", question_type: "big5_agreeableness_empathy", survey_type: "basic" },
+  { question_text: "I care about others' well-being.", question_type: "big5_agreeableness_compassion", survey_type: "basic" },
+  { question_text: "I cooperate with others.", question_type: "big5_agreeableness_cooperation", survey_type: "basic" },
+
+  { question_text: "I handle stress well.", question_type: "big5_neuroticism_stability", survey_type: "basic" },
+  { question_text: "I stay calm under pressure.", question_type: "big5_neuroticism_anxiety", survey_type: "basic" },
+  { question_text: "I maintain emotional balance.", question_type: "big5_neuroticism_mood", survey_type: "basic" },
 
   # HEXACO Addition (6 questions)
-  { question_text: "I remain honest even when it might disadvantage me.", question_type: "honesty_humility", survey_type: "basic" },
-  { question_text: "I avoid taking credit for others' achievements.", question_type: "honesty_humility", survey_type: "basic" },
-  { question_text: "I believe everyone should be treated fairly.", question_type: "honesty_humility", survey_type: "basic" },
-  { question_text: "I value integrity over personal gain.", question_type: "honesty_humility", survey_type: "basic" },
-  { question_text: "I prefer modesty over showing off.", question_type: "honesty_humility", survey_type: "basic" },
-  { question_text: "I avoid manipulating others for personal benefit.", question_type: "honesty_humility", survey_type: "basic" },
+  { question_text: "I remain truthful even at personal cost.", question_type: "hexaco_honesty", survey_type: "basic" },
+  { question_text: "I avoid manipulating others.", question_type: "hexaco_sincerity", survey_type: "basic" },
+  { question_text: "I treat everyone fairly.", question_type: "hexaco_fairness", survey_type: "basic" },
+  { question_text: "I stay modest about achievements.", question_type: "hexaco_modesty", survey_type: "basic" },
+  { question_text: "I avoid seeking attention.", question_type: "hexaco_greedavoidance", survey_type: "basic" },
+  { question_text: "I value integrity over gain.", question_type: "hexaco_faithfulness", survey_type: "basic" },
 
   # Basic Emotional Intelligence (4 questions)
-  { question_text: "I easily recognize emotions in others.", question_type: "emotional_intelligence", survey_type: "basic" },
-  { question_text: "I manage my emotions effectively.", question_type: "emotional_intelligence", survey_type: "basic" },
-  { question_text: "I understand complex emotional situations.", question_type: "emotional_intelligence", survey_type: "basic" },
-  { question_text: "I respond well to others' emotional needs.", question_type: "emotional_intelligence", survey_type: "basic" },
+  { question_text: "I recognize others' emotions easily.", question_type: "ei_recognition", survey_type: "basic" },
+  { question_text: "I manage my emotions well.", question_type: "ei_management", survey_type: "basic" },
+  { question_text: "I understand emotional complexity.", question_type: "ei_understanding", survey_type: "basic" },
+  { question_text: "I adapt to others' emotional needs.", question_type: "ei_adaptation", survey_type: "basic" },
 
   # Basic Attachment Style (5 questions)
-  { question_text: "I find it easy to depend on others.", question_type: "attachment", survey_type: "basic" },
-  { question_text: "I rarely worry about being abandoned.", question_type: "attachment", survey_type: "basic" },
-  { question_text: "I'm comfortable being emotionally close to others.", question_type: "attachment", survey_type: "basic" },
-  { question_text: "I trust others to be there when needed.", question_type: "attachment", survey_type: "basic" },
-  { question_text: "I prefer not to show my true feelings.", question_type: "attachment", survey_type: "basic" }
+  { question_text: "I trust others easily.", question_type: "attachment_trust", survey_type: "basic" },
+  { question_text: "I maintain healthy boundaries.", question_type: "attachment_boundaries", survey_type: "basic" },
+  { question_text: "I form close bonds comfortably.", question_type: "attachment_closeness", survey_type: "basic" },
+  { question_text: "I rely on others when needed.", question_type: "attachment_dependence", survey_type: "basic" },
+  { question_text: "I express feelings openly.", question_type: "attachment_expression", survey_type: "basic" }
 ]
 
-# Extended Survey Questions (70 questions)
+# Extended Survey Questions (67 questions)
 extended_survey_questions = [
-  # Detailed Big Five (25 questions, 5 additional per trait)
-  
-  # Openness
-  { question_text: "I seek out intellectual challenges.", question_type: "openness", survey_type: "extended" },
-  { question_text: "I enjoy exploring different art forms.", question_type: "openness", survey_type: "extended" },
-  { question_text: "I like experiencing different cultures.", question_type: "openness", survey_type: "extended" },
-  { question_text: "I enjoy unconventional ideas.", question_type: "openness", survey_type: "extended" },
-  { question_text: "I value aesthetic experiences.", question_type: "openness", survey_type: "extended" },
+  # Cognitive Style Assessment (12 questions)
+  { question_text: "I prefer visual to written information.", question_type: "cognitive_visual_verbal", survey_type: "extended" },
+  { question_text: "I solve problems step by step.", question_type: "cognitive_systematic", survey_type: "extended" },
+  { question_text: "I enjoy theoretical discussions.", question_type: "cognitive_abstract", survey_type: "extended" },
+  { question_text: "I need clear-cut answers.", question_type: "cognitive_closure", survey_type: "extended" },
+  { question_text: "I learn through practical experience.", question_type: "cognitive_experiential", survey_type: "extended" },
+  { question_text: "I notice subtle patterns.", question_type: "cognitive_pattern", survey_type: "extended" },
+  { question_text: "I'm comfortable with ambiguity.", question_type: "cognitive_ambiguity", survey_type: "extended" },
+  { question_text: "I prefer exploring multiple interpretations.", question_type: "cognitive_multiplicity", survey_type: "extended" },
+  { question_text: "I enjoy complex narratives.", question_type: "cognitive_complexity", survey_type: "extended" },
+  { question_text: "I process information holistically.", question_type: "cognitive_holistic", survey_type: "extended" },
+  { question_text: "I adapt easily to unclear situations.", question_type: "cognitive_flexibility", survey_type: "extended" },
+  { question_text: "I prefer structured information.", question_type: "cognitive_structure", survey_type: "extended" },
 
-  # Conscientiousness
-  { question_text: "I complete tasks thoroughly.", question_type: "conscientiousness", survey_type: "extended" },
-  { question_text: "I make plans and stick to them.", question_type: "conscientiousness", survey_type: "extended" },
-  { question_text: "I take responsibilities seriously.", question_type: "conscientiousness", survey_type: "extended" },
-  { question_text: "I prefer order and structure.", question_type: "conscientiousness", survey_type: "extended" },
-  { question_text: "I think before acting.", question_type: "conscientiousness", survey_type: "extended" },
-
-  # Extraversion
-  { question_text: "I energize others around me.", question_type: "extraversion", survey_type: "extended" },
-  { question_text: "I seek out social activities.", question_type: "extraversion", survey_type: "extended" },
-  { question_text: "I enjoy being the center of attention.", question_type: "extraversion", survey_type: "extended" },
-  { question_text: "I make friends easily.", question_type: "extraversion", survey_type: "extended" },
-  { question_text: "I prefer group activities over solitary ones.", question_type: "extraversion", survey_type: "extended" },
-
-  # Agreeableness
-  { question_text: "I avoid conflicts with others.", question_type: "agreeableness", survey_type: "extended" },
-  { question_text: "I consider others' feelings.", question_type: "agreeableness", survey_type: "extended" },
-  { question_text: "I enjoy helping others.", question_type: "agreeableness", survey_type: "extended" },
-  { question_text: "I forgive easily.", question_type: "agreeableness", survey_type: "extended" },
-  { question_text: "I believe in cooperation over competition.", question_type: "agreeableness", survey_type: "extended" },
-
-  # Neuroticism
-  { question_text: "I experience mood swings.", question_type: "neuroticism", survey_type: "extended" },
-  { question_text: "I am easily discouraged.", question_type: "neuroticism", survey_type: "extended" },
-  { question_text: "I often feel overwhelmed.", question_type: "neuroticism", survey_type: "extended" },
-  { question_text: "I worry about the future.", question_type: "neuroticism", survey_type: "extended" },
-  { question_text: "I am sensitive to criticism.", question_type: "neuroticism", survey_type: "extended" },
-
-  # Cognitive Style Assessment (10 questions)
-  { question_text: "I prefer visual explanations over written ones.", question_type: "cognitive_style", survey_type: "extended" },
-  { question_text: "I like solving problems systematically.", question_type: "cognitive_style", survey_type: "extended" },
-  { question_text: "I enjoy abstract thinking.", question_type: "cognitive_style", survey_type: "extended" },
-  { question_text: "I prefer clear, definitive answers.", question_type: "cognitive_style", survey_type: "extended" },
-  { question_text: "I learn better through practical experience.", question_type: "cognitive_style", survey_type: "extended" },
-  { question_text: "I enjoy analyzing complex problems.", question_type: "cognitive_style", survey_type: "extended" },
-  { question_text: "I prefer structured learning environments.", question_type: "cognitive_style", survey_type: "extended" },
-  { question_text: "I think in terms of pictures rather than words.", question_type: "cognitive_style", survey_type: "extended" },
-  { question_text: "I enjoy discovering patterns in information.", question_type: "cognitive_style", survey_type: "extended" },
-  { question_text: "I prefer multitasking over single-focus work.", question_type: "cognitive_style", survey_type: "extended" },
+  # Extended Emotional Intelligence (8 questions)
+  { question_text: "I seek emotionally challenging content.", question_type: "ei_challenge_seeking", survey_type: "extended" },
+  { question_text: "I handle intense emotional content well.", question_type: "ei_intensity_tolerance", survey_type: "extended" },
+  { question_text: "I use media to regulate emotions.", question_type: "ei_regulation_strategy", survey_type: "extended" },
+  { question_text: "I process emotions through stories.", question_type: "ei_narrative_processing", survey_type: "extended" },
+  { question_text: "I reflect on emotional experiences.", question_type: "ei_reflection", survey_type: "extended" },
+  { question_text: "I learn from others' emotional journeys.", question_type: "ei_vicarious_learning", survey_type: "extended" },
+  { question_text: "I balance emotion and reason.", question_type: "ei_integration", survey_type: "extended" },
+  { question_text: "I recover quickly from emotional content.", question_type: "ei_resilience", survey_type: "extended" },
 
   # Values and Moral Foundations (15 questions)
-  { question_text: "I believe in protecting the vulnerable.", question_type: "moral_foundations", survey_type: "extended" },
-  { question_text: "I value fairness above all else.", question_type: "moral_foundations", survey_type: "extended" },
-  { question_text: "I am loyal to my social group.", question_type: "moral_foundations", survey_type: "extended" },
-  { question_text: "I respect authority figures.", question_type: "moral_foundations", survey_type: "extended" },
-  { question_text: "I value traditional practices.", question_type: "moral_foundations", survey_type: "extended" },
-  { question_text: "I believe in absolute moral truths.", question_type: "moral_foundations", survey_type: "extended" },
-  { question_text: "I prioritize harm prevention.", question_type: "moral_foundations", survey_type: "extended" },
-  { question_text: "I value equal treatment for all.", question_type: "moral_foundations", survey_type: "extended" },
-  { question_text: "I prioritize group harmony.", question_type: "moral_foundations", survey_type: "extended" },
-  { question_text: "I respect hierarchical structures.", question_type: "moral_foundations", survey_type: "extended" },
-  { question_text: "I value purity in actions and thoughts.", question_type: "moral_foundations", survey_type: "extended" },
-  { question_text: "I believe in justice over mercy.", question_type: "moral_foundations", survey_type: "extended" },
-  { question_text: "I value individual rights.", question_type: "moral_foundations", survey_type: "extended" },
-  { question_text: "I believe in preserving social order.", question_type: "moral_foundations", survey_type: "extended" },
-  { question_text: "I value spiritual cleanliness.", question_type: "moral_foundations", survey_type: "extended" },
+  { question_text: "I protect the vulnerable.", question_type: "moral_care", survey_type: "extended" },
+  { question_text: "I value equal treatment.", question_type: "moral_fairness", survey_type: "extended" },
+  { question_text: "I maintain group loyalty.", question_type: "moral_loyalty", survey_type: "extended" },
+  { question_text: "I respect authority.", question_type: "moral_authority", survey_type: "extended" },
+  { question_text: "I value moral purity.", question_type: "moral_purity", survey_type: "extended" },
+  { question_text: "I prioritize personal growth.", question_type: "moral_growth", survey_type: "extended" },
+  { question_text: "I challenge established views.", question_type: "moral_challenge", survey_type: "extended" },
+  { question_text: "I value self-direction.", question_type: "moral_autonomy", survey_type: "extended" },
+  { question_text: "I preserve traditions.", question_type: "moral_tradition", survey_type: "extended" },
+  { question_text: "I seek universal harmony.", question_type: "moral_universalism", survey_type: "extended" },
+  { question_text: "I pursue achievement.", question_type: "moral_achievement", survey_type: "extended" },
+  { question_text: "I value security.", question_type: "moral_security", survey_type: "extended" },
+  { question_text: "I seek power responsibly.", question_type: "moral_power", survey_type: "extended" },
+  { question_text: "I pursue hedonistic pleasures.", question_type: "moral_hedonism", survey_type: "extended" },
+  { question_text: "I value social recognition.", question_type: "moral_recognition", survey_type: "extended" },
 
-  # Dark Triad/Tetrad (12 questions)
-  { question_text: "I enjoy having power over others.", question_type: "dark_triad", survey_type: "extended" },
-  { question_text: "I believe most people can be manipulated.", question_type: "dark_triad", survey_type: "extended" },
-  { question_text: "I deserve more recognition than others.", question_type: "dark_triad", survey_type: "extended" },
-  { question_text: "I often feel little remorse.", question_type: "dark_triad", survey_type: "extended" },
-  { question_text: "I like to get revenge on authorities.", question_type: "dark_triad", survey_type: "extended" },
-  { question_text: "I enjoy outsmarting others.", question_type: "dark_triad", survey_type: "extended" },
-  { question_text: "I seek admiration from others.", question_type: "dark_triad", survey_type: "extended" },
-  { question_text: "I can be cunning when I need to be.", question_type: "dark_triad", survey_type: "extended" },
-  { question_text: "I enjoy seeing others struggle.", question_type: "dark_triad", survey_type: "extended" },
-  { question_text: "I tend to exploit others' weaknesses.", question_type: "dark_triad", survey_type: "extended" },
-  { question_text: "I believe I'm more capable than most people.", question_type: "dark_triad", survey_type: "extended" },
-  { question_text: "I enjoy dominating debates or discussions.", question_type: "dark_triad", survey_type: "extended" },
+  # Dark Triad/Tetrad (8 questions)
+  { question_text: "I appreciate complex villains in stories.", question_type: "dark_antihero", survey_type: "extended" },
+  { question_text: "I enjoy stories about strategic manipulation.", question_type: "dark_machiavellianism", survey_type: "extended" },
+  { question_text: "I'm drawn to characters who break social rules.", question_type: "dark_nonconformity", survey_type: "extended" },
+  { question_text: "I appreciate dark humor in content.", question_type: "dark_humor", survey_type: "extended" },
+  { question_text: "I enjoy watching power dynamics unfold.", question_type: "dark_power", survey_type: "extended" },
+  { question_text: "I'm fascinated by psychological manipulation in plots.", question_type: "dark_psychology", survey_type: "extended" },
+  { question_text: "I appreciate morally ambiguous storylines.", question_type: "dark_morality", survey_type: "extended" },
+  { question_text: "I'm interested in revenge narratives.", question_type: "dark_revenge", survey_type: "extended" },
 
-  # Narrative Transportation (8 questions)
-  { question_text: "I lose track of time when engaged in a story.", question_type: "narrative_transportation", survey_type: "extended" },
-  { question_text: "I easily identify with fictional characters.", question_type: "narrative_transportation", survey_type: "extended" },
-  { question_text: "I get emotionally involved in stories.", question_type: "narrative_transportation", survey_type: "extended" },
-  { question_text: "I vividly imagine story scenes.", question_type: "narrative_transportation", survey_type: "extended" },
-  { question_text: "I continue thinking about stories after they end.", question_type: "narrative_transportation", survey_type: "extended" },
-  { question_text: "I enjoy being immersed in fictional worlds.", question_type: "narrative_transportation", survey_type: "extended" },
-  { question_text: "I relate stories to my own experiences.", question_type: "narrative_transportation", survey_type: "extended" },
-  { question_text: "I feel transformed by powerful stories.", question_type: "narrative_transportation", survey_type: "extended" },
+  # Narrative Transportation (12 questions)
+  { question_text: "I lose track of time in stories.", question_type: "narrative_immersion", survey_type: "extended" },
+  { question_text: "I identify with characters deeply.", question_type: "narrative_identification", survey_type: "extended" },
+  { question_text: "I experience stories emotionally.", question_type: "narrative_emotional", survey_type: "extended" },
+  { question_text: "I visualize story scenes vividly.", question_type: "narrative_visualization", survey_type: "extended" },
+  { question_text: "I reflect on stories afterward.", question_type: "narrative_reflection", survey_type: "extended" },
+  { question_text: "I enjoy complex plot structures.", question_type: "narrative_complexity", survey_type: "extended" },
+  { question_text: "I appreciate non-linear storytelling.", question_type: "narrative_nonlinear", survey_type: "extended" },
+  { question_text: "I connect stories to my life.", question_type: "narrative_personal", survey_type: "extended" },
+  { question_text: "I enjoy multiple plot threads.", question_type: "narrative_multiple", survey_type: "extended" },
+  { question_text: "I appreciate ambiguous endings.", question_type: "narrative_ambiguity", survey_type: "extended" },
+  { question_text: "I enjoy character development.", question_type: "narrative_character", survey_type: "extended" },
+  { question_text: "I value thematic depth.", question_type: "narrative_theme", survey_type: "extended" },
 
-  # Detailed Attachment Style (8 questions)
-  # Secure Attachment
-  { question_text: "I find it natural to form deep emotional connections with others.", question_type: "attachment_secure", survey_type: "extended" },
-  { question_text: "I can rely on others while maintaining my independence.", question_type: "attachment_secure", survey_type: "extended" },
-
-  # Anxious Attachment
-  { question_text: "I often worry that others don't value me as much as I value them.", question_type: "attachment_anxious", survey_type: "extended" },
-  { question_text: "I need frequent reassurance in my relationships.", question_type: "attachment_anxious", survey_type: "extended" },
-
-  # Avoidant Attachment
-  { question_text: "I prefer not to depend too much on others.", question_type: "attachment_avoidant", survey_type: "extended" },
-  { question_text: "I maintain emotional distance to avoid getting hurt.", question_type: "attachment_avoidant", survey_type: "extended" },
-
-  # Disorganized Attachment
-  { question_text: "I have conflicting feelings about close relationships.", question_type: "attachment_disorganized", survey_type: "extended" },
-  { question_text: "I both desire and fear deep emotional connections.", question_type: "attachment_disorganized", survey_type: "extended" }
+  # Psychological Needs (12 questions)
+  { question_text: "I value personal autonomy.", question_type: "psych_autonomy", survey_type: "extended" },
+  { question_text: "I seek competence growth.", question_type: "psych_competence", survey_type: "extended" },
+  { question_text: "I desire deep connections.", question_type: "psych_relatedness", survey_type: "extended" },
+  { question_text: "I use media for escape.", question_type: "psych_escapism", survey_type: "extended" },
+  { question_text: "I process emotions through media.", question_type: "psych_catharsis", survey_type: "extended" },
+  { question_text: "I seek intellectual stimulation.", question_type: "psych_cognition", survey_type: "extended" },
+  { question_text: "I appreciate self-discovery stories.", question_type: "psych_selfdiscovery", survey_type: "extended" },
+  { question_text: "I look for meaningful content.", question_type: "psych_meaning", survey_type: "extended" },
+  { question_text: "I seek inspiration in stories.", question_type: "psych_inspiration", survey_type: "extended" },
+  { question_text: "I value personal transformation.", question_type: "psych_transformation", survey_type: "extended" },
+  { question_text: "I use stories for comfort.", question_type: "psych_comfort", survey_type: "extended" },
+  { question_text: "I seek validation through content.", question_type: "psych_validation", survey_type: "extended" }
 ]
 
 puts "Creating basic survey questions..."
