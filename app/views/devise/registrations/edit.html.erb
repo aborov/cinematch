@@ -17,7 +17,26 @@
 
             <div class="mb-3">
               <%= f.label :email, class: "form-label" %>
-              <%= f.email_field :email, class: "form-control" %>
+              <div class="input-group">
+                <%= f.email_field :email, class: "form-control" %>
+                <% if resource.confirmed? %>
+                  <span class="input-group-text text-success">
+                    <i class="fas fa-check-circle" title="Email confirmed"></i>
+                  </span>
+                <% else %>
+                  <span class="input-group-text text-warning">
+                    <i class="fas fa-exclamation-circle" title="Email not confirmed"></i>
+                  </span>
+                  <%= link_to "Resend confirmation email", 
+                              new_confirmation_path(resource_name), 
+                              class: "btn btn-outline-primary input-group-text" %>
+                <% end %>
+              </div>
+              <% unless resource.confirmed? %>
+                <small class="text-muted">
+                  Please check your email and click the confirmation link to verify your account.
+                </small>
+              <% end %>
             </div>
 
             <div class="mb-3">

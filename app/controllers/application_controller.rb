@@ -10,6 +10,8 @@ class ApplicationController < ActionController::Base
   protect_from_forgery with: :exception
   before_action :set_csrf_cookie
   before_action :store_user_location!, if: :storable_location?
+  before_action :configure_permitted_parameters, if: :devise_controller?, unless: :confirmations_controller?
+  before_action :check_user_setup, if: :user_signed_in?
 
   private
 
@@ -57,5 +59,28 @@ class ApplicationController < ActionController::Base
 
   def after_sign_in_path_for(resource)
     stored_location_for(resource) || recommendations_path
+  end
+
+  def check_user_setup
+    return if devise_controller? || 
+              controller_name == 'surveys' || 
+              !user_signed_in? ||
+              request.path == destroy_user_session_path ||
+              request.xhr? # Skip for AJAX requests
+
+    unless current_user.confirmed?
+      redirect_to edit_user_registration_path, 
+                  alert: "Please check your email (#{current_user.email}) and click the confirmation link to verify your account. " \
+                         "If you didn't receive the email, you can request a new one below."
+      return
+    end
+
+    if current_user.survey_responses.empty?
+      redirect_to surveys_path(type: 'basic'), notice: "Please complete the basic survey to get started."
+    end
+  end
+
+  def confirmations_controller?
+    controller_name == 'confirmations'
   end
 end

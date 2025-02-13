@@ -2,6 +2,7 @@
 
 module Users
   class RegistrationsController < Devise::RegistrationsController
+    respond_to :html, :json
     before_action :configure_permitted_parameters, if: :devise_controller?
     prepend_before_action :check_captcha, only: [:create]
 
@@ -22,22 +23,23 @@ module Users
     end
 
     def sign_up_params
-      params = super
-      if params[:dob].blank?
-        raise ActionController::ParameterMissing.new(:dob)
-      end
-      params
+      params.require(:user).permit(:email, :password, :password_confirmation, :name, :gender, :dob)
     end
 
     private
 
     def check_captcha
+      return true if Rails.env.development?
       return if verify_recaptcha
-
+      
       self.resource = resource_class.new sign_up_params
       resource.validate
       set_minimum_password_length
-      respond_with_navigational(resource) { render :new }
+      
+      respond_with_navigational(resource) do
+        flash.now[:alert] = 'Please verify that you are not a robot'
+        render :new
+      end
     end
   end
 end
