@@ -6,13 +6,14 @@
 
 Rails.application.configure do
   config.content_security_policy do |policy|
-    policy.default_src :self, :https
+    policy.default_src :self
     policy.font_src    :self, :https, :data
     policy.img_src     :self, :https, :data
     policy.object_src  :none
     policy.script_src  :self, :https, "'unsafe-inline'", "'unsafe-eval'"
     policy.style_src   :self, :https, "'unsafe-inline'"
-    policy.connect_src :self, :https
+    policy.connect_src :self
+    policy.frame_src   :self
     policy.frame_ancestors :none
     policy.form_action :self
     policy.base_uri    :self
@@ -21,7 +22,7 @@ Rails.application.configure do
   # Comment out nonce configuration
   # config.content_security_policy_nonce_generator = ->(request) { request.session.id.to_s }
   # config.content_security_policy_nonce_directives = %w(script-src style-src)
-#
-#   # Report violations without enforcing the policy.
-#   # config.content_security_policy_report_only = true
+
+  # Enable CSP reporting
+  config.content_security_policy_report_only = true
 end
