@@ -1,19 +1,19 @@
 <% content_for :title, "Personalization Survey" %>
 
-<div class="container-fluid">
-  <div class="survey-container d-flex justify-content-center align-items-center">
+<div class="container-fluid p-0">
+  <div class="d-flex justify-content-center align-items-center vh-100">
     <%= render 'welcome_modal' if show_welcome_modal? %>
     
-    <div class="card shadow survey-card">
+    <div class="card shadow" style="max-width: 650px; width: 90%;">
       <div class="card-header bg-warning text-dark">
         <h2 class="h4 mb-0">Basic Personalization Survey</h2>
       </div>
 
-      <div class="card-body">
+      <div class="card-body p-4">
         <div class="progress mb-4">
           <div class="progress-bar bg-primary" 
                role="progressbar" 
-               data-survey-target="progress"
+               data-progress
                style="width: <%= @progress %>%"
                aria-valuenow="<%= @progress %>" 
                aria-valuemin="0" 
@@ -25,14 +25,10 @@
                       local: false, 
                       html: { 
                         id: "survey-form",
-                        class: "survey-form",
-                        data: { 
-                          controller: "survey",
-                          survey_type: @survey_type
-                        }
+                        class: "survey-form"
                       } do |form| %>
           
-          <%= render 'question_section', form: form, questions: @personality_questions %>
+          <%= render 'question_section', form: form, questions: @questions %>
           <%= render 'genre_selection', form: form, genres: @genres %>
           <%= render 'survey_navigation', survey_type: @survey_type %>
         <% end %>

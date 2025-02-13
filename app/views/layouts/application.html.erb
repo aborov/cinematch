@@ -9,11 +9,15 @@
     <%= csp_meta_tag %>
 
     <%= render "shared/cdn" %>
-    <%= stylesheet_link_tag "application", media: "all", 'data-turbo-track': "reload" %>
-    <%= javascript_importmap_tags %>
-    <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module", defer: true %>
-    <%= javascript_include_tag "https://cdn.jsdelivr.net/npm/chart.js", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "application", media: "all" %>
+    <%= javascript_include_tag "application", defer: true %>
+    <%= javascript_include_tag "https://cdn.jsdelivr.net/npm/chart.js" %>
     <%= javascript_include_tag 'watchlist_navbar' %>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        console.log('DOM loaded, survey.js initialized')
+      })
+    </script>
   </head>
 
   <body>

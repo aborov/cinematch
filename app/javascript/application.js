@@ -1,8 +1,5 @@
-import { Application } from "@hotwired/stimulus"
-import { definitionsFromContext } from "@hotwired/stimulus-webpack-helpers"
-import jquery from "jquery"
-window.jQuery = jquery
-window.$ = jquery
+import "./survey"
+console.log('Survey module loaded');
 
 // import * as bootstrap from "bootstrap"
 // window.bootstrap = bootstrap
@@ -12,12 +9,12 @@ import "chart.js"
 import "./pwa/companion"
 
 import { Tooltip } from 'bootstrap'
+import { Application } from "@hotwired/stimulus"
+import { registerControllers } from "@hotwired/stimulus-loading"
 
-const application = Application.start()
+window.Stimulus = Application.start()
 const context = require.context("./controllers", true, /\.js$/)
-application.load(definitionsFromContext(context))
-application.debug = false
-window.Stimulus = application
+Stimulus.load(definitionsFromContext(context))
 
 document.addEventListener('DOMContentLoaded', () => {
   addCSRFTokenToForms();
@@ -42,7 +39,7 @@ function initializeWatchlistControllers() {
   });
 }
 
-export { application }
+export { Stimulus }
 
 document.addEventListener('DOMContentLoaded', function() {
   $(document).ajaxError(function(event, xhr, settings) {
@@ -57,3 +54,5 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 });
+
+registerControllers(Stimulus)

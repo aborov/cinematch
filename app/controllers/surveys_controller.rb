@@ -6,16 +6,24 @@ class SurveysController < ApplicationController
   before_action :set_survey_type
 
   def index
-    base_questions = if @survey_type == 'extended'
-      SurveyQuestion.extended_survey
-    else
-      SurveyQuestion.basic_survey
+    @survey_type = params[:type] || 'basic'
+    @questions = SurveyQuestion.where(survey_type: @survey_type)
+                              .order(Arel.sql('CASE 
+                                      WHEN question_type = \'attention_check\' THEN 1 
+                                      ELSE 0 
+                                    END, RANDOM()')).to_a
+
+    if @questions.empty?
+      flash[:alert] = "No questions found for this survey type. Please run rails db:seed to populate questions."
+      redirect_to root_path and return
     end
-    
-    @personality_questions = insert_attention_checks(base_questions)
+
+    @total_questions = @questions.length
     @genres = TmdbService.fetch_genres[:user_facing_genres]
-    @total_questions = @personality_questions.count + 1 # +1 for genre selection
     @progress = calculate_survey_progress
+    
+    # Set the session variable after showing the welcome modal
+    session[:welcome_modal_shown] = true if show_welcome_modal?
     
     authorize :survey, :index?
   end
@@ -98,46 +106,6 @@ class SurveysController < ApplicationController
 
   def survey_params
     params.permit(personality_responses: {}, favorite_genres: [])
-  end
-
-  def insert_attention_checks(questions)
-    return questions unless questions.any?
-
-    # Get base questions
-    base_questions = questions.to_a
-
-    # Delete existing attention checks
-    SurveyQuestion.where(survey_type: @survey_type, question_type: 'attention_check').delete_all
-
-    # Create new attention checks
-    attention_checks = [
-      { 
-        question_text: "For this attention check, please select 'Agree'",
-        question_type: "attention_check",
-        survey_type: @survey_type,
-        correct_answer: "Agree"
-      },
-      { 
-        question_text: "For this attention check, please select 'Disagree'",
-        question_type: "attention_check",
-        survey_type: @survey_type,
-        correct_answer: "Disagree"
-      },
-      { 
-        question_text: "For this attention check, please select 'Neutral'",
-        question_type: "attention_check",
-        survey_type: @survey_type,
-        correct_answer: "Neutral"
-      }
-    ]
-
-    # Insert attention checks
-    attention_checks.each do |attrs|
-      base_questions << SurveyQuestion.create!(attrs)
-    end
-
-    # Shuffle all questions
-    base_questions.shuffle
   end
 
   def show_welcome_modal?
