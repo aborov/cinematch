@@ -1,4 +1,5 @@
 class Users::SessionsController < Devise::SessionsController
+  skip_before_action :configure_permitted_parameters
   prepend_before_action :check_user_confirmation, only: [:create]
   skip_before_action :verify_authenticity_token, only: :create
   
