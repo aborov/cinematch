@@ -1,4 +1,5 @@
 import { Application } from "@hotwired/stimulus"
+import { definitionsFromContext } from "@hotwired/stimulus-webpack-helpers"
 import jquery from "jquery"
 window.jQuery = jquery
 window.$ = jquery
@@ -13,6 +14,8 @@ import "./pwa/companion"
 import { Tooltip } from 'bootstrap'
 
 const application = Application.start()
+const context = require.context("./controllers", true, /\.js$/)
+application.load(definitionsFromContext(context))
 application.debug = false
 window.Stimulus = application
 

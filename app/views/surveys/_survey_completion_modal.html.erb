@@ -1,0 +1,33 @@
+<div class="modal fade" id="surveyCompletionModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <%= @survey_type == 'basic' ? 'Basic Survey Completed!' : 'Extended Survey Completed!' %>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <% if @survey_type == 'basic' %>
+          <p>Great job completing the basic survey! You can now:</p>
+          <ul>
+            <li>View your initial personality insights in your profile</li>
+            <li>Check out your personalized recommendations</li>
+            <li>Take the extended survey for even more precise matches</li>
+          </ul>
+        <% else %>
+          <p>Congratulations on completing the extended survey! You now have access to:</p>
+          <ul>
+            <li>Detailed psychological insights in your profile</li>
+            <li>More precise content recommendations</li>
+            <li>Advanced matching features</li>
+          </ul>
+        <% end %>
+      </div>
+      <div class="modal-footer">
+        <%= link_to "View Profile", profile_path, class: "btn btn-secondary" %>
+        <%= link_to "See Recommendations", recommendations_path, class: "btn btn-primary" %>
+      </div>
+    </div>
+  </div>
+</div> 

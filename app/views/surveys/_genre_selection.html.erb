@@ -1,0 +1,18 @@
+<div id="genre-selection" style="display: none;">
+  <h3 class="mb-4">Final Step: Select Your Favorite Genres</h3>
+  <p class="mb-4">Choose the genres you enjoy most (select at least 3):</p>
+  
+  <div class="btn-group-toggle d-flex flex-wrap gap-2" data-toggle="buttons">
+    <% genres.each do |genre| %>
+      <%= form.check_box :favorite_genres, 
+                        { multiple: true, 
+                          class: "btn-check", 
+                          id: genre["name"].parameterize }, 
+                        genre["name"], 
+                        nil %>
+      <%= label_tag genre["name"].parameterize, 
+                    genre["name"], 
+                    class: "btn btn-outline-primary" %>
+    <% end %>
+  </div>
+</div> 

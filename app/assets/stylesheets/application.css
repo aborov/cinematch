@@ -337,12 +337,43 @@ h6 {
 
 /* Survey-specific styles */
 .survey-container {
-  min-height: calc(100vh - 200px); 
-  padding: 2rem 0;
+  background: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);
+  min-height: calc(100vh - 60px);
+  padding: 2rem;
+}
+
+.survey-card {
+  max-width: 800px;
+  width: 100%;
+}
+
+.progress {
+  height: 2px;
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
 .progress-bar {
-  background-color: var(--tufts-blue);
+  transition: width 0.3s ease;
+}
+
+.question-text {
+  font-size: 1.25rem;
+  color: var(--space-cadet);
+  font-weight: 700;
+}
+
+.response-options {
+  margin-top: 1.5rem;
+}
+
+.response-button {
+  min-width: 120px;
+  text-align: center;
+  padding: 0.5rem 1rem;
+}
+
+.flex-1 {
+  flex: 1;
 }
 
 .question-container h3 {
@@ -431,6 +462,15 @@ h6 {
   
   .card {
     width: 100%;
+  }
+  
+  .response-options {
+    flex-direction: column;
+  }
+  
+  .response-button {
+    width: 100%;
+    margin-bottom: 0.5rem;
   }
 }
 
@@ -1043,5 +1083,20 @@ h6 {
   .btn-group-responsive .btn-group {
     display: flex;
     gap: 0.5rem;
+  }
+}
+
+.progress {
+  height: 4px;
+}
+
+@media (max-width: 768px) {
+  .response-options {
+    flex-direction: column;
+  }
+  
+  .response-button {
+    width: 100%;
+    margin-bottom: 0.5rem;
   }
 }
