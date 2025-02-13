@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_11_27_171504) do
+ActiveRecord::Schema[7.1].define(version: 2025_02_12_213449) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "pgcrypto"
@@ -171,6 +171,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_11_27_171504) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "survey_type"
+    t.string "correct_answer"
+    t.integer "position"
     t.index ["survey_type"], name: "index_survey_questions_on_survey_type"
   end
 

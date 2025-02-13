@@ -4,12 +4,14 @@
 #
 # Table name: survey_questions
 #
-#  id            :bigint           not null, primary key
-#  question_text :string
-#  question_type :string
-#  survey_type   :string
-#  created_at    :datetime         not null
-#  updated_at    :datetime         not null
+#  id             :bigint           not null, primary key
+#  correct_answer :string
+#  position       :integer
+#  question_text  :string
+#  question_type  :string
+#  survey_type    :string
+#  created_at     :datetime         not null
+#  updated_at     :datetime         not null
 #
 # Indexes
 #
@@ -60,11 +62,26 @@ class SurveyQuestion < ApplicationRecord
   # Psychological Needs
   scope :psychological, -> { where("question_type LIKE 'psych_%'") }
 
+  # Add scopes for survey types
+  scope :basic_survey, -> { where(survey_type: 'basic').order(Arel.sql('RANDOM()')) }
+  scope :extended_survey, -> { where(survey_type: 'extended').order(Arel.sql('RANDOM()')) }
+  
+  # Add scope for attention check questions
+  scope :attention_checks, -> { where(question_type: 'attention_check') }
+
   def self.ransackable_attributes(auth_object = nil)
     ["created_at", "id", "question_text", "question_type", "updated_at"]
   end
 
   def self.ransackable_associations(auth_object = nil)
     []
+  end
+
+  def attention_check?
+    question_type == 'attention_check'
+  end
+
+  def correct_attention_check_response?(response)
+    attention_check? && response == correct_answer
   end
 end

@@ -12,6 +12,12 @@
 puts "Resetting survey questions..."
 ActiveRecord::Base.connection.execute("TRUNCATE survey_questions RESTART IDENTITY")
 
+# Reset the attention check questions
+puts "Resetting attention check questions..."
+ActiveRecord::Base.connection.execute("DELETE FROM survey_questions WHERE question_type = 'attention_check'")
+# or if you want to be more thorough:
+# ActiveRecord::Base.connection.execute("DELETE FROM survey_questions WHERE question_type = 'attention_check' RETURNING id")
+
 # Helper method to create questions in batches
 def create_questions(questions)
   questions.each do |question_attrs|
@@ -162,15 +168,47 @@ create_questions(basic_survey_questions)
 puts "Creating extended survey questions..."
 create_questions(extended_survey_questions)
 
-# Create admin user in development
-if Rails.env.development?
-  User.find_or_initialize_by(email: "alex@aborovikov.com").tap do |user|
-    user.name = "Aleksei"
-    user.password = ENV['ADMIN_PASSWORD']
-    user.password_confirmation = ENV['ADMIN_PASSWORD']
-    user.admin = true
-    user.save!
-  end
+# Attention Check Questions
+attention_check_questions = [
+  { 
+    question_text: "For this attention check, please select 'Agree'",
+    question_type: "attention_check",
+    survey_type: "basic",
+    correct_answer: "Agree"
+  },
+  { 
+    question_text: "For this attention check, please select 'Disagree'",
+    question_type: "attention_check",
+    survey_type: "basic",
+    correct_answer: "Disagree"
+  },
+  { 
+    question_text: "For this attention check, please select 'Neutral'",
+    question_type: "attention_check",
+    survey_type: "basic",
+    correct_answer: "Neutral"
+  }
+]
+
+puts "Creating attention check questions..."
+attention_check_questions.each do |question_attrs|
+  SurveyQuestion.find_or_create_by!(
+    question_text: question_attrs[:question_text],
+    question_type: question_attrs[:question_type],
+    survey_type: question_attrs[:survey_type],
+    correct_answer: question_attrs[:correct_answer]
+  )
 end
+
+# Create admin user in development
+# if Rails.env.development?
+#   User.find_or_initialize_by(email: "alex@aborovikov.com").tap do |user|
+#     user.name = "Aleksei"
+#     user.password = ENV['ADMIN_PASSWORD']
+#     user.password_confirmation = ENV['ADMIN_PASSWORD']
+#     user.admin = true
+#     user.save!
+#   end
+# end
 
 puts "Seed completed successfully!"
