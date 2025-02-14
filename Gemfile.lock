@@ -140,6 +140,12 @@ GEM
     csso-rails (1.0.0)
       execjs (>= 1)
     csv (3.3.0)
+    database_cleaner (2.1.0)
+      database_cleaner-active_record (>= 2, < 3)
+    database_cleaner-active_record (2.2.0)
+      activerecord (>= 5.a)
+      database_cleaner-core (~> 2.0.0)
+    database_cleaner-core (2.0.1)
     date (3.3.4)
     debug (1.9.2)
       irb (~> 1.10)
@@ -178,6 +184,11 @@ GEM
     et-orbi (1.2.11)
       tzinfo
     execjs (2.9.1)
+    factory_bot (6.5.1)
+      activesupport (>= 6.1.0)
+    factory_bot_rails (6.4.4)
+      factory_bot (~> 6.5)
+      railties (>= 5.0.0)
     faker (3.4.2)
       i18n (>= 1.8.11, < 2)
     faraday (2.11.0)
@@ -523,6 +534,8 @@ GEM
       rexml (~> 3.2, >= 3.2.5)
       rubyzip (>= 1.2.2, < 3.0)
       websocket (~> 1.0)
+    shoulda-matchers (6.4.0)
+      activesupport (>= 5.2.0)
     simple_form (5.3.1)
       actionpack (>= 5.2)
       activemodel (>= 5.2)
@@ -612,6 +625,7 @@ DEPENDENCIES
   capybara
   clamav-client
   csso-rails
+  database_cleaner
   debug
   devise
   devise-security
@@ -620,6 +634,7 @@ DEPENDENCIES
   draft_generators
   draft_matchers
   email_validator
+  factory_bot_rails
   faker
   good_job
   grade_runner
@@ -657,6 +672,7 @@ DEPENDENCIES
   rufo
   sassc-rails
   selenium-webdriver
+  shoulda-matchers
   sitemap_generator
   specs_to_readme
   sprockets-rails
