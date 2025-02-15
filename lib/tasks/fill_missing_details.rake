@@ -9,7 +9,7 @@ namespace :tmdb do
     total_items = Content.where(tmdb_last_update: nil).or(Content.where('tmdb_last_update < ?', 1.week.ago)).count
     puts "Total items to process: #{total_items}"
 
-    batch_size = 1000 # Adjust this number based on your system's capabilities
+    batch_size = 100 # Reduced from 1000 to prevent memory spikes
     processed_count = 0
     updated_count = 0
 
