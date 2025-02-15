@@ -88,22 +88,30 @@ module TmdbTasks
     trailer ? "https://www.youtube.com/watch?v=#{trailer['key']}" : nil
   end
 
-  def self.process_content_in_batches(items, batch_size: 100, processing_batch_size: 20)
+  def self.process_content_in_batches(items, batch_size: 20, processing_batch_size: 5)
     total_items = items.size
     processed_items = 0
+    
     items.each_slice(batch_size) do |batch|
       begin
+        GC.start # Force garbage collection before processing new batch
+        
         updated_content = batch.each_slice(processing_batch_size).flat_map do |processing_batch|
           processing_batch.map do |item|
+            Rails.logger.info "Processing item #{item['id']}"
             TmdbService.fetch_details(item['id'], item['type'] || (item['title'] ? 'movie' : 'tv'))
           rescue => e
             Rails.logger.error("Error fetching details for item #{item['id']}: #{e.message}")
             nil
           end
         end.compact
+        
         update_content_batch(updated_content)
         processed_items += batch.size
         yield(processed_items, total_items) if block_given?
+        
+        # Sleep briefly between batches to prevent memory buildup
+        sleep(0.5)
       rescue => e
         Rails.logger.error("Error processing batch: #{e.message}")
       end
