@@ -7,33 +7,22 @@ class TmdbService
 
   @request_times = []
 
-  include CircuitBreaker
-  
-  circuit_breaker(
-    failure_threshold: 5,
-    reset_timeout: 1.hour,
-    monitor_timeout: 10.seconds,
-    error_handler: ->(e) { Rails.logger.error("Circuit breaker tripped: #{e.message}") }
-  )
-
   class << self
     def rate_limited_request(max_retries = 3)
-      with_circuit_breaker do
-        retries = 0
-        begin
-          sleep(0.25) # Rate limiting
-          yield
-        rescue OpenSSL::SSL::SSLError, HTTP::ConnectionError => e
-          if retries < max_retries
-            retries += 1
-            sleep_time = 2**retries
-            Rails.logger.warn("SSL Error occurred, retrying in #{sleep_time}s (#{retries}/#{max_retries}): #{e.message}")
-            sleep(sleep_time)
-            retry
-          else
-            Rails.logger.error("Failed after #{max_retries} retries: #{e.message}")
-            raise
-          end
+      retries = 0
+      begin
+        sleep(0.25) # Rate limiting
+        yield
+      rescue OpenSSL::SSL::SSLError, HTTP::ConnectionError => e
+        if retries < max_retries
+          retries += 1
+          sleep_time = 2**retries
+          Rails.logger.warn("SSL Error occurred, retrying in #{sleep_time}s (#{retries}/#{max_retries}): #{e.message}")
+          sleep(sleep_time)
+          retry
+        else
+          Rails.logger.error("Failed after #{max_retries} retries: #{e.message}")
+          raise
         end
       end
     end
@@ -97,20 +86,29 @@ class TmdbService
     def fetch_multiple_pages(url, pages = MAX_PAGES, additional_params = {})
       results = []
       (1..pages).each do |page|
-        params = { api_key: API_KEY, language: 'en-US', page: page }.merge(additional_params)
-        response = rate_limited_request { HTTP.get(url, params: params) }
-        data = JSON.parse(response.body.to_s)
-        
-        if data['results'].is_a?(Array)
-          results += data['results']
-        elsif data['keywords'].is_a?(Array)
-          results += data['keywords']
-        else
-          puts "Warning: 'results' or 'keywords' key not found or not an array in API response for URL: #{url}"
-          break
+        begin
+          params = { api_key: API_KEY, language: 'en-US', page: page }.merge(additional_params)
+          response = rate_limited_request { HTTP.get(url, params: params) }
+          
+          break unless response # Skip if response is nil
+          
+          data = JSON.parse(response.body.to_s)
+          
+          if data['results'].is_a?(Array)
+            results += data['results']
+          elsif data['keywords'].is_a?(Array)
+            results += data['keywords']
+          else
+            Rails.logger.warn "Warning: 'results' or 'keywords' key not found or not an array in API response for URL: #{url}"
+            break
+          end
+          
+          break if data['page'] >= data['total_pages']
+          
+        rescue => e
+          Rails.logger.error "Error fetching page #{page} from #{url}: #{e.message}"
+          break # Stop fetching on error
         end
-        
-        break if data['page'] >= data['total_pages']
       end
       results
     end
