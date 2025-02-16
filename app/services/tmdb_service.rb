@@ -96,9 +96,9 @@ class TmdbService
         data = JSON.parse(response.body.to_s)
         
         if data['results'].is_a?(Array)
-          results += data['results'].map { |item| item.merge('tmdb_last_update' => data['updated_at']) }
+          results += data['results']
         elsif data['keywords'].is_a?(Array)
-          results += data['keywords'].map { |item| item.merge('tmdb_last_update' => data['updated_at']) }
+          results += data['keywords']
         else
           puts "Warning: 'results' or 'keywords' key not found or not an array in API response for URL: #{url}"
           break
