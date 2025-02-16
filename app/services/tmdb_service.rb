@@ -97,29 +97,20 @@ class TmdbService
     def fetch_multiple_pages(url, pages = MAX_PAGES, additional_params = {})
       results = []
       (1..pages).each do |page|
-        begin
-          params = { api_key: API_KEY, language: 'en-US', page: page }.merge(additional_params)
-          response = rate_limited_request { HTTP.get(url, params: params) }
-          
-          break unless response # Skip if response is nil
-          
-          data = JSON.parse(response.body.to_s)
-          
-          if data['results'].is_a?(Array)
-            results += data['results']
-          elsif data['keywords'].is_a?(Array)
-            results += data['keywords']
-          else
-            Rails.logger.warn "Warning: 'results' or 'keywords' key not found or not an array in API response for URL: #{url}"
-            break
-          end
-          
-          break if data['page'] >= data['total_pages']
-          
-        rescue => e
-          Rails.logger.error "Error fetching page #{page} from #{url}: #{e.message}"
-          break # Stop fetching on error
+        params = { api_key: API_KEY, language: 'en-US', page: page }.merge(additional_params)
+        response = rate_limited_request { HTTP.get(url, params: params) }
+        data = JSON.parse(response.body.to_s)
+        
+        if data['results'].is_a?(Array)
+          results += data['results']
+        elsif data['keywords'].is_a?(Array)
+          results += data['keywords']
+        else
+          puts "Warning: 'results' or 'keywords' key not found or not an array in API response for URL: #{url}"
+          break
         end
+        
+        break if data['page'] >= data['total_pages']
       end
       results
     end

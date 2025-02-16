@@ -99,7 +99,9 @@ module TmdbTasks
         updated_content = batch.each_slice(processing_batch_size).flat_map do |processing_batch|
           processing_batch.map do |item|
             Rails.logger.info "Processing item #{item['id']}"
-            TmdbService.fetch_details(item['id'], item['type'] || (item['title'] ? 'movie' : 'tv'))
+            details = TmdbService.fetch_details(item['id'], item['type'] || (item['title'] ? 'movie' : 'tv'))
+            details[:tmdb_last_update] = Time.current if details # Add timestamp when we fetch new details
+            details
           rescue => e
             Rails.logger.error("Error fetching details for item #{item['id']}: #{e.message}")
             nil
@@ -110,7 +112,6 @@ module TmdbTasks
         processed_items += batch.size
         yield(processed_items, total_items) if block_given?
         
-        # Sleep briefly between batches to prevent memory buildup
         sleep(0.5)
       rescue => e
         Rails.logger.error("Error processing batch: #{e.message}")
