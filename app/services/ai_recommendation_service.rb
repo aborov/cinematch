@@ -1,27 +1,41 @@
 class AiRecommendationService
   def self.generate_recommendations(user_preference)
+    Rails.logger.info "Starting recommendation generation for user #{user_preference.user_id}"
+    Rails.logger.info "User preferences: #{user_preference.attributes}"
+    
     user_data = prepare_user_data(user_preference)
+    Rails.logger.info "Prepared user data: #{user_data}"
+    
     response = get_ai_recommendations(user_data)
+    Rails.logger.info "Got #{response&.size || 0} recommendations from AI"
+    
+    if response.blank?
+      Rails.logger.error "No recommendations received from AI"
+      return [[], {}]
+    end
+    
     process_recommendations(response, user_preference.disable_adult_content)
   end
 
   private
 
   def self.prepare_user_data(user_preference)
-    # Preload contents to avoid N+1 queries
     watched_items = user_preference.user.watchlist_items
       .where(watched: true)
       .where.not(rating: nil)
       .includes(:content)
       .order(rating: :desc, updated_at: :desc)
-      .limit(15)
+      .limit(25)
 
-    # Cache genre name mapping to avoid repeated queries
+    Rails.logger.info "Found #{watched_items.size} watched items"
+
     genre_names = Rails.cache.fetch("genre_names", expires_in: 1.day) do
       Genre.pluck(:tmdb_id, :name).to_h
     end
 
     formatted_items = watched_items.map do |item|
+      next unless item.content # Skip if content is nil
+      
       genre_ids = item.content.genre_ids_array
       genre_ids = genre_ids.is_a?(Array) ? genre_ids : [genre_ids].compact
       
@@ -30,14 +44,16 @@ class AiRecommendationService
         rating: item.rating,
         genres: genre_ids.map { |id| genre_names[id.to_i] }.compact,
         year: item.content.release_year,
-        type: item.content.content_type
+        type: item.content.content_type,
+        highly_rated: item.rating >= 8
       }
-    end
+    end.compact # Remove any nil entries
 
     {
       personality: user_preference.personality_profiles,
       favorite_genres: user_preference.favorite_genres,
-      watched_history: formatted_items
+      watched_history: formatted_items,
+      has_strong_preferences: formatted_items.count { |i| i[:highly_rated] } >= 5
     }
   end
 
@@ -57,14 +73,43 @@ class AiRecommendationService
           role: "user",
           content: prompt
         }],
-        temperature: 0.7
+        temperature: 0.7,
+        response_format: { type: "json_object" },
+        max_tokens: 4000
       }
     )
 
-    recommendations = JSON.parse(response.dig("choices", 0, "message", "content"))
+    content = response.dig("choices", 0, "message", "content")
+    Rails.logger.info "AI Response:\n#{content}"
     
-    # Remove duplicates based on title and year
-    recommendations.uniq { |rec| [rec["title"].downcase, rec["year"]] }
+    begin
+      parsed = JSON.parse(content)
+      # Ensure we're working with an array of recommendations
+      recommendations = case parsed
+                       when Array
+                         parsed
+                       when Hash
+                         parsed["recommendations"] || parsed.values.first
+                       else
+                         []
+                       end
+      
+      recommendations = [recommendations] unless recommendations.is_a?(Array)
+      
+      # Validate each recommendation has required fields
+      recommendations.select! do |rec|
+        rec.is_a?(Hash) && rec["title"].present? && rec["year"].present? && rec["type"].present?
+      end
+      
+      Rails.logger.info "Processed #{recommendations.size} valid recommendations"
+      
+      # Remove duplicates based on title and year
+      recommendations.uniq { |rec| [rec["title"].downcase, rec["year"]] }
+    rescue JSON::ParserError => e
+      Rails.logger.error "Failed to parse AI response: #{e.message}"
+      Rails.logger.error "Raw content: #{content}"
+      []
+    end
   end
 
   def self.generate_prompt(user_data)
@@ -72,12 +117,22 @@ class AiRecommendationService
       "#{trait}: #{score}/5"
     }.join(', ')
     
-    watched_description = user_data[:watched_history].map { |item| 
-      "#{item[:title]} (#{item[:rating]}/10) - #{item[:genres].join(', ')}"
-    }.join("\n")
+    highly_rated = user_data[:watched_history].select { |item| item[:highly_rated] }
+    watched_description = if highly_rated.any?
+      "Highly rated (8+ out of 10):\n" +
+      highly_rated.map { |item| "#{item[:title]} (#{item[:rating]}/10) - #{item[:genres].join(', ')} [#{item[:type]}]" }.join("\n") +
+      "\n\nOther watched:\n" +
+      (user_data[:watched_history] - highly_rated).map { |item| 
+        "#{item[:title]} (#{item[:rating]}/10) - #{item[:genres].join(', ')} [#{item[:type]}]"
+      }.join("\n")
+    else
+      user_data[:watched_history].map { |item| 
+        "#{item[:title]} (#{item[:rating]}/10) - #{item[:genres].join(', ')} [#{item[:type]}]"
+      }.join("\n")
+    end
 
     <<~PROMPT
-      You are a movie recommendation system. Consider the following user profile:
+      You are a content recommendation system for both movies and TV shows. Consider the following user profile:
 
       Personality traits: #{personality_description}
       Favorite genres: #{user_data[:favorite_genres].join(', ')}
@@ -85,27 +140,31 @@ class AiRecommendationService
       Recently watched and rated:
       #{watched_description}
 
-      Based on this profile, recommend 50 movies or TV shows. Prioritize:
-      1. Content matching their personality traits and genre preferences
-      2. Similar to highly-rated watched content
-      3. Include both classic and modern versions of stories when relevant
+      Based on this profile, recommend 50 titles with a balanced mix of movies and TV shows. Prioritize:
+      1. Content similar to their highly rated content (8+ rating)
+      2. Content matching their personality traits and genre preferences
+      3. Content that combines multiple favorite genres
+      4. For TV shows, consider both limited series and ongoing shows
+      5. Include both classic and modern content when relevant
 
-      Return a JSON array of objects with the following structure:
+      Return recommendations in this exact JSON format:
       {
-        "title": "exact title",
-        "type": "movie" or "tv",
-        "year": release year (required),
-        "director": "director name" (optional),
-        "original_title": "title in original language" (optional),
-        "reason": "brief explanation of why this matches the user's profile"
+        "recommendations": [
+          {
+            "title": "exact title",
+            "type": "movie" or "tv",
+            "year": release year (integer),
+            "reason": "brief explanation of why this matches the user's profile"
+          }
+        ]
       }
 
-      Ensure accuracy of titles and years for correct matching.
+      Ensure accuracy of titles and years for correct matching. Aim for 40% TV shows.
     PROMPT
   end
 
   def self.process_recommendations(recommendations, disable_adult_content)
-    Rails.logger.info "AI Service received #{recommendations.size} recommendations from OpenAI"
+    Rails.logger.info "Processing #{recommendations.size} AI recommendations"
     
     content_ids = []
     reasons = {}
@@ -127,8 +186,9 @@ class AiRecommendationService
       end
       
       content_ids << content.id
+      # Store reason with content ID as key
       reasons[content.id.to_s] = rec["reason"] if rec["reason"].present?
-      Rails.logger.info "Added content: #{content.title} (ID: #{content.id})"
+      Rails.logger.info "Added content: #{content.title} (ID: #{content.id}) with reason: #{rec['reason']}"
     end
 
     unique_ids = content_ids.uniq
