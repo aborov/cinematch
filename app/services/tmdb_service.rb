@@ -1,7 +1,7 @@
 class TmdbService
   BASE_URL = 'https://api.themoviedb.org/3'
   API_KEY = ENV.fetch('THEMOVIEDB_KEY')
-  MAX_PAGES = 20
+  MAX_PAGES = 35
   RATE_LIMIT = 45 # Requests per second
   RATE_LIMIT_WINDOW = 1 # second
 
