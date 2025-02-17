@@ -104,12 +104,8 @@ class RecommendationsController < ApplicationController
     
     # Load all recommendations first
     all_recommendations = Content.where(id: @user_preference.recommended_content_ids)
+    all_recommendations = all_recommendations.where(adult: [false, nil]) if @user_preference.disable_adult_content
     
-    if @user_preference.disable_adult_content
-      all_recommendations = all_recommendations.where(adult: [false, nil])
-    end
-    
-    # Map and calculate scores for all recommendations
     mapped_recommendations = all_recommendations.map do |content|
       match_score = @user_preference.calculate_match_score(content.genre_ids_array) || 0
       
@@ -123,14 +119,12 @@ class RecommendationsController < ApplicationController
         release_year: content.release_year,
         genres: Genre.where(tmdb_id: content.genre_ids_array).pluck(:name),
         vote_average: content.vote_average,
-        match_score: match_score
+        match_score: match_score,
+        reason: @user_preference.recommendation_reasons[content.id.to_s]
       }
     end
 
-    # Sort all recommendations by match score
     sorted_recommendations = mapped_recommendations.sort_by { |r| -r[:match_score] }
-    
-    # Then paginate the sorted results
     sorted_recommendations[offset, per_page] || []
   end
 

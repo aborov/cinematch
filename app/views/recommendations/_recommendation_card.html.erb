@@ -48,6 +48,12 @@
           <div class="card-text-small text-muted" role="contentinfo" aria-label="Genres">
             <%= recommendation[:genres].join(", ") %>
           </div>
+          <% if recommendation[:reason].present? %>
+            <div class="card-text-small mt-2 fst-italic text-muted" role="contentinfo" aria-label="AI Recommendation Reason">
+              <i class="fas fa-lightbulb me-1"></i>
+              <%= recommendation[:reason] %>
+            </div>
+          <% end %>
           <div class="stretched-link show-details" data-id="<%= recommendation[:source_id] %>" data-type="<%= recommendation[:content_type] %>" role="button" aria-label="Show details for <%= recommendation[:title] %>"></div>
         </div>
         <% if recommendation[:in_watchlist] %>
