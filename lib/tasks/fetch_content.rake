@@ -54,10 +54,10 @@ namespace :tmdb do
 
   def fetch_movies_by_categories
     {
-      'popular' => 15,
-      'top_rated' => 20,
-      'now_playing' => 5,
-      'upcoming' => 5
+      'popular' => 30,      # 600 items
+      'top_rated' => 30,    # 600 items
+      'now_playing' => 15,  # 300 items
+      'upcoming' => 15      # 300 items
     }.flat_map do |category, pages|
       TmdbService.fetch_movies_by_category(category, pages)
     end
@@ -65,10 +65,10 @@ namespace :tmdb do
 
   def fetch_tv_shows_by_categories
     {
-      'popular' => 15,
-      'top_rated' => 20,
-      'on_the_air' => 5,
-      'airing_today' => 5
+      'popular' => 30,        # 600 items
+      'top_rated' => 30,      # 600 items
+      'on_the_air' => 15,     # 300 items
+      'airing_today' => 15    # 300 items
     }.flat_map do |category, pages|
       TmdbService.fetch_tv_shows_by_category(category, pages)
     end
@@ -83,14 +83,14 @@ namespace :tmdb do
 
   def fetch_content_by_decades
     decades = {
-      1950 => 5,
-      1960 => 5,
-      1970 => 8,
-      1980 => 10,
-      1990 => 12,
-      2000 => 15,
-      2010 => 20,
-      2020 => 10
+      1950 => 10,
+      1960 => 10,
+      1970 => 15,
+      1980 => 20,
+      1990 => 25,
+      2000 => 30,
+      2010 => 35,
+      2020 => 20
     }
     
     decades.flat_map do |decade, pages|
@@ -116,18 +116,18 @@ namespace :tmdb do
 
   def fetch_content_by_language
     languages = {
-      'ja' => 15, # Japanese - more pages
-      'ko' => 15, # Korean - more pages
-      'hi' => 10, # Hindi
-      'fr' => 8,  # French
-      'es' => 8,  # Spanish
-      'de' => 8,  # German
-      'it' => 8,  # Italian
-      'zh' => 8,  # Chinese
-      'ru' => 8,  # Russian
-      'pt' => 8,  # Portuguese
-      'tr' => 5,  # Turkish
-      'th' => 5   # Thai
+      'ja' => 25,  # Japanese
+      'ko' => 25,  # Korean
+      'hi' => 20,  # Hindi
+      'fr' => 15,  # French
+      'es' => 15,  # Spanish
+      'de' => 15,  # German
+      'it' => 15,  # Italian
+      'zh' => 15,  # Chinese
+      'ru' => 15,  # Russian
+      'pt' => 15,  # Portuguese
+      'tr' => 10,  # Turkish
+      'th' => 10   # Thai
     }
     
     languages.flat_map do |lang, pages|
