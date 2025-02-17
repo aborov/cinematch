@@ -56,7 +56,7 @@ class UserPreferencesController < ApplicationController
   end
 
   def user_preference_params
-    params.require(:user_preference).permit(:disable_adult_content, favorite_genres: [])
+    params.require(:user_preference).permit(:use_ai, :disable_adult_content, favorite_genres: [])
   end
 
   def process_genre_preferences(genres)

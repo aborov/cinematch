@@ -42,58 +42,23 @@ class UserPreference < ApplicationRecord
   }.freeze
 
   def generate_recommendations
-    Rails.logger.info("Generating recommendations for user #{user_id}")
-    
-    if personality_profiles.blank?
-      Rails.logger.warn("No personality profiles found for user #{user_id}")
-      return []
+    return [] if personality_profiles.blank? || favorite_genres.blank?
+
+    recommended_ids = if use_ai
+      AiRecommendationService.generate_recommendations(self)
+    else
+      generate_internal_recommendations
     end
+
+    update(
+      recommended_content_ids: recommended_ids,
+      recommendations_generated_at: Time.current
+    )
     
-    if favorite_genres.blank?
-      Rails.logger.warn("No favorite genres found for user #{user_id}")
-      return []
-    end
+    Rails.cache.delete_matched("user_#{user_id}_recommendations_*")
+    Rails.cache.delete("user_#{user_id}_recommendations_page_1")
     
-    Rails.logger.info("Personality profiles: #{personality_profiles.inspect}")
-    Rails.logger.info("Favorite genres: #{favorite_genres.inspect}")
-    
-    # Mark as processing to prevent concurrent generation
-    update(processing: true)
-    
-    begin
-      base_content = Content.all
-      base_content = base_content.where(adult: [false, nil]) if disable_adult_content
-      
-      Rails.logger.info("Found #{base_content.count} content items to score")
-      
-      content_with_scores = base_content.map do |content|
-        {
-          id: content.id,
-          match_score: calculate_match_score(content.genre_ids_array)
-        }
-      end
-      
-      sorted_recommendations = content_with_scores.sort_by { |r| -r[:match_score] }
-      top_recommendations = sorted_recommendations.first(100).map { |r| r[:id] }
-      
-      Rails.logger.info("Generated #{top_recommendations.size} recommendations")
-      
-      update(
-        recommended_content_ids: top_recommendations, 
-        recommendations_generated_at: Time.current,
-        processing: false
-      )
-      
-      Rails.cache.delete_matched("user_#{user_id}_recommendations_*")
-      Rails.cache.delete("user_#{user_id}_recommendations_page_1")
-      
-      top_recommendations
-    rescue StandardError => e
-      Rails.logger.error("Error generating recommendations: #{e.message}")
-      Rails.logger.error(e.backtrace.join("\n"))
-      update(processing: false)
-      []
-    end
+    recommended_ids
   end
 
   def calculate_match_score(genre_ids)
@@ -195,5 +160,37 @@ class UserPreference < ApplicationRecord
     Rails.logger.info("Score: #{score}")
     
     score
+  end
+
+  def generate_internal_recommendations
+    base_content = Content.all
+    base_content = base_content.where(adult: [false, nil]) if disable_adult_content
+
+    content_with_scores = base_content.map do |content|
+      {
+        id: content.id,
+        match_score: calculate_match_score(content.genre_ids_array)
+      }
+    end
+
+    content_with_scores.sort_by { |r| -r[:match_score] }
+                       .first(100)
+                       .map { |r| r[:id] }
+  end
+
+  def generate_internal_recommendations
+    base_content = Content.all
+    base_content = base_content.where(adult: [false, nil]) if disable_adult_content
+
+    content_with_scores = base_content.map do |content|
+      {
+        id: content.id,
+        match_score: calculate_match_score(content.genre_ids_array)
+      }
+    end
+
+    content_with_scores.sort_by { |r| -r[:match_score] }
+                       .first(100)
+                       .map { |r| r[:id] }
   end
 end
