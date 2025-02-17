@@ -23,6 +23,7 @@
 #
 class WatchlistItem < ApplicationRecord
   belongs_to :user
+  belongs_to :content, primary_key: :source_id, foreign_key: :source_id
   validates :user_id, uniqueness: { scope: [:source_id, :content_type] }
   validates :rating, inclusion: { in: 1..10 }, allow_nil: true
   

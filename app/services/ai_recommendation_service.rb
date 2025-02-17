@@ -52,7 +52,9 @@ class AiRecommendationService
       Recommend 50 movies or TV shows for a user with:
       Personality traits: #{user_data[:personality].to_json}
       Favorite genres: #{user_data[:favorite_genres].join(', ')}
-      Recently watched and liked: #{format_watch_history(user_data[:watched_history])}
+      Recently watched and liked: #{user_data[:watched_history].map { |item| 
+        "#{item[:title]} (rated #{item[:rating]}/10) - #{item[:genres].join(', ')}"
+      }.join('; ')}
 
       Return a JSON array of objects with the following structure:
       {

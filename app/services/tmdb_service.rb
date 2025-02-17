@@ -194,5 +194,23 @@ class TmdbService
         'vote_average.gte': 6.0
       })
     end
+
+    def search(params)
+      query = URI.encode_www_form_component(params[:title])
+      type = params[:type] || 'movie'
+      year = params[:year]
+
+      url = "#{BASE_URL}/search/#{type}?api_key=#{API_KEY}&query=#{query}"
+      url += "&year=#{year}" if year
+
+      response = rate_limited_request { HTTP.get(url) }
+      return nil unless response && response['results']&.any?
+
+      # Get the first result
+      result = response['results'].first
+      
+      # Fetch full details for the found content
+      fetch_details(result['id'], type)
+    end
   end
 end
