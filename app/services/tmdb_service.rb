@@ -204,13 +204,55 @@ class TmdbService
       url += "&year=#{year}" if year
 
       response = rate_limited_request { HTTP.get(url) }
-      return nil unless response && response['results']&.any?
+      return nil unless response&.status&.success?
 
-      # Get the first result
-      result = response['results'].first
+      data = JSON.parse(response.body.to_s)
+      return nil unless data['results']&.any?
+
+      # Sort results by title similarity and vote count
+      results = data['results'].sort_by do |result|
+        title = result['title'] || result['name']
+        similarity = calculate_similarity(title.downcase, params[:title].downcase)
+        vote_count = result['vote_count'] || 0
+        [-similarity, -vote_count] # Sort by highest similarity, then highest vote count
+      end
+
+      # Get the best match
+      best_match = results.first
       
-      # Fetch full details for the found content
-      fetch_details(result['id'], type)
+      Rails.logger.info "TMDB search for '#{params[:title]}' found #{results.size} results. Best match: '#{best_match['title'] || best_match['name']}'"
+      
+      # Fetch full details for the best match
+      fetch_details(best_match['id'], type)
+    end
+
+    private
+
+    def calculate_similarity(str1, str2)
+      longer = [str1.length, str2.length].max
+      return 1.0 if longer.zero?
+      
+      (longer - levenshtein_distance(str1, str2)) / longer.to_f
+    end
+
+    def levenshtein_distance(str1, str2)
+      matrix = Array.new(str1.length + 1) { Array.new(str2.length + 1) }
+      
+      (0..str1.length).each { |i| matrix[i][0] = i }
+      (0..str2.length).each { |j| matrix[0][j] = j }
+      
+      (1..str1.length).each do |i|
+        (1..str2.length).each do |j|
+          cost = str1[i-1] == str2[j-1] ? 0 : 1
+          matrix[i][j] = [
+            matrix[i-1][j] + 1,
+            matrix[i][j-1] + 1,
+            matrix[i-1][j-1] + cost
+          ].min
+        end
+      end
+      
+      matrix[str1.length][str2.length]
     end
   end
 end
