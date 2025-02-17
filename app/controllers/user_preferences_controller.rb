@@ -15,9 +15,14 @@ class UserPreferencesController < ApplicationController
   def update
     authorize @user_preference
     genres = process_genre_preferences(user_preference_params[:favorite_genres])
-    disable_adult_content = user_preference_params[:disable_adult_content] == '1'
+    
+    update_params = {
+      favorite_genres: genres,
+      disable_adult_content: user_preference_params[:disable_adult_content] == '1',
+      use_ai: user_preference_params[:use_ai] == '1'
+    }
 
-    if @user_preference.update(favorite_genres: genres, disable_adult_content: disable_adult_content)
+    if @user_preference.update(update_params)
       Rails.logger.info "User preference updated: #{@user_preference.attributes}"
       new_recommendations = @user_preference.generate_recommendations
       if new_recommendations.present?
