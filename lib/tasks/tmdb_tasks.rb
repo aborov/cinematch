@@ -98,9 +98,8 @@ module TmdbTasks
         
         updated_content = batch.each_slice(processing_batch_size).flat_map do |processing_batch|
           processing_batch.map do |item|
-            Rails.logger.info "Processing item #{item['id']}"
             details = TmdbService.fetch_details(item['id'], item['type'] || (item['title'] ? 'movie' : 'tv'))
-            details[:tmdb_last_update] = Time.current if details # Add timestamp when we fetch new details
+            details[:tmdb_last_update] = Time.current if details
             details
           rescue => e
             Rails.logger.error("Error fetching details for item #{item['id']}: #{e.message}")
