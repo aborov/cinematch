@@ -8,18 +8,19 @@ class FetchContentJob < ApplicationJob
     Rails.logger.info "Starting FetchContentJob with options: #{options}"
     
     if options[:fetch_new] || options.empty?
-      FetchNewContentJob.perform_later
+      fetch_new_content
     end
     
     if options[:update_existing] || options.empty?
-      UpdateExistingContentJob.perform_later
+      update_existing_content
     end
     
     if options[:fill_missing] || options.empty?
-      FillMissingDetailsJob.perform_later
+      fill_missing_details
     end
     
     Rails.logger.info "FetchContentJob completed successfully"
+    # Trigger recommendations update after content fetch
     UpdateAllRecommendationsJob.perform_later
   rescue => e
     Rails.logger.error "FetchContentJob failed: #{e.message}\n#{e.backtrace.join("\n")}"
