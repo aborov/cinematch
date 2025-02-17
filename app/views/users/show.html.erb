@@ -530,9 +530,9 @@
                 <div class="form-group mb-3">
                   <label for="disable_adult_content" class="form-label">Adult Content</label>
                   <div class="form-check form-switch">
-                    <%= form.check_box :disable_adult_content, class: "form-check-input" %>
-                    <label class="form-check-label" for="user_preference_disable_adult_content">
-                      Filter out adult content in recommendations.
+                    <input class="form-check-input" type="checkbox" id="disable_adult_content" name="user_preference[disable_adult_content]" value="1" <%= @user_preference.disable_adult_content ? 'checked' : '' %> />
+                    <label class="form-check-label" for="disable_adult_content">
+                      <span>Exclude adult content from recommendations</span>
                     </label>
                   </div>
                 </div>
