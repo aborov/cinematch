@@ -9,6 +9,7 @@
 #  disable_adult_content        :boolean
 #  favorite_genres              :json
 #  personality_profiles         :json
+#  recommendation_reasons       :jsonb
 #  recommendations_generated_at :datetime
 #  recommended_content_ids      :integer          default([]), is an Array
 #  use_ai                       :boolean          default(FALSE)
@@ -40,16 +41,21 @@ class UserPreference < ApplicationRecord
   def generate_recommendations
     return [] if personality_profiles.blank? || favorite_genres.blank?
 
-    recommended_ids = if use_ai
-      AiRecommendationService.generate_recommendations(self)
+    if use_ai
+      recommended_ids, reasons = AiRecommendationService.generate_recommendations(self)
+      update(
+        recommended_content_ids: recommended_ids,
+        recommendation_reasons: reasons,
+        recommendations_generated_at: Time.current
+      )
     else
-      generate_internal_recommendations
+      recommended_ids = generate_internal_recommendations
+      update(
+        recommended_content_ids: recommended_ids,
+        recommendation_reasons: {},
+        recommendations_generated_at: Time.current
+      )
     end
-
-    update(
-      recommended_content_ids: recommended_ids,
-      recommendations_generated_at: Time.current
-    )
     
     Rails.cache.delete_matched("user_#{user_id}_recommendations_*")
     Rails.cache.delete("user_#{user_id}_recommendations_page_1")

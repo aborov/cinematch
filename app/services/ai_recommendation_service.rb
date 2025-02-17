@@ -106,28 +106,35 @@ class AiRecommendationService
 
   def self.process_recommendations(recommendations, disable_adult_content)
     Rails.logger.info "AI Service received #{recommendations.size} recommendations from OpenAI"
-    Rails.logger.info "Raw AI recommendations: #{recommendations.to_json}"
     
-    content_ids = recommendations.map do |rec|
-      possible_matches = find_all_content_versions(rec)
-      next if possible_matches.empty?
+    content_ids = []
+    reasons = {}
+    
+    recommendations.each do |rec|
+      Rails.logger.info "Processing recommendation: #{rec['title']} (#{rec['year']})"
+      contents = find_all_content_versions(rec)
+      next if contents.empty?
       
-      possible_matches = possible_matches.reject(&:adult?) if disable_adult_content
-      next if possible_matches.empty?
+      # Filter adult content if needed
+      contents = contents.reject(&:adult?) if disable_adult_content
+      next if contents.empty?
       
-      # If year is provided, prioritize exact year match
-      if rec["year"] && (exact_match = possible_matches.find { |c| c.release_year == rec["year"] })
-        exact_match.id
+      # Get best matching content
+      content = if rec["year"] && (year_match = contents.find { |c| c.release_year == rec["year"] })
+        year_match
       else
-        possible_matches.first.id
+        contents.first
       end
-    end.compact
+      
+      content_ids << content.id
+      reasons[content.id.to_s] = rec["reason"] if rec["reason"].present?
+      Rails.logger.info "Added content: #{content.title} (ID: #{content.id})"
+    end
 
     unique_ids = content_ids.uniq
-    Rails.logger.info "Found #{content_ids.size} total content matches (#{unique_ids.size} unique)"
-    Rails.logger.info "Duplicate IDs: #{content_ids.tally.select { |_, count| count > 1 }}" if content_ids.size != unique_ids.size
+    Rails.logger.info "Processed #{unique_ids.size} unique recommendations with #{reasons.size} reasons"
     
-    unique_ids.first(100)
+    [unique_ids.first(100), reasons]
   end
 
   def self.find_all_content_versions(recommendation)
