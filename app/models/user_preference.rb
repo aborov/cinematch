@@ -11,6 +11,7 @@
 #  personality_profiles         :json
 #  recommendations_generated_at :datetime
 #  recommended_content_ids      :integer          default([]), is an Array
+#  use_ai                       :boolean          default(FALSE)
 #  created_at                   :datetime         not null
 #  updated_at                   :datetime         not null
 #  user_id                      :bigint           not null
@@ -39,23 +40,21 @@ class UserPreference < ApplicationRecord
   def generate_recommendations
     return [] if personality_profiles.blank? || favorite_genres.blank?
 
-    base_content = Content.all
-    base_content = base_content.where(adult: [false, nil]) if disable_adult_content
-
-    content_with_scores = base_content.map do |content|
-      {
-        id: content.id,
-        match_score: calculate_match_score(content.genre_ids_array)
-      }
+    recommended_ids = if use_ai
+      AiRecommendationService.generate_recommendations(self)
+    else
+      generate_internal_recommendations
     end
 
-    sorted_recommendations = content_with_scores.sort_by { |r| -r[:match_score] }
-    top_recommendations = sorted_recommendations.first(100).map { |r| r[:id] }
-
-    update(recommended_content_ids: top_recommendations, recommendations_generated_at: Time.current)
+    update(
+      recommended_content_ids: recommended_ids,
+      recommendations_generated_at: Time.current
+    )
+    
     Rails.cache.delete_matched("user_#{user_id}_recommendations_*")
     Rails.cache.delete("user_#{user_id}_recommendations_page_1")
-    top_recommendations
+    
+    recommended_ids
   end
 
   def calculate_match_score(genre_ids)
@@ -106,5 +105,21 @@ class UserPreference < ApplicationRecord
 
     matching_genres = genres & user_favorite_genres
     matching_genres.size.to_f / user_favorite_genres.size
+  end
+
+  def generate_internal_recommendations
+    base_content = Content.all
+    base_content = base_content.where(adult: [false, nil]) if disable_adult_content
+
+    content_with_scores = base_content.map do |content|
+      {
+        id: content.id,
+        match_score: calculate_match_score(content.genre_ids_array)
+      }
+    end
+
+    content_with_scores.sort_by { |r| -r[:match_score] }
+                       .first(100)
+                       .map { |r| r[:id] }
   end
 end

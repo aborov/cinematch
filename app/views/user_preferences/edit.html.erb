@@ -13,6 +13,13 @@
             <% end %>
           </div>
         </div>
+        <div class="form-check form-switch mb-3">
+          <%= form.check_box :use_ai, class: "form-check-input" %>
+          <%= form.label :use_ai, "Use AI-powered recommendations", class: "form-check-label" %>
+          <small class="form-text text-muted d-block">
+            Switch between traditional matching and AI-powered content recommendations
+          </small>
+        </div>
         <div>
           <%= form.submit "Save Preferences", class: "btn btn-primary" %>
         </div>
