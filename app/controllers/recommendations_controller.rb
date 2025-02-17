@@ -98,15 +98,19 @@ class RecommendationsController < ApplicationController
   def load_recommendations(page, per_page)
     offset = (page - 1) * per_page
     
-    recommendations = Content.where(id: @user_preference.recommended_content_ids)
+    Rails.logger.info "Loading recommendations for user #{@user_preference.user_id}"
+    Rails.logger.info "Total recommended IDs: #{@user_preference.recommended_content_ids.size}"
+    Rails.logger.info "Unique recommended IDs: #{@user_preference.recommended_content_ids.uniq.size}"
+    
+    # Load all recommendations first
+    all_recommendations = Content.where(id: @user_preference.recommended_content_ids)
     
     if @user_preference.disable_adult_content
-      recommendations = recommendations.where(adult: [false, nil])
+      all_recommendations = all_recommendations.where(adult: [false, nil])
     end
     
-    recommendations = recommendations.offset(offset).limit(per_page)
-    
-    mapped_recommendations = recommendations.map do |content|
+    # Map and calculate scores for all recommendations
+    mapped_recommendations = all_recommendations.map do |content|
       match_score = @user_preference.calculate_match_score(content.genre_ids_array) || 0
       
       {
@@ -123,7 +127,11 @@ class RecommendationsController < ApplicationController
       }
     end
 
-    mapped_recommendations.sort_by { |r| -r[:match_score] }
+    # Sort all recommendations by match score
+    sorted_recommendations = mapped_recommendations.sort_by { |r| -r[:match_score] }
+    
+    # Then paginate the sorted results
+    sorted_recommendations[offset, per_page] || []
   end
 
   def set_watchlist_status(recommendations)
