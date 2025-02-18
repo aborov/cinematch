@@ -14,6 +14,14 @@
         <h4>Last Recommendations Update</h4>
         <p><%= GoodJob::Job.where(job_class: 'UpdateAllRecommendationsJob').finished.maximum(:finished_at)&.strftime('%Y-%m-%d %H:%M:%S') || 'Never' %></p>
       </div>
+      <div class="stat-box">
+        <h4>Users with Preferences</h4>
+        <p><%= UserPreference.count %></p>
+      </div>
+      <div class="stat-box">
+        <h4>Users with Recommendations</h4>
+        <p><%= UserPreference.where.not(recommended_content_ids: []).count %></p>
+      </div>
     </div>
   </div>
 
@@ -28,6 +36,8 @@
           <th>Started At</th>
           <th>Duration</th>
           <th>Error</th>
+          <th>User</th>
+          <th>Details</th>
         </tr>
       </thead>
       <tbody>
@@ -39,6 +49,17 @@
             <td><%= job.performed_at&.strftime('%Y-%m-%d %H:%M:%S') %></td>
             <td><%= job.finished_at ? ((job.finished_at - job.performed_at).round(2) rescue nil) : nil %> sec</td>
             <td><%= truncate(job.error, length: 50) if job.error.present? %></td>
+            <td>
+              <% if job.serialized_params&.dig('arguments')&.first %>
+                <%= link_to "User ##{job.serialized_params['arguments'].first}", 
+                    admin_user_preference_path(job.serialized_params['arguments'].first) %>
+              <% end %>
+            </td>
+            <td>
+              <% if job.error.present? %>
+                <%= link_to "View Error", admin_good_job_path(job) %>
+              <% end %>
+            </td>
           </tr>
         <% end %>
       </tbody>
@@ -63,3 +84,34 @@
     </div>
   </div>
 </div>
+
+<style>
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-box {
+  background: #f5f5f5;
+  padding: 1rem;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.jobs-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.jobs-table th, .jobs-table td {
+  padding: 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.error {
+  background-color: #fff3f3;
+}
+</style>
