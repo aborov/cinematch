@@ -41,6 +41,11 @@ class UserPreference < ApplicationRecord
     neuroticism: %w[Thriller Mystery Horror]
   }.freeze
 
+  validates :ai_model, inclusion: { 
+    in: AiModelsConfig::MODELS.keys,
+    allow_nil: true 
+  }
+
   def generate_recommendations
     return [] if personality_profiles.blank? || favorite_genres.blank?
 
@@ -103,6 +108,10 @@ class UserPreference < ApplicationRecord
         updated_at > recommendations_generated_at ||
         Content.where("updated_at > ?", recommendations_generated_at).exists?
     end
+  end
+
+  def ai_model
+    read_attribute(:ai_model) || AiModelsConfig.default_model
   end
 
   private

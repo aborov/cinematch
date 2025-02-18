@@ -9,7 +9,8 @@ class UsersController < ApplicationController
     @user = current_user
     authorize @user
     @user_preference = @user.user_preference || @user.build_user_preference
-    @genres = Genre.all
+    @genres = TmdbService.fetch_genres[:user_facing_genres]
+    @available_models = AiModelsConfig.available_models
     render :show
   end
 

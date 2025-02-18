@@ -13,12 +13,40 @@
             <% end %>
           </div>
         </div>
-        <div class="form-check form-switch mb-3">
-          <%= form.check_box :use_ai, class: "form-check-input" %>
-          <%= form.label :use_ai, "Use AI-powered recommendations", class: "form-check-label" %>
-          <small class="form-text text-muted d-block">
-            Switch between traditional matching and AI-powered content recommendations
-          </small>
+        <div class="ai-preferences mb-4">
+          <div class="form-check form-switch">
+            <%= form.check_box :use_ai, class: "form-check-input", role: "switch", data: { action: "change->preferences#toggleAiOptions" } %>
+            <%= form.label :use_ai, "Use AI for recommendations", class: "form-check-label" %>
+          </div>
+
+          <div id="ai-options" class="mt-3 ms-4" data-preferences-target="aiOptions">
+            <div class="form-group">
+              <%= form.label :ai_model, "AI Model", class: "form-label" %>
+              <%= form.select :ai_model, 
+                  @available_models.map { |key, config| 
+                    [
+                      "#{config[:name]} - #{config[:description]}", 
+                      key, 
+                      { 
+                        data: { 
+                          cost: config[:cost_per_1k],
+                          description: config[:description]
+                        } 
+                      }
+                    ]
+                  },
+                  { include_blank: false },
+                  class: "form-select",
+                  data: { 
+                    action: "change->preferences#updateModelInfo",
+                    preferences-target: "modelSelect"
+                  }
+              %>
+              <small class="form-text text-muted mt-1" data-preferences-target="modelInfo">
+                <%= @available_models[@user_preference.ai_model][:description] %>
+              </small>
+            </div>
+          </div>
         </div>
         <div>
           <%= form.submit "Save Preferences", class: "btn btn-primary" %>
