@@ -48,7 +48,7 @@ class AiModelsConfig
   }.freeze
 
   def self.default_model
-    'claude-3-haiku'
+    'gpt-4o-mini'
   end
 
   def self.available_models
