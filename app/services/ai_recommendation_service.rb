@@ -70,7 +70,10 @@ class AiRecommendationService
   end
 
   def self.get_openai_recommendations(prompt, config)
-    client = OpenAI::Client.new(access_token: ENV.fetch('OPENAI_API_KEY'))
+    client = OpenAI::Client.new(
+      access_token: ENV.fetch('OPENAI_API_KEY'),
+      request_timeout: 60  # Increase timeout to 60 seconds
+    )
     
     response = client.chat(
       parameters: {
@@ -90,10 +93,17 @@ class AiRecommendationService
     
     begin
       content = response.dig("choices", 0, "message", "content")
-      Rails.logger.info "AI Response: #{content}"
+      Rails.logger.info "OpenAI Response: #{content}"
       parse_ai_response(content)
+    rescue Faraday::TimeoutError => e
+      Rails.logger.error "OpenAI request timed out: #{e.message}"
+      []
     rescue JSON::ParserError => e
-      Rails.logger.error "Failed to parse AI response: #{e.message}"
+      Rails.logger.error "Failed to parse OpenAI response: #{e.message}"
+      []
+    rescue StandardError => e
+      Rails.logger.error "OpenAI API error: #{e.message}"
+      Rails.logger.error "Response: #{response.inspect}"
       []
     end
   end
