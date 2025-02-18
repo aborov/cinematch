@@ -10,6 +10,7 @@ class UserPreferencesController < ApplicationController
     genres = TmdbService.fetch_genres
     @genres = genres[:user_facing_genres]
     @all_genres = genres[:all_genres]
+    @available_models = AiModelsConfig.available_models
   end
 
   def update
@@ -19,7 +20,8 @@ class UserPreferencesController < ApplicationController
     update_params = {
       favorite_genres: genres,
       disable_adult_content: user_preference_params[:disable_adult_content] == '1',
-      use_ai: user_preference_params[:use_ai] == '1'
+      use_ai: user_preference_params[:use_ai] == '1',
+      ai_model: user_preference_params[:ai_model]
     }
 
     if @user_preference.update(update_params)
@@ -33,6 +35,7 @@ class UserPreferencesController < ApplicationController
     else
       Rails.logger.error "Failed to update user preference: #{@user_preference.errors.full_messages}"
       @genres = TmdbService.fetch_genres[:user_facing_genres]
+      @available_models = AiModelsConfig.available_models
       render :edit
     end
   end
@@ -61,7 +64,7 @@ class UserPreferencesController < ApplicationController
   end
 
   def user_preference_params
-    params.require(:user_preference).permit(:use_ai, :disable_adult_content, favorite_genres: [])
+    params.require(:user_preference).permit(:disable_adult_content, :use_ai, :ai_model, favorite_genres: [])
   end
 
   def process_genre_preferences(genres)

@@ -1,19 +1,12 @@
 class AiRecommendationService
   def self.generate_recommendations(user_preference)
     Rails.logger.info "Starting recommendation generation for user #{user_preference.user_id}"
-    Rails.logger.info "User preferences: #{user_preference.attributes}"
+    
+    model = user_preference.ai_model.presence || AiModelsConfig.default_model
+    Rails.logger.info "Using AI model: #{model}"
     
     user_data = prepare_user_data(user_preference)
-    Rails.logger.info "Prepared user data: #{user_data}"
-    
-    response = get_ai_recommendations(user_data)
-    Rails.logger.info "Got #{response&.size || 0} recommendations from AI"
-    
-    if response.blank?
-      Rails.logger.error "No recommendations received from AI"
-      return [[], {}]
-    end
-    
+    response = get_ai_recommendations(user_data, model)
     process_recommendations(response, user_preference.disable_adult_content)
   end
 
@@ -25,7 +18,7 @@ class AiRecommendationService
       .where.not(rating: nil)
       .includes(:content)
       .order(rating: :desc, updated_at: :desc)
-      .limit(25)
+      .limit(30)
 
     Rails.logger.info "Found #{watched_items.size} watched items"
 
@@ -57,59 +50,111 @@ class AiRecommendationService
     }
   end
 
-  def self.get_ai_recommendations(user_data)
+  def self.get_ai_recommendations(user_data, model)
     prompt = generate_prompt(user_data)
     Rails.logger.info "AI Prompt:\n#{prompt}"
     
+    model_config = AiModelsConfig::MODELS[model]
+    
+    case model_config[:provider]
+    when :openai
+      get_openai_recommendations(prompt, model_config)
+    when :anthropic
+      get_anthropic_recommendations(prompt, model_config)
+    when :ollama
+      get_ollama_recommendations(prompt, model_config)
+    else
+      Rails.logger.error "Unsupported AI provider: #{model_config[:provider]}"
+      []
+    end
+  end
+
+  def self.get_openai_recommendations(prompt, config)
     client = OpenAI::Client.new(access_token: ENV.fetch('OPENAI_API_KEY'))
     
     response = client.chat(
       parameters: {
-        model: "gpt-3.5-turbo",
+        model: config[:api_name],
         messages: [{
           role: "system",
-          content: "You are a movie recommendation system. Provide diverse recommendations without duplicates. Each recommendation should include title, type, year, and a reason for the recommendation."
+          content: "You are a recommendation system. Your responses must be valid JSON objects containing a 'recommendations' array. Do not include any text outside of the JSON structure."
         }, {
           role: "user",
           content: prompt
         }],
-        temperature: 0.7,
-        response_format: { type: "json_object" },
-        max_tokens: 4000
+        temperature: config[:temperature],
+        max_tokens: config[:max_tokens],
+        response_format: { type: "json_object" }
       }
     )
-
-    content = response.dig("choices", 0, "message", "content")
-    Rails.logger.info "AI Response:\n#{content}"
     
     begin
-      parsed = JSON.parse(content)
-      # Ensure we're working with an array of recommendations
-      recommendations = case parsed
-                       when Array
-                         parsed
-                       when Hash
-                         parsed["recommendations"] || parsed.values.first
-                       else
-                         []
-                       end
-      
-      recommendations = [recommendations] unless recommendations.is_a?(Array)
-      
-      # Validate each recommendation has required fields
-      recommendations.select! do |rec|
-        rec.is_a?(Hash) && rec["title"].present? && rec["year"].present? && rec["type"].present?
-      end
-      
-      Rails.logger.info "Processed #{recommendations.size} valid recommendations"
-      
-      # Remove duplicates based on title and year
-      recommendations.uniq { |rec| [rec["title"].downcase, rec["year"]] }
+      content = response.dig("choices", 0, "message", "content")
+      Rails.logger.info "AI Response: #{content}"
+      parse_ai_response(content)
     rescue JSON::ParserError => e
       Rails.logger.error "Failed to parse AI response: #{e.message}"
-      Rails.logger.error "Raw content: #{content}"
       []
     end
+  end
+
+  def self.get_anthropic_recommendations(prompt, config)
+    response = HTTP.headers(
+      "x-api-key" => ENV.fetch('ANTHROPIC_API_KEY'),
+      "anthropic-version" => "2023-06-01",
+      "content-type" => "application/json"
+    ).post("https://api.anthropic.com/v1/messages", json: {
+      model: config[:api_name],
+      max_tokens: config[:max_tokens],
+      temperature: config[:temperature],
+      messages: [{
+        role: "user",
+        content: "#{prompt}\n\nRespond with valid JSON only, no additional text."
+      }]
+    })
+    
+    begin
+      result = JSON.parse(response.body.to_s)
+      Rails.logger.info "Raw Claude Response: #{result.inspect}"
+      
+      # Extract text from the first content item
+      content = result.dig("content", 0, "text")
+      Rails.logger.info "Extracted content: #{content}"
+      
+      parse_ai_response(content)
+    rescue JSON::ParserError => e
+      Rails.logger.error "Failed to parse Claude response: #{e.message}"
+      Rails.logger.error "Raw response: #{response.body.to_s}"
+      []
+    rescue StandardError => e
+      Rails.logger.error "Claude API error: #{e.message}"
+      Rails.logger.error "Raw response: #{response.body.to_s}"
+      []
+    end
+  end
+
+  def self.get_ollama_recommendations(prompt, config)
+    response = HTTP.post("http://localhost:11434/api/generate", json: {
+      model: config[:api_name],
+      prompt: prompt,
+      system: "You are a recommendation system. Return recommendations as a valid JSON array.",
+      temperature: config[:temperature]
+    })
+    
+    parse_ai_response(response.body.to_s)
+  end
+
+  def self.parse_ai_response(content)
+    return [] if content.blank?
+    
+    # Remove any markdown code block indicators if present
+    content = content.gsub(/```json\n?/, '').gsub(/```\n?/, '')
+    
+    # Parse the JSON
+    JSON.parse(content)["recommendations"]
+  rescue JSON::ParserError => e
+    Rails.logger.error "Failed to parse AI response: #{e.message}"
+    []
   end
 
   def self.generate_prompt(user_data)
@@ -211,34 +256,31 @@ class AiRecommendationService
     contents = Content.where("LOWER(title) LIKE ?", "%#{recommendation["title"].downcase}%")
     if contents.present?
       Rails.logger.info "Found fuzzy matches in database: #{contents.size} versions"
+      return contents if recommendation["year"].nil?
       
       # If year provided, filter by year
-      if recommendation["year"] && (year_match = contents.find { |c| c.release_year == recommendation["year"] })
+      if (year_match = contents.find { |c| c.release_year == recommendation["year"] })
         Rails.logger.info "Found year-specific match: #{year_match.title} (#{year_match.release_year})"
         return [year_match]
       end
-      
-      return contents
     end
 
-    # If not found, search TMDB
+    # If no matches in database, try TMDB
     Rails.logger.info "No matches in database, searching TMDB..."
-    search_params = {
+    tmdb_result = TmdbService.search({
       title: recommendation["title"],
       year: recommendation["year"],
-      type: recommendation["type"]
-    }
+      type: recommendation["type"] || 'movie'
+    })
 
-    result = TmdbService.search(search_params)
-    if result
-      Rails.logger.info "Found match in TMDB: #{result['title'] || result['name']} (ID: #{result['id']})"
-      TmdbTasks.update_content_batch([result])
-      content = Content.find_by(source_id: result['id'])
-      Rails.logger.info content ? "Successfully added to database" : "Failed to add to database"
-      [content].compact
-    else
-      Rails.logger.warn "No matches found in TMDB"
-      []
+    if tmdb_result
+      Rails.logger.info "Found match in TMDB: #{tmdb_result['title'] || tmdb_result['name']} (ID: #{tmdb_result['id']})"
+      require_relative '../../lib/tasks/tmdb_tasks'
+      TmdbTasks.update_content_batch([tmdb_result])
+      content = Content.find_by(source_id: tmdb_result['id'], content_type: tmdb_result['type'] || 'movie')
+      return [content] if content
     end
+
+    []
   end
 end 
