@@ -85,7 +85,19 @@ class UserPreference < ApplicationRecord
   end
 
   def self.ransackable_attributes(auth_object = nil)
-    ["created_at", "favorite_genres", "id", "personality_profiles", "updated_at", "user_id"]
+    [
+      "id", 
+      "user_id", 
+      "favorite_genres", 
+      "personality_profiles", 
+      "recommended_content_ids",
+      "recommendations_generated_at",
+      "disable_adult_content",
+      "use_ai",
+      "ai_model",
+      "created_at", 
+      "updated_at"
+    ]
   end
 
   def self.ransackable_associations(auth_object = nil)
