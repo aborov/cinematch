@@ -20,8 +20,8 @@ class FetchContentJob < ApplicationJob
     end
     
     Rails.logger.info "FetchContentJob completed successfully"
-    # Trigger recommendations update after content fetch
-    UpdateAllRecommendationsJob.perform_later
+    # Add delay before starting recommendations update
+    UpdateAllRecommendationsJob.set(wait: 1.minute).perform_later
   rescue => e
     Rails.logger.error "FetchContentJob failed: #{e.message}\n#{e.backtrace.join("\n")}"
     raise e
