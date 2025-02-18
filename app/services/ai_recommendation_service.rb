@@ -121,7 +121,10 @@ class AiRecommendationService
       content = result.dig("content", 0, "text")
       Rails.logger.info "Extracted content: #{content}"
       
-      parse_ai_response(content)
+      # The content is already JSON, so we don't need to parse it again
+      recommendations = JSON.parse(content)["recommendations"]
+      Rails.logger.info "Parsed recommendations: #{recommendations.inspect}"
+      recommendations
     rescue JSON::ParserError => e
       Rails.logger.error "Failed to parse Claude response: #{e.message}"
       Rails.logger.error "Raw response: #{response.body.to_s}"
