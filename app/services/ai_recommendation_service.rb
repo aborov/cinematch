@@ -69,12 +69,19 @@ class AiRecommendationService
     model_config = AiModelsConfig::MODELS[model]
     
     case model_config[:provider]
+    when :gemini
+      get_gemini_recommendations(prompt, model_config)
     when :openai
       get_openai_recommendations(prompt, model_config)
     when :anthropic
       get_anthropic_recommendations(prompt, model_config)
     when :ollama
       get_ollama_recommendations(prompt, model_config)
+    when :deepseek
+      get_deepseek_recommendations(prompt, model_config)
+      
+    when :together
+      get_together_recommendations(prompt, model_config)
     else
       Rails.logger.error "Unsupported AI provider: #{model_config[:provider]}"
       []
@@ -164,6 +171,136 @@ class AiRecommendationService
     })
     
     parse_ai_response(response.body.to_s)
+  end
+
+  def self.get_deepseek_recommendations(prompt, config)
+    response = HTTP.headers(
+      "Authorization" => "Bearer #{ENV.fetch('DEEPSPEAK_API_KEY')}",
+      "Content-Type" => "application/json"
+    ).post("https://api.deepseek.com/chat/completions", json: {
+      model: config[:api_name],
+      messages: [{
+        role: "system",
+        content: "You are a recommendation system. Respond only with valid JSON."
+      }, {
+        role: "user",
+        content: prompt
+      }],
+      temperature: config[:temperature],
+      max_tokens: config[:max_tokens],
+      stream: false
+    })
+    
+    begin
+      result = JSON.parse(response.body.to_s)
+      Rails.logger.info "Raw DeepSeek Response: #{result.inspect}"
+      
+      content = result.dig("choices", 0, "message", "content")
+      Rails.logger.info "Extracted content: #{content}"
+      
+      parse_ai_response(content)
+    rescue JSON::ParserError => e
+      Rails.logger.error "Failed to parse DeepSeek response: #{e.message}"
+      Rails.logger.error "Raw response: #{response.body.to_s}"
+      []
+    rescue StandardError => e
+      Rails.logger.error "DeepSeek API error: #{e.message}"
+      Rails.logger.error "Raw response: #{response.body.to_s}"
+      []
+    end
+  end
+
+  def self.get_gemini_recommendations(prompt, config)
+    response = HTTP.headers(
+      "Content-Type" => "application/json"
+    ).post(
+      "https://generativelanguage.googleapis.com/v1beta/models/#{config[:api_name]}:generateContent?key=#{ENV.fetch('GEMINI_API_KEY')}",
+      json: {
+        contents: [{
+          role: "user",
+          parts: [{
+            text: prompt
+          }]
+        }],
+        systemInstruction: {
+          role: "user",
+          parts: [{
+            text: "You are a recommendation system. Respond only with valid JSON."
+          }]
+        },
+        generationConfig: {
+          temperature: config[:temperature],
+          topK: 64,
+          topP: 0.95,
+          maxOutputTokens: config[:max_tokens],
+          responseMimeType: "application/json"
+        }
+      }
+    )
+
+    begin
+      result = JSON.parse(response.body.to_s)
+      Rails.logger.info "Raw Gemini Response: #{result.inspect}"
+      
+      content = result.dig("candidates", 0, "content", "parts", 0, "text")
+      Rails.logger.info "Extracted content: #{content}"
+      
+      parse_ai_response(content)
+    rescue JSON::ParserError => e
+      Rails.logger.error "Failed to parse Gemini response: #{e.message}"
+      Rails.logger.error "Raw response: #{response.body.to_s}"
+      []
+    rescue StandardError => e
+      Rails.logger.error "Gemini API error: #{e.message}"
+      Rails.logger.error "Raw response: #{response.body.to_s}"
+      []
+    end
+  end
+
+  def self.get_together_recommendations(prompt, config)
+    full_response = ""
+    
+    response = HTTP.headers(
+      "Authorization" => "Bearer #{ENV.fetch('TOGETHER_API_KEY')}",
+      "Content-Type" => "application/json"
+    ).post("https://api.together.xyz/v1/chat/completions", json: {
+      model: config[:api_name],
+      messages: [{
+        role: "system",
+        content: "You are a recommendation system. Respond only with valid JSON."
+      }, {
+        role: "user",
+        content: prompt
+      }],
+      temperature: config[:temperature],
+      max_tokens: config[:max_tokens],
+      top_p: 0.7,
+      top_k: 50,
+      repetition_penalty: 1,
+      stop: ["<|eot_id|>", "<|eom_id|>"],
+      stream: false
+    })
+    
+    begin
+      result = JSON.parse(response.body.to_s)
+      Rails.logger.info "Raw Together Response: #{result.inspect}"
+      
+      content = result.dig("choices", 0, "message", "content")
+      Rails.logger.info "Extracted content: #{content}"
+      
+      # Clean the response before parsing
+      content = content.gsub(/```json\n?/, '').gsub(/```\n?/, '').strip
+      
+      parse_ai_response(content)
+    rescue JSON::ParserError => e
+      Rails.logger.error "Failed to parse Together response: #{e.message}"
+      Rails.logger.error "Raw response: #{response.body.to_s}"
+      []
+    rescue StandardError => e
+      Rails.logger.error "Together API error: #{e.message}"
+      Rails.logger.error "Raw response: #{response.body.to_s}"
+      []
+    end
   end
 
   def self.parse_ai_response(content)
