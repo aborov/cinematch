@@ -18,48 +18,56 @@ class AiRecommendationService
   private
 
   def self.prepare_user_data(user_preference)
+    model_config = AiModelsConfig::MODELS[user_preference.ai_model]
+    max_items = case model_config[:max_tokens]
+      when 8192 then 100  # Gemini
+      when 4000..4096 then 50  # GPT and Claude
+      else 25  # DeepSeek and others
+    end
+
     watched_items = user_preference.user.watchlist_items
       .where(watched: true)
       .where.not(rating: nil)
       .includes(:content)
       .order(rating: :desc, updated_at: :desc)
-      .limit(50)  # Increased from 30 to get more data points
+      .limit(max_items)
 
-    Rails.logger.info "Found #{watched_items.size} watched items"
-
-    # Split items into high and regular ratings
     high_rated, regular_rated = watched_items.partition { |item| item.rating >= 8 }
     
-    # Format high-rated items with full details
-    high_rated_formatted = high_rated.map do |item|
-      next unless item.content
-      {
-        t: item.content.title,
-        y: item.content.release_year,
-        r: item.rating,
-        g: item.content.genre_ids_array,  # Keep genres for highly rated items
-        type: item.content.content_type
-      }
-    end.compact
-
-    # Format regular items with minimal details
-    regular_rated_formatted = regular_rated.map do |item|
-      next unless item.content
-      {
-        t: item.content.title,
-        r: item.rating,
-        type: item.content.content_type
-      }
-    end.compact
+    # Calculate remaining slots based on model capacity
+    remaining_slots = max_items - high_rated.size
+    regular_items_to_include = [remaining_slots, regular_rated.size].min
 
     {
       personality: user_preference.personality_profiles,
       favorite_genres: user_preference.favorite_genres,
       watched_history: {
-        high_rated: high_rated_formatted,
-        regular: regular_rated_formatted.first(20)  # Limit regular items
+        high_rated: format_items(high_rated, detailed: true),
+        regular: format_items(regular_rated.first(regular_items_to_include), detailed: false)
       }
     }
+  end
+
+  def self.format_items(items, detailed:)
+    items.map do |item|
+      next unless item.content
+      if detailed
+        {
+          t: item.content.title,
+          y: item.content.release_year,
+          r: item.rating,
+          g: item.content.genre_ids_array,
+          type: item.content.content_type
+        }
+      else
+        {
+          t: item.content.title,
+          y: item.content.release_year,
+          r: item.rating,
+          type: item.content.content_type
+        }
+      end
+    end.compact
   end
 
   def self.get_ai_recommendations(user_data, model)
@@ -320,24 +328,22 @@ class AiRecommendationService
     high_rated = user_data[:watched_history][:high_rated]
     regular = user_data[:watched_history][:regular]
     
-    # Build watch history section
-    watch_history = if high_rated.size >= 10
-      # If we have enough highly rated items, only use those
-      "Watch History: " + high_rated.map { |w| "#{w[:t]} (#{w[:y]}, #{w[:type]}) - #{w[:r]}/10" }.join(" | ")
-    else
-      # If we don't have enough highly rated items, include some regular ones
-      [
-        "Highly Rated (8-10): " + high_rated.map { |w| "#{w[:t]} (#{w[:y]}, #{w[:type]}) - #{w[:r]}/10" }.join(" | "),
-        "Other Ratings: " + regular.first(10 - high_rated.size).map { |w| "#{w[:t]} (#{w[:type]}) - #{w[:r]}/10" }.join(" | ")
-      ].join("\n")
+    watch_history = [
+      "Watch History (Highly Rated): " + high_rated.map { |w| "#{w[:t]} (#{w[:y]}, #{w[:type]}) - #{w[:r]}/10" }.join(" | "),
+    ]
+    
+    if regular.any?
+      watch_history << "Watch History (Other): " + regular.map { |w| "#{w[:t]} (#{w[:y]}, #{w[:type]}) - #{w[:r]}/10" }.join(" | ")
     end
 
     <<~PROMPT.strip
-      Based on the user's profile below, recommend exactly 50 titles that match their preferences. Each recommendation should include a confidence score (0-100).
+      Based on the user's profile below, recommend exactly 50 NEW titles that match their preferences. Each recommendation should include a confidence score (0-100).
+      Important: Do NOT recommend any titles from the user's watch history.
+
       User Profile:
       - Personality: #{user_data[:personality].to_json}
       - Favorite Genres: #{user_data[:favorite_genres].join(', ')}
-      - #{watch_history}
+      #{watch_history.join("\n")}
       Return in this format: {"recommendations":[{"title":"exact title","type":"movie" or "tv","year":release year (integer),"reason":"brief explanation of why this matches","confidence_score":integer between 0-100}]}
     PROMPT
   end
