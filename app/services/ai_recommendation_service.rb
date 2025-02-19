@@ -217,9 +217,23 @@ class AiRecommendationService
       
       content_ids << content.id
       reasons[content.id.to_s] = rec["reason"] if rec["reason"].present?
-      match_scores[content.id.to_s] = rec["confidence_score"] || 50 # Default to 50 if not provided
       
-      Rails.logger.info "Added content: #{content.title} (ID: #{content.id}) with score: #{match_scores[content.id.to_s]}"
+      # Calculate enhanced score
+      ai_score = rec["confidence_score"] || 50
+      genre_score = calculate_genre_match_score(content, rec["reason"])
+      reason_score = calculate_reason_quality_score(rec["reason"])
+      position_score = 100 - (recommendations.index(rec) * 2)
+      
+      # Weighted combination with higher AI weight
+      final_score = (ai_score * 0.75) +           # AI's confidence (increased from 0.5)
+                   (genre_score * 0.1) +         # Genre matching (decreased from 0.2)
+                   (reason_score * 0.1) +        # Reason quality (decreased from 0.2)
+                   (position_score * 0.05)        # Position bonus (unchanged)
+                   
+      match_scores[content.id.to_s] = final_score.round(1)
+      
+      Rails.logger.info "Added content: #{content.title} (ID: #{content.id})"
+      Rails.logger.info "Scores - AI: #{ai_score}, Genre: #{genre_score}, Reason: #{reason_score}, Position: #{position_score}, Final: #{final_score}"
     end
 
     unique_ids = content_ids.uniq
@@ -228,19 +242,48 @@ class AiRecommendationService
     [unique_ids.first(100), reasons, match_scores]
   end
 
-  def self.calculate_reason_score(reason)
-    return 0.5 unless reason.present?
+  def self.calculate_genre_match_score(content, reason)
+    return 50 unless reason.present? && content.genre_ids_array.present?
     
-    # Higher scores for more specific reasoning
-    score = 0.5 # base score
+    # Extract genre mentions from reason
+    mentioned_genres = Genre.all.map(&:name).select { |genre| reason.downcase.include?(genre.downcase) }
     
-    # Boost score based on reasoning quality
-    score += 0.2 if reason.include?("personality") || reason.include?("traits")
-    score += 0.2 if reason.include?("highly rated") || reason.include?("favorite")
-    score += 0.1 if reason.include?("genre") || reason.include?("similar")
+    # Calculate overlap with content's actual genres
+    content_genres = Genre.where(tmdb_id: content.genre_ids_array).pluck(:name)
+    matching_genres = (mentioned_genres & content_genres).size
     
-    # Cap at 1.0
-    [score, 1.0].min
+    # Score based on genre match accuracy
+    if matching_genres > 0
+      base_score = 70 + (matching_genres * 10)
+      [base_score, 100].min
+    else
+      50 # Default score when no genres match
+    end
+  end
+
+  def self.calculate_reason_quality_score(reason)
+    return 50 unless reason.present?
+    
+    score = 50 # base score
+    
+    # Boost for mentioning personality traits
+    score += 20 if reason.downcase.include?("personality") || 
+                   reason.downcase.include?("traits") ||
+                   UserPreference::GENRE_MAPPING.keys.any? { |trait| reason.downcase.include?(trait.to_s) }
+    
+    # Boost for mentioning user preferences
+    score += 20 if reason.downcase.include?("highly rated") || 
+                   reason.downcase.include?("favorite") ||
+                   reason.downcase.include?("watched") ||
+                   reason.downcase.include?("rated")
+    
+    # Boost for specific genre or similarity mentions
+    score += 10 if reason.downcase.include?("genre") || 
+                   reason.downcase.include?("similar") ||
+                   reason.downcase.include?("style") ||
+                   reason.downcase.include?("themes")
+    
+    [score, 100].min # Cap at 100
   end
 
   def self.find_all_content_versions(recommendation)
