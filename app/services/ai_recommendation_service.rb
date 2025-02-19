@@ -175,7 +175,8 @@ class AiRecommendationService
       User Profile:
       - Personality: #{user_data[:personality].to_json}
       - Favorite Genres: #{user_data[:favorite_genres].join(', ')}
-      - Watch History: #{user_data[:watched_history].to_json}
+      - Watch History: User has rated #{user_data[:watched_history].size} items.
+        #{user_data[:watched_history].map { |w| "- #{w[:title]} (#{w[:year]}, #{w[:type]}) - #{w[:rating]}/10 - [#{w[:genres].join(', ')}]" }.join("\n        ")}
       
       Return in this format:
       {
