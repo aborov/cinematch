@@ -10,6 +10,11 @@ class AiRecommendationService
     process_recommendations(response, user_preference.disable_adult_content)
   end
 
+  def self.preview_prompt(user_preference)
+    user_data = prepare_user_data(user_preference)
+    generate_prompt(user_data)
+  end
+
   private
 
   def self.prepare_user_data(user_preference)
@@ -18,35 +23,42 @@ class AiRecommendationService
       .where.not(rating: nil)
       .includes(:content)
       .order(rating: :desc, updated_at: :desc)
-      .limit(30)
+      .limit(50)  # Increased from 30 to get more data points
 
     Rails.logger.info "Found #{watched_items.size} watched items"
 
-    genre_names = Rails.cache.fetch("genre_names", expires_in: 1.day) do
-      Genre.pluck(:tmdb_id, :name).to_h
-    end
-
-    formatted_items = watched_items.map do |item|
-      next unless item.content # Skip if content is nil
-      
-      genre_ids = item.content.genre_ids_array
-      genre_ids = genre_ids.is_a?(Array) ? genre_ids : [genre_ids].compact
-      
+    # Split items into high and regular ratings
+    high_rated, regular_rated = watched_items.partition { |item| item.rating >= 8 }
+    
+    # Format high-rated items with full details
+    high_rated_formatted = high_rated.map do |item|
+      next unless item.content
       {
-        title: item.content.title,
-        rating: item.rating,
-        genres: genre_ids.map { |id| genre_names[id.to_i] }.compact,
-        year: item.content.release_year,
-        type: item.content.content_type,
-        highly_rated: item.rating >= 8
+        t: item.content.title,
+        y: item.content.release_year,
+        r: item.rating,
+        g: item.content.genre_ids_array,  # Keep genres for highly rated items
+        type: item.content.content_type
       }
-    end.compact # Remove any nil entries
+    end.compact
+
+    # Format regular items with minimal details
+    regular_rated_formatted = regular_rated.map do |item|
+      next unless item.content
+      {
+        t: item.content.title,
+        r: item.rating,
+        type: item.content.content_type
+      }
+    end.compact
 
     {
       personality: user_preference.personality_profiles,
       favorite_genres: user_preference.favorite_genres,
-      watched_history: formatted_items,
-      has_strong_preferences: formatted_items.count { |i| i[:highly_rated] } >= 5
+      watched_history: {
+        high_rated: high_rated_formatted,
+        regular: regular_rated_formatted.first(20)  # Limit regular items
+      }
     }
   end
 
@@ -168,28 +180,28 @@ class AiRecommendationService
   end
 
   def self.generate_prompt(user_data)
-    <<~PROMPT
-      Based on the user's profile below, recommend exactly 50 titles that match their preferences.
-      Each recommendation should include a confidence score (0-100).
-      
+    high_rated = user_data[:watched_history][:high_rated]
+    regular = user_data[:watched_history][:regular]
+    
+    # Build watch history section
+    watch_history = if high_rated.size >= 10
+      # If we have enough highly rated items, only use those
+      "Watch History: " + high_rated.map { |w| "#{w[:t]} (#{w[:y]}, #{w[:type]}) - #{w[:r]}/10" }.join(" | ")
+    else
+      # If we don't have enough highly rated items, include some regular ones
+      [
+        "Highly Rated (8-10): " + high_rated.map { |w| "#{w[:t]} (#{w[:y]}, #{w[:type]}) - #{w[:r]}/10" }.join(" | "),
+        "Other Ratings: " + regular.first(10 - high_rated.size).map { |w| "#{w[:t]} (#{w[:type]}) - #{w[:r]}/10" }.join(" | ")
+      ].join("\n")
+    end
+
+    <<~PROMPT.strip
+      Based on the user's profile below, recommend exactly 50 titles that match their preferences. Each recommendation should include a confidence score (0-100).
       User Profile:
       - Personality: #{user_data[:personality].to_json}
       - Favorite Genres: #{user_data[:favorite_genres].join(', ')}
-      - Watch History: User has rated #{user_data[:watched_history].size} items.
-        #{user_data[:watched_history].map { |w| "- #{w[:title]} (#{w[:year]}, #{w[:type]}) - #{w[:rating]}/10 - [#{w[:genres].join(', ')}]" }.join("\n        ")}
-      
-      Return in this format:
-      {
-        "recommendations": [
-          {
-            "title": "exact title",
-            "type": "movie" or "tv",
-            "year": release year (integer),
-            "reason": "brief explanation of why this matches",
-            "confidence_score": integer between 0-100
-          }
-        ]
-      }
+      - #{watch_history}
+      Return in this format: {"recommendations":[{"title":"exact title","type":"movie" or "tv","year":release year (integer),"reason":"brief explanation of why this matches","confidence_score":integer between 0-100}]}
     PROMPT
   end
 
