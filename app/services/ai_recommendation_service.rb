@@ -20,9 +20,10 @@ class AiRecommendationService
   def self.prepare_user_data(user_preference)
     model_config = AiModelsConfig::MODELS[user_preference.ai_model]
     max_items = case model_config[:max_tokens]
-      when 8192 then 100  # Gemini
-      when 4000..4096 then 50  # GPT and Claude
-      else 25  # DeepSeek and others
+      when 16384 then 150     # GPT-4o Mini
+      when 8192 then 100      # Gemini and Claude 3.5
+      when 4000..4096 then 50 # GPT-3.5, Claude 3, DeepSeek
+      else 25                 # Llama-3 and others
     end
 
     watched_items = user_preference.user.watchlist_items
@@ -85,9 +86,6 @@ class AiRecommendationService
       get_anthropic_recommendations(prompt, model_config)
     when :ollama
       get_ollama_recommendations(prompt, model_config)
-    when :deepseek
-      get_deepseek_recommendations(prompt, model_config)
-      
     when :together
       get_together_recommendations(prompt, model_config)
     else
@@ -181,43 +179,6 @@ class AiRecommendationService
     parse_ai_response(response.body.to_s)
   end
 
-  def self.get_deepseek_recommendations(prompt, config)
-    response = HTTP.headers(
-      "Authorization" => "Bearer #{ENV.fetch('DEEPSPEAK_API_KEY')}",
-      "Content-Type" => "application/json"
-    ).post("https://api.deepseek.com/chat/completions", json: {
-      model: config[:api_name],
-      messages: [{
-        role: "system",
-        content: "You are a recommendation system. Respond only with valid JSON."
-      }, {
-        role: "user",
-        content: prompt
-      }],
-      temperature: config[:temperature],
-      max_tokens: config[:max_tokens],
-      stream: false
-    })
-    
-    begin
-      result = JSON.parse(response.body.to_s)
-      Rails.logger.info "Raw DeepSeek Response: #{result.inspect}"
-      
-      content = result.dig("choices", 0, "message", "content")
-      Rails.logger.info "Extracted content: #{content}"
-      
-      parse_ai_response(content)
-    rescue JSON::ParserError => e
-      Rails.logger.error "Failed to parse DeepSeek response: #{e.message}"
-      Rails.logger.error "Raw response: #{response.body.to_s}"
-      []
-    rescue StandardError => e
-      Rails.logger.error "DeepSeek API error: #{e.message}"
-      Rails.logger.error "Raw response: #{response.body.to_s}"
-      []
-    end
-  end
-
   def self.get_gemini_recommendations(prompt, config)
     response = HTTP.headers(
       "Content-Type" => "application/json"
@@ -305,7 +266,7 @@ class AiRecommendationService
       Rails.logger.error "Raw response: #{response.body.to_s}"
       []
     rescue StandardError => e
-      Rails.logger.error "Together API error: #{e.message}"
+      Rails.logger.error "Together API error for model #{config[:name]}: #{e.message}"
       Rails.logger.error "Raw response: #{response.body.to_s}"
       []
     end

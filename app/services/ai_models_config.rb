@@ -69,9 +69,9 @@ class AiModelsConfig
     'deepseek-chat' => {
       provider: :together,
       api_name: 'deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free',
-      name: 'DeepSeek',
+      name: 'DeepSeek R1',
       context_window: 128000,
-      max_tokens: 4096,
+      max_tokens: 8192,
       temperature: 0.7,
       input_cost_per_1M: 0,
       output_cost_per_1M: 0,
