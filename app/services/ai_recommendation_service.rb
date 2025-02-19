@@ -72,7 +72,7 @@ class AiRecommendationService
   def self.get_openai_recommendations(prompt, config)
     client = OpenAI::Client.new(
       access_token: ENV.fetch('OPENAI_API_KEY'),
-      request_timeout: 60  # Increase timeout to 60 seconds
+      request_timeout: 60
     )
     
     response = client.chat(
@@ -80,7 +80,7 @@ class AiRecommendationService
         model: config[:api_name],
         messages: [{
           role: "system",
-          content: "You are a recommendation system. Your responses must be valid JSON objects containing a 'recommendations' array. Do not include any text outside of the JSON structure."
+          content: "You are a recommendation system. Respond only with valid JSON."
         }, {
           role: "user",
           content: prompt
@@ -119,7 +119,7 @@ class AiRecommendationService
       temperature: config[:temperature],
       messages: [{
         role: "user",
-        content: "#{prompt}\n\nRespond with valid JSON only, no additional text."
+        content: prompt
       }]
     })
     
@@ -131,10 +131,7 @@ class AiRecommendationService
       content = result.dig("content", 0, "text")
       Rails.logger.info "Extracted content: #{content}"
       
-      # The content is already JSON, so we don't need to parse it again
-      recommendations = JSON.parse(content)["recommendations"]
-      Rails.logger.info "Parsed recommendations: #{recommendations.inspect}"
-      recommendations
+      parse_ai_response(content)
     rescue JSON::ParserError => e
       Rails.logger.error "Failed to parse Claude response: #{e.message}"
       Rails.logger.error "Raw response: #{response.body.to_s}"
@@ -150,7 +147,7 @@ class AiRecommendationService
     response = HTTP.post("http://localhost:11434/api/generate", json: {
       model: config[:api_name],
       prompt: prompt,
-      system: "You are a recommendation system. Return recommendations as a valid JSON array.",
+      system: "You are a recommendation system. Respond only with valid JSON.",
       temperature: config[:temperature]
     })
     
@@ -171,53 +168,27 @@ class AiRecommendationService
   end
 
   def self.generate_prompt(user_data)
-    personality_description = user_data[:personality].map { |trait, score| 
-      "#{trait}: #{score}/5"
-    }.join(', ')
-    
-    highly_rated = user_data[:watched_history].select { |item| item[:highly_rated] }
-    watched_description = if highly_rated.any?
-      "Highly rated (8+ out of 10):\n" +
-      highly_rated.map { |item| "#{item[:title]} (#{item[:rating]}/10) - #{item[:genres].join(', ')} [#{item[:type]}]" }.join("\n") +
-      "\n\nOther watched:\n" +
-      (user_data[:watched_history] - highly_rated).map { |item| 
-        "#{item[:title]} (#{item[:rating]}/10) - #{item[:genres].join(', ')} [#{item[:type]}]"
-      }.join("\n")
-    else
-      user_data[:watched_history].map { |item| 
-        "#{item[:title]} (#{item[:rating]}/10) - #{item[:genres].join(', ')} [#{item[:type]}]"
-      }.join("\n")
-    end
-
     <<~PROMPT
-      You are a content recommendation system for both movies and TV shows. Consider the following user profile:
-
-      Personality traits: #{personality_description}
-      Favorite genres: #{user_data[:favorite_genres].join(', ')}
+      Based on the user's profile below, recommend exactly 50 titles that match their preferences.
+      Each recommendation should include a confidence score (0-100).
       
-      Recently watched and rated:
-      #{watched_description}
-
-      Based on this profile, recommend 50 titles with a balanced mix of movies and TV shows. Prioritize:
-      1. Content similar to their highly rated content (8+ rating)
-      2. Content matching their personality traits and genre preferences
-      3. Content that combines multiple favorite genres
-      4. For TV shows, consider both limited series and ongoing shows
-      5. Include both classic and modern content when relevant
-
-      Return recommendations in this exact JSON format:
+      User Profile:
+      - Personality: #{user_data[:personality].to_json}
+      - Favorite Genres: #{user_data[:favorite_genres].join(', ')}
+      - Watch History: #{user_data[:watched_history].to_json}
+      
+      Return in this format:
       {
         "recommendations": [
           {
             "title": "exact title",
             "type": "movie" or "tv",
             "year": release year (integer),
-            "reason": "brief explanation of why this matches the user's profile"
+            "reason": "brief explanation of why this matches",
+            "confidence_score": integer between 0-100
           }
         ]
       }
-
-      Ensure accuracy of titles and years for correct matching. Aim for 40% TV shows.
     PROMPT
   end
 
@@ -226,6 +197,7 @@ class AiRecommendationService
     
     content_ids = []
     reasons = {}
+    match_scores = {}
     
     recommendations.each do |rec|
       Rails.logger.info "Processing recommendation: #{rec['title']} (#{rec['year']})"
@@ -244,15 +216,31 @@ class AiRecommendationService
       end
       
       content_ids << content.id
-      # Store reason with content ID as key
       reasons[content.id.to_s] = rec["reason"] if rec["reason"].present?
-      Rails.logger.info "Added content: #{content.title} (ID: #{content.id}) with reason: #{rec['reason']}"
+      match_scores[content.id.to_s] = rec["confidence_score"] || 50 # Default to 50 if not provided
+      
+      Rails.logger.info "Added content: #{content.title} (ID: #{content.id}) with score: #{match_scores[content.id.to_s]}"
     end
 
     unique_ids = content_ids.uniq
-    Rails.logger.info "Processed #{unique_ids.size} unique recommendations with #{reasons.size} reasons"
+    Rails.logger.info "Processed #{unique_ids.size} unique recommendations"
     
-    [unique_ids.first(100), reasons]
+    [unique_ids.first(100), reasons, match_scores]
+  end
+
+  def self.calculate_reason_score(reason)
+    return 0.5 unless reason.present?
+    
+    # Higher scores for more specific reasoning
+    score = 0.5 # base score
+    
+    # Boost score based on reasoning quality
+    score += 0.2 if reason.include?("personality") || reason.include?("traits")
+    score += 0.2 if reason.include?("highly rated") || reason.include?("favorite")
+    score += 0.1 if reason.include?("genre") || reason.include?("similar")
+    
+    # Cap at 1.0
+    [score, 1.0].min
   end
 
   def self.find_all_content_versions(recommendation)

@@ -50,10 +50,11 @@ class UserPreference < ApplicationRecord
     return [] if personality_profiles.blank? || favorite_genres.blank?
 
     if use_ai
-      recommended_ids, reasons = AiRecommendationService.generate_recommendations(self)
+      recommended_ids, reasons, match_scores = AiRecommendationService.generate_recommendations(self)
       update(
         recommended_content_ids: recommended_ids,
         recommendation_reasons: reasons,
+        recommendation_scores: match_scores,
         recommendations_generated_at: Time.current
       )
     else
@@ -61,6 +62,7 @@ class UserPreference < ApplicationRecord
       update(
         recommended_content_ids: recommended_ids,
         recommendation_reasons: {},
+        recommendation_scores: {},
         recommendations_generated_at: Time.current
       )
     end

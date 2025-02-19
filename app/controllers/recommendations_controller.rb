@@ -107,7 +107,12 @@ class RecommendationsController < ApplicationController
     all_recommendations = all_recommendations.where(adult: [false, nil]) if @user_preference.disable_adult_content
     
     mapped_recommendations = all_recommendations.map do |content|
-      match_score = @user_preference.calculate_match_score(content.genre_ids_array) || 0
+      # Use AI's confidence score if available, otherwise fall back to calculated score
+      match_score = if @user_preference.use_ai
+        @user_preference.recommendation_scores[content.id.to_s].to_f
+      else
+        @user_preference.calculate_match_score(content.genre_ids_array) || 0
+      end
       
       {
         id: content.id,
