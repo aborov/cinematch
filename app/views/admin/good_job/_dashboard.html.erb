@@ -36,7 +36,6 @@
           <th>Started At</th>
           <th>Duration</th>
           <th>Error</th>
-          <th>User</th>
           <th>Details</th>
         </tr>
       </thead>
@@ -50,14 +49,14 @@
             <td><%= job.finished_at ? ((job.finished_at - job.performed_at).round(2) rescue nil) : nil %> sec</td>
             <td><%= truncate(job.error, length: 50) if job.error.present? %></td>
             <td>
-              <% if job.serialized_params&.dig('arguments')&.first %>
-                <%= link_to "User ##{job.serialized_params['arguments'].first}", 
-                    admin_user_preference_path(job.serialized_params['arguments'].first) %>
-              <% end %>
-            </td>
-            <td>
               <% if job.error.present? %>
                 <%= link_to "View Error", admin_good_job_path(job) %>
+              <% end %>
+              <% if job.serialized_params&.dig('arguments')&.first&.is_a?(Hash) %>
+                <% args = job.serialized_params['arguments'].first %>
+                <% args.except('_aj_symbol_keys').map do |key, value| %>
+                  <%= "#{key}: #{value}" if value == true %><br>
+                <% end %>
               <% end %>
             </td>
           </tr>
