@@ -8,4 +8,8 @@ class RecommendationPolicy < ApplicationPolicy
   def show?
     true
   end
+
+  def refresh?
+    user.present?
+  end
 end

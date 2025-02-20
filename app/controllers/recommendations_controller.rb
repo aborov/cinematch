@@ -89,6 +89,18 @@ class RecommendationsController < ApplicationController
     end
   end
 
+  def refresh
+    authorize :recommendation, :refresh?
+    
+    @user_preference = current_user.user_preference || current_user.build_user_preference
+    @user_preference.generate_recommendations
+    
+    render json: { status: 'success', message: 'Recommendations refresh started' }
+  rescue StandardError => e
+    Rails.logger.error "Failed to refresh recommendations: #{e.message}"
+    render json: { status: 'error', message: 'Failed to refresh recommendations' }, status: :internal_server_error
+  end
+
   private
 
   def set_user_preference

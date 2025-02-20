@@ -35,7 +35,12 @@ Rails.application.routes.draw do
 
   resources :user_preferences, only: [:edit, :update]
   get 'recommendations/check_status', to: 'recommendations#check_status'
-  resources :recommendations, only: [:index, :show]
+  resources :recommendations, only: [:index, :show] do
+    collection do
+      get :check_status
+      post :refresh
+    end
+  end
 
   # Profile and watchlist routes
   get 'profile', to: 'users#show'
