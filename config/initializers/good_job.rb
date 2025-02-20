@@ -9,10 +9,20 @@ Rails.application.configure do
   config.good_job.shutdown_timeout = 300 # 5 minutes
   config.good_job.enable_cron = true
   config.good_job.cron = {
-    fetch_content: {
-      cron: "0 9 * * *",  # Runs at 9:00am UTC (3:00am CST)
+    fetch_new_content: {
+      cron: "0 9 * * *",  # Daily at 9:00 UTC (3:00 CST)
       class: "FetchContentJob",
-      args: [{ fetch_new: true, update_existing: true, fill_missing: true }]
+      args: [{ fetch_new: true }]
+    },
+    update_existing_content: {
+      cron: "0 4 * * 1,4",  # Monday and Thursday at 4:00 UTC (22:00 CST previous day)
+      class: "FetchContentJob",
+      args: [{ update_existing: true }]
+    },
+    fill_missing_details: {
+      cron: "0 6 * * 3,6",  # Wednesday and Saturday at 6:00 UTC (0:00 CST)
+      class: "FetchContentJob",
+      args: [{ fill_missing: true }]
     }
   }
   config.good_job.cleanup_interval = 15.minutes
