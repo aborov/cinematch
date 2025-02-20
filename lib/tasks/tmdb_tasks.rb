@@ -145,11 +145,7 @@ module TmdbTasks
         update_content_batch(updated_content)
         processed_items += batch.size
         
-        # Always show progress
-        progress = (processed_items.to_f / total_items * 100).round(2)
-        puts "Progress: #{processed_items}/#{total_items} (#{progress}%)"
-        
-        # Still yield for custom progress handling if block given
+        # Only yield for custom progress handling
         yield(processed_items, total_items) if block_given?
         
         sleep(0.5)
