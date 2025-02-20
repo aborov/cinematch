@@ -31,10 +31,16 @@ namespace :tmdb do
       tv_shows = items.select { |item| item['type'] == 'tv' || (!item['title'].present? && item['name'].present?) }
 
       puts "Processing #{movies.size} movies..."
-      TmdbTasks.process_content_in_batches(movies) if movies.any?
+      TmdbTasks.process_content_in_batches(movies) do |processed_items, total_items|
+        progress = (processed_items.to_f / total_items * 100).round(2)
+        puts "[Fetch Content][#{fetcher_info[:name]}] Movies: #{processed_items}/#{total_items} (#{progress}%)"
+      end if movies.any?
 
       puts "Processing #{tv_shows.size} TV shows..."
-      TmdbTasks.process_content_in_batches(tv_shows) if tv_shows.any?
+      TmdbTasks.process_content_in_batches(tv_shows) do |processed_items, total_items|
+        progress = (processed_items.to_f / total_items * 100).round(2)
+        puts "[Fetch Content][#{fetcher_info[:name]}] TV Shows: #{processed_items}/#{total_items} (#{progress}%)"
+      end if tv_shows.any?
     end
 
     end_time = Time.now

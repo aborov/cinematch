@@ -26,7 +26,10 @@ namespace :tmdb do
         }
       end
 
-      updated_items = TmdbTasks.process_content_in_batches(items, batch_size: 100, processing_batch_size: 20)
+      updated_items = TmdbTasks.process_content_in_batches(items, batch_size: 100, processing_batch_size: 20) do |processed_count, total_items|
+        progress = (processed_count.to_f / total_items * 100).round(2)
+        puts "[Fill Missing] Processing #{processed_count}/#{total_items} items (#{progress}%). Updated so far: #{updated_count}"
+      end
       
       # Update tmdb_last_update for processed items
       Content.where(source_id: updated_items.map { |item| item[:source_id] })

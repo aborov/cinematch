@@ -20,7 +20,7 @@ namespace :tmdb do
 
       TmdbTasks.process_content_in_batches(items) do |processed_items, total_items|
         progress = (processed_items.to_f / total_items * 100).round(2)
-        puts "Progress: #{processed_items}/#{total_items} (#{progress}%)"
+        puts "[Update Content] Processing #{processed_items}/#{total_items} items (#{progress}%). Movies: #{updated_movie_ids.size}, TV Shows: #{updated_tv_ids.size}"
       end
 
       puts "Content update completed. Total items processed: #{total_updates}"
