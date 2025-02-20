@@ -14,6 +14,11 @@
               Hi, <%= current_user.name %>!
             </span>
           </li>
+          <li class="nav-item">
+            <button id="refresh-recommendations" class="nav-link d-flex align-items-center" title="Refresh Recommendations">
+              <i class="fas fa-sync-alt fa-2x"></i>
+            </button>
+          </li>
           <li class="nav-item dropdown watchlist-group">
             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="watchlistDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               <div class="watchlist-content">
@@ -30,7 +35,7 @@
           </li>
           <% if current_user.admin? %>
             <li class="nav-item">
-              <%= link_to admin_root_path, class: 'nav-link', title: 'Admin Dashboard' do %>
+              <%= link_to admin_root_path, class: "nav-link", title: "Admin Dashboard" do %>
                 <i class="fas fa-tachometer-alt fa-2x" aria-hidden="true"></i><span class="sr-only">Admin Dashboard</span>
               <% end %>
             </li>
