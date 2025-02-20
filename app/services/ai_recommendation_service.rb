@@ -227,7 +227,9 @@ class AiRecommendationService
   end
 
   def self.get_together_recommendations(prompt, config)
-    full_response = ""
+    is_deepseek = config[:api_name].include?('deepseek')
+    # Ask for more recommendations while keeping history smaller
+    prompt = prompt.gsub("exactly 50 NEW titles", "exactly 30 NEW titles")
     
     response = HTTP.headers(
       "Authorization" => "Bearer #{ENV.fetch('TOGETHER_API_KEY')}",
@@ -236,34 +238,52 @@ class AiRecommendationService
       model: config[:api_name],
       messages: [{
         role: "system",
-        content: "You are a recommendation system. Respond only with valid JSON."
+        content: if is_deepseek
+          "You are a recommendation system. After analyzing the request, output ONLY valid JSON with exactly 30 recommendations. Format: {\"recommendations\":[{\"title\":\"Title\",\"type\":\"movie/tv\",\"year\":YYYY,\"reason\":\"brief reason\",\"confidence_score\":1-100}]}"
+        else
+          "You are a recommendation system. Output ONLY valid JSON with exactly 30 recommendations. Format: {\"recommendations\":[{\"title\":\"Title\",\"type\":\"movie/tv\",\"year\":YYYY,\"reason\":\"brief reason\",\"confidence_score\":1-100}]}"
+        end
       }, {
         role: "user",
         content: prompt
       }],
       temperature: config[:temperature],
-      max_tokens: config[:max_tokens],
+      max_tokens: [config[:max_tokens], 4096].min,
       top_p: 0.7,
       top_k: 50,
       repetition_penalty: 1,
-      stop: ["<|eot_id|>", "<|eom_id|>"],
+      stop: is_deepseek ? ["</s>"] : ["</s>", "<|eot_id|>", "<|eom_id|>"],
       stream: false
     })
-    
+
     begin
       result = JSON.parse(response.body.to_s)
-      Rails.logger.info "Raw Together Response: #{result.inspect}"
-      
       content = result.dig("choices", 0, "message", "content")
-      Rails.logger.info "Extracted content: #{content}"
+      Rails.logger.info "Raw content: #{content}"
       
-      # Clean the response before parsing
-      content = content.gsub(/```json\n?/, '').gsub(/```\n?/, '').strip
-      
-      parse_ai_response(content)
+      # Handle different model outputs
+      content = if is_deepseek && content.include?("<think>")
+        # Extract JSON after thinking process
+        if content =~ /<think>.*?<\/think>\s*({.*})/m
+          $1.strip
+        else
+          # If no JSON found after think tags, try to find any JSON
+          content[/{.*}/m]&.strip
+        end
+      else
+        # Standard JSON cleaning for Llama models
+        content
+          .gsub(/```json\s*/, '')
+          .gsub(/```\s*/, '')
+          .strip
+      end
+
+      Rails.logger.info "Cleaned content: #{content}"
+      parsed = JSON.parse(content)
+      parsed["recommendations"]
     rescue JSON::ParserError => e
       Rails.logger.error "Failed to parse Together response: #{e.message}"
-      Rails.logger.error "Raw response: #{response.body.to_s}"
+      Rails.logger.error "Raw content after cleaning: #{content}"
       []
     rescue StandardError => e
       Rails.logger.error "Together API error for model #{config[:name]}: #{e.message}"
