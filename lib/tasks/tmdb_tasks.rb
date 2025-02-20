@@ -1,13 +1,31 @@
 module TmdbTasks
   def self.update_content_batch(content_list)
     puts "Processing #{content_list.size} items"
+    
+    # Define ALL possible keys upfront
+    all_keys = [
+      :source_id, :source, :title, :description, :poster_url, :backdrop_url,
+      :release_year, :content_type, :vote_average, :vote_count, :popularity,
+      :original_language, :status, :tagline, :genre_ids, :production_countries,
+      :directors, :cast, :trailer_url, :imdb_id, :adult, :spoken_languages,
+      :runtime, :plot_keywords, :tv_show_type, :number_of_seasons,
+      :number_of_episodes, :in_production, :creators, :tmdb_last_update
+    ]
+
+    source_ids = content_list.map { |item| item['id'].to_s }
+    existing_contents = Content.where(source_id: source_ids).index_by(&:source_id)
+    
     content_attributes = content_list.map do |item|
       type = item['type'] || (item['title'] ? 'movie' : 'tv')
       details = TmdbService.fetch_details(item['id'], type)
 
       next if details['title'].blank? && details['name'].blank?
 
-      attributes = {
+      # Start with a hash containing all keys set to nil
+      attributes = all_keys.each_with_object({}) { |key, hash| hash[key] = nil }
+      
+      # Then fill in the values we have
+      attributes.merge!(
         source_id: item['id'].to_s,
         source: 'tmdb',
         title: details['title'] || details['name'],
@@ -15,7 +33,7 @@ module TmdbTasks
         poster_url: details['poster_path'] ? "https://image.tmdb.org/t/p/w500#{details['poster_path']}" : nil,
         backdrop_url: details['backdrop_path'] ? "https://image.tmdb.org/t/p/w1280#{details['backdrop_path']}" : nil,
         release_year: parse_release_year(details['release_date'] || details['first_air_date']),
-        content_type: type == 'movie' ? 'movie' : 'tv',  # This ensures content_type is always 'movie' or 'tv'
+        content_type: type == 'movie' ? 'movie' : 'tv',
         vote_average: details['vote_average'],
         vote_count: details['vote_count'],
         popularity: details['popularity'],
@@ -30,26 +48,37 @@ module TmdbTasks
         imdb_id: details['external_ids']&.dig('imdb_id') || details['imdb_id'],
         adult: details['adult'],
         spoken_languages: details['spoken_languages']&.to_json || '[]',
-        tmdb_last_update: Time.current  # Always set to current time when we update
-      }
+        # Initialize all type-specific attributes with defaults
+        runtime: nil,
+        plot_keywords: '',
+        tv_show_type: nil,
+        number_of_seasons: nil,
+        number_of_episodes: nil,
+        in_production: nil,
+        creators: nil
+      )
 
+      # Fill in type-specific values
       if type == 'movie'
         attributes[:runtime] = details['runtime']
         attributes[:plot_keywords] = details['keywords']&.dig('keywords')&.map { |k| k['name'] }&.join(',') || ''
-        # Clear any TV-specific attributes
-        attributes[:tv_show_type] = nil
-        attributes[:number_of_seasons] = nil
-        attributes[:number_of_episodes] = nil
-        attributes[:in_production] = nil
-        attributes[:creators] = nil
       else # TV show
         attributes[:runtime] = details['episode_run_time']&.first
         attributes[:plot_keywords] = details['keywords']&.dig('results')&.map { |k| k['name'] }&.join(',') || ''
-        attributes[:tv_show_type] = details['type']  # Store the specific TV show type here
+        attributes[:tv_show_type] = details['type']
         attributes[:number_of_seasons] = details['number_of_seasons']
         attributes[:number_of_episodes] = details['number_of_episodes']
         attributes[:in_production] = details['in_production']
         attributes[:creators] = details['created_by']&.map { |c| c['name'] }&.join(',') || ''
+      end
+
+      # Check for changes using the pre-fetched content
+      existing_content = existing_contents[item['id'].to_s]
+      if existing_content
+        changed = content_changed?(existing_content, attributes, type)
+        attributes[:tmdb_last_update] = Time.current if changed
+      else
+        attributes[:tmdb_last_update] = Time.current
       end
 
       attributes
@@ -92,15 +121,21 @@ module TmdbTasks
     total_items = items.size
     processed_items = 0
     
-    items.each_slice(batch_size) do |batch|
+    # First, filter out items we already have that were recently updated
+    existing_content = Content.where(source_id: items.map { |i| i['id'] })
+                            .where('tmdb_last_update > ?', 1.week.ago)
+    recently_updated_ids = existing_content.pluck(:source_id)
+    
+    items_to_process = items.reject { |item| recently_updated_ids.include?(item['id']) }
+    puts "Processing #{items_to_process.size} out of #{total_items} items (#{recently_updated_ids.size} skipped)"
+    
+    items_to_process.each_slice(batch_size) do |batch|
       begin
         GC.start # Force garbage collection before processing new batch
         
         updated_content = batch.each_slice(processing_batch_size).flat_map do |processing_batch|
           processing_batch.map do |item|
             details = TmdbService.fetch_details(item['id'], item['type'] || (item['title'] ? 'movie' : 'tv'))
-            details[:tmdb_last_update] = Time.current if details
-            details
           rescue => e
             Rails.logger.error("Error fetching details for item #{item['id']}: #{e.message}")
             nil
@@ -109,6 +144,12 @@ module TmdbTasks
         
         update_content_batch(updated_content)
         processed_items += batch.size
+        
+        # Always show progress
+        progress = (processed_items.to_f / total_items * 100).round(2)
+        puts "Progress: #{processed_items}/#{total_items} (#{progress}%)"
+        
+        # Still yield for custom progress handling if block given
         yield(processed_items, total_items) if block_given?
         
         sleep(0.5)
@@ -116,5 +157,60 @@ module TmdbTasks
         Rails.logger.error("Error processing batch: #{e.message}")
       end
     end
+  end
+
+  def self.content_changed?(existing, new_attrs, type)
+    # Common fields that should trigger an update for both types
+    base_fields = %w[
+      title description vote_average vote_count popularity status
+      tagline imdb_id adult runtime plot_keywords
+    ]
+
+    # Type-specific fields
+    type_fields = if type == 'movie'
+      %w[runtime plot_keywords]
+    else
+      %w[tv_show_type number_of_seasons number_of_episodes in_production creators]
+    end
+
+    fields_to_check = base_fields + type_fields
+
+    # Only check URL fields if they're nil in existing record
+    url_fields = %w[poster_url backdrop_url trailer_url]
+    url_fields.each do |field|
+      fields_to_check << field if existing[field].nil?
+    end
+
+    # Check if any relevant field has changed
+    fields_to_check.any? do |field|
+      old_val = existing[field]
+      new_val = new_attrs[field.to_sym]
+
+      is_changed = case field
+      when 'plot_keywords', 'directors', 'cast', 'creators'
+        normalize_text(old_val) != normalize_text(new_val)
+      when 'production_countries', 'spoken_languages'
+        normalize_json(old_val) != normalize_json(new_val)
+      else
+        old_val != new_val
+      end
+
+      puts "Field #{field} changed from '#{old_val}' to '#{new_val}'" if is_changed
+      is_changed
+    end
+  end
+
+  private
+
+  def self.normalize_text(text)
+    return nil if text.nil?
+    text.to_s.strip.downcase.split(',').map(&:strip).sort.join(',')
+  end
+
+  def self.normalize_json(json_string)
+    return '[]' if json_string.blank?
+    JSON.parse(json_string).sort_by { |item| item.to_s }
+  rescue JSON::ParserError
+    '[]'
   end
 end

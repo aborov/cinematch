@@ -26,10 +26,15 @@ namespace :tmdb do
       items = fetcher_info[:fetcher].call
       puts "Found #{items.size} items from #{fetcher_info[:name]}"
 
-      TmdbTasks.process_content_in_batches(items) do |processed_items, total_items|
-        progress = (processed_items.to_f / total_items * 100).round(2)
-        puts "Progress: #{processed_items}/#{total_items} (#{progress}%)"
-      end
+      # Split items by type and process separately
+      movies = items.select { |item| item['type'] == 'movie' || item['title'].present? }
+      tv_shows = items.select { |item| item['type'] == 'tv' || (!item['title'].present? && item['name'].present?) }
+
+      puts "Processing #{movies.size} movies..."
+      TmdbTasks.process_content_in_batches(movies) if movies.any?
+
+      puts "Processing #{tv_shows.size} TV shows..."
+      TmdbTasks.process_content_in_batches(tv_shows) if tv_shows.any?
     end
 
     end_time = Time.now
