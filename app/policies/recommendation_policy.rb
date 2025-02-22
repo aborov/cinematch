@@ -12,4 +12,8 @@ class RecommendationPolicy < ApplicationPolicy
   def refresh?
     user.present?
   end
+
+  def check_status?
+    user.present?
+  end
 end
