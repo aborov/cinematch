@@ -12,8 +12,14 @@ module TmdbTasks
       :number_of_episodes, :in_production, :creators, :tmdb_last_update
     ]
 
+    # Get content types for each item
     source_ids = content_list.map { |item| item['id'].to_s }
-    existing_contents = Content.where(source_id: source_ids).index_by(&:source_id)
+    types = content_list.map { |item| item['type'] || (item['title'] ? 'movie' : 'tv') }
+    
+    # Fetch existing content matching both source_id AND content_type
+    existing_contents = Content.where(source_id: source_ids)
+                              .where(content_type: types)
+                              .index_by { |c| [c.source_id, c.content_type] }
     
     content_attributes = content_list.map do |item|
       type = item['type'] || (item['title'] ? 'movie' : 'tv')
@@ -72,8 +78,8 @@ module TmdbTasks
         attributes[:creators] = details['created_by']&.map { |c| c['name'] }&.join(',') || ''
       end
 
-      # Check for changes using the pre-fetched content
-      existing_content = existing_contents[item['id'].to_s]
+      # Check for changes using the pre-fetched content with both source_id and content_type
+      existing_content = existing_contents[[item['id'].to_s, type]]
       if existing_content
         changed = content_changed?(existing_content, attributes, type)
         attributes[:tmdb_last_update] = Time.current if changed
@@ -86,14 +92,14 @@ module TmdbTasks
 
     puts "Found #{content_attributes.size} valid items"
 
-    # Remove duplicates based on source_id
-    unique_content_attributes = content_attributes.uniq { |item| item[:source_id] }
+    # Remove duplicates based on source_id AND content_type
+    unique_content_attributes = content_attributes.uniq { |item| [item[:source_id], item[:content_type]] }
 
     if unique_content_attributes.any?
       Content.upsert_all(
         unique_content_attributes,
-        unique_by: :source_id,
-        update_only: unique_content_attributes.first.keys - [:source_id, :source]
+        unique_by: [:source_id, :content_type],  # Updated to use composite unique key
+        update_only: unique_content_attributes.first.keys - [:source_id, :source, :content_type]
       )
     else
       puts "No valid content attributes found to update."
