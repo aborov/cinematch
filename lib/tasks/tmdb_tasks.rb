@@ -197,7 +197,9 @@ module TmdbTasks
         old_val != new_val
       end
 
-      puts "Field #{field} changed from '#{old_val}' to '#{new_val}'" if is_changed
+      if is_changed
+        puts "[#{type.upcase}][#{existing['title']}] Field #{field} changed from '#{old_val}' to '#{new_val}'"
+      end
       is_changed
     end
   end
