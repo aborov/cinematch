@@ -12,10 +12,6 @@ import "./pwa/companion"
 
 import { Tooltip } from 'bootstrap'
 
-const application = Application.start()
-application.debug = false
-window.Stimulus = application
-
 document.addEventListener('DOMContentLoaded', () => {
   addCSRFTokenToForms();
   initializeWatchlistControllers();
