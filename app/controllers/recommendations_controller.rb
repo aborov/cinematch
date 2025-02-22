@@ -4,7 +4,7 @@ require_relative '../../lib/tasks/tmdb_tasks'
 
 class RecommendationsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_user_preference, only: [:index]
+  before_action :set_user_preference, only: [:index, :show, :check_status, :refresh]
 
   def index
     authorize :recommendation, :index?
@@ -78,6 +78,8 @@ class RecommendationsController < ApplicationController
   end
 
   def check_status
+    authorize :recommendation, :check_status?
+    
     @page = 1
     per_page = 15
     recommendations = load_recommendations(@page, per_page)
@@ -92,19 +94,35 @@ class RecommendationsController < ApplicationController
   def refresh
     authorize :recommendation, :refresh?
     
-    @user_preference = current_user.user_preference || current_user.build_user_preference
-    @user_preference.generate_recommendations
-    
-    render json: { status: 'success', message: 'Recommendations refresh started' }
-  rescue StandardError => e
-    Rails.logger.error "Failed to refresh recommendations: #{e.message}"
-    render json: { status: 'error', message: 'Failed to refresh recommendations' }, status: :internal_server_error
+    begin
+      @user_preference = current_user.user_preference || current_user.create_user_preference
+      
+      if @user_preference.personality_profiles.blank? || @user_preference.favorite_genres.blank?
+        render json: { 
+          status: 'error', 
+          message: 'Please complete your profile preferences first' 
+        }, status: :unprocessable_entity
+        return
+      end
+      
+      @user_preference.generate_recommendations
+      
+      render json: { status: 'success', message: 'Recommendations refresh started' }
+    rescue StandardError => e
+      Rails.logger.error "Failed to refresh recommendations: #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+      render json: { 
+        status: 'error', 
+        message: 'Failed to refresh recommendations' 
+      }, status: :internal_server_error
+    end
   end
 
   private
 
   def set_user_preference
-    @user_preference = current_user.user_preference || current_user.build_user_preference
+    @user_preference = current_user.user_preference || 
+                      current_user.create_user_preference
   end
 
   def load_recommendations(page, per_page)

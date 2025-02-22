@@ -337,40 +337,47 @@ class AiRecommendationService
     match_scores = {}
     
     recommendations.each do |rec|
-      Rails.logger.info "Processing recommendation: #{rec['title']} (#{rec['year']})"
-      contents = find_all_content_versions(rec)
-      next if contents.empty?
-      
-      # Filter adult content if needed
-      contents = contents.reject(&:adult?) if disable_adult_content
-      next if contents.empty?
-      
-      # Get best matching content
-      content = if rec["year"] && (year_match = contents.find { |c| c.release_year == rec["year"] })
-        year_match
-      else
-        contents.first
-      end
-      
-      content_ids << content.id
-      reasons[content.id.to_s] = rec["reason"] if rec["reason"].present?
-      
-      # Calculate enhanced score
-      ai_score = rec["confidence_score"] || 50
-      genre_score = calculate_genre_match_score(content, rec["reason"])
-      reason_score = calculate_reason_quality_score(rec["reason"])
-      position_score = 100 - (recommendations.index(rec) * 2)
-      
+      begin
+        Rails.logger.info "Processing recommendation: #{rec['title']} (#{rec['year']})"
+        contents = find_all_content_versions(rec)
+        next if contents.empty?
+        
+        # Filter adult content if needed
+        contents = contents.reject(&:adult?) if disable_adult_content
+        next if contents.empty?
+        
+        # Get best matching content
+        content = if rec["year"] && (year_match = contents.find { |c| c.release_year == rec["year"] })
+          year_match
+        else
+          contents.first
+        end
+        
+        next unless content # Skip if no content found
+        
+        content_ids << content.id
+        reasons[content.id.to_s] = rec["reason"] if rec["reason"].present?
+        
+        # Calculate enhanced score
+        ai_score = rec["confidence_score"] || 50
+        genre_score = calculate_genre_match_score(content, rec["reason"])
+        reason_score = calculate_reason_quality_score(rec["reason"])
+        position_score = 100 - (recommendations.index(rec) * 2)
+        
       # Weighted combination with higher AI weight
       final_score = (ai_score * 0.75) +           # AI's confidence (increased from 0.5)
                    (genre_score * 0.1) +         # Genre matching (decreased from 0.2)
                    (reason_score * 0.1) +        # Reason quality (decreased from 0.2)
                    (position_score * 0.05)        # Position bonus (unchanged)
-                   
-      match_scores[content.id.to_s] = final_score.round(1)
-      
-      Rails.logger.info "Added content: #{content.title} (ID: #{content.id})"
-      Rails.logger.info "Scores - AI: #{ai_score}, Genre: #{genre_score}, Reason: #{reason_score}, Position: #{position_score}, Final: #{final_score}"
+                     
+        match_scores[content.id.to_s] = final_score.round(1)
+        
+        Rails.logger.info "Added content: #{content.title} (ID: #{content.id})"
+        Rails.logger.info "Scores - AI: #{ai_score}, Genre: #{genre_score}, Reason: #{reason_score}, Position: #{position_score}, Final: #{final_score}"
+      rescue StandardError => e
+        Rails.logger.error "Failed to process recommendation '#{rec['title']}': #{e.message}"
+        next # Skip this recommendation and continue with others
+      end
     end
 
     unique_ids = content_ids.uniq
@@ -424,19 +431,18 @@ class AiRecommendationService
   end
 
   def self.find_all_content_versions(recommendation)
-    Rails.logger.info "Searching for: #{recommendation["title"]} (#{recommendation["year"]}) - #{recommendation["type"]}"
+    # First try exact match with both source_id and content_type
+    content_type = recommendation["type"] || 'movie'
+    contents = Content.where(source_id: recommendation["source_id"], content_type: content_type)
     
-    # Find all versions of the title
-    contents = Content.where("LOWER(title) = ?", recommendation["title"].downcase)
-    if contents.present?
-      Rails.logger.info "Found exact match in database: #{contents.size} versions"
-      return contents
+    if contents.empty?
+      # Try fuzzy title match if no exact match found
+      contents = Content.where("LOWER(title) LIKE ?", "%#{recommendation["title"].downcase}%")
+                       .where(content_type: content_type)
     end
 
-    # If exact match not found, try fuzzy search
-    contents = Content.where("LOWER(title) LIKE ?", "%#{recommendation["title"].downcase}%")
     if contents.present?
-      Rails.logger.info "Found fuzzy matches in database: #{contents.size} versions"
+      Rails.logger.info "Found matches in database: #{contents.size} versions"
       return contents if recommendation["year"].nil?
       
       # If year provided, filter by year
@@ -451,14 +457,14 @@ class AiRecommendationService
     tmdb_result = TmdbService.search({
       title: recommendation["title"],
       year: recommendation["year"],
-      type: recommendation["type"] || 'movie'
+      type: content_type
     })
 
     if tmdb_result
       Rails.logger.info "Found match in TMDB: #{tmdb_result['title'] || tmdb_result['name']} (ID: #{tmdb_result['id']})"
       require_relative '../../lib/tasks/tmdb_tasks'
       TmdbTasks.update_content_batch([tmdb_result])
-      content = Content.find_by(source_id: tmdb_result['id'], content_type: tmdb_result['type'] || 'movie')
+      content = Content.find_by(source_id: tmdb_result['id'], content_type: content_type)
       return [content] if content
     end
 
