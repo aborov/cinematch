@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_02_19_045542) do
+ActiveRecord::Schema[7.1].define(version: 2025_02_22_182425) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "pgcrypto"
@@ -66,7 +66,6 @@ ActiveRecord::Schema[7.1].define(version: 2025_02_19_045542) do
     t.index ["genre_ids"], name: "index_contents_on_genre_ids", opclass: :gin_trgm_ops, using: :gin
     t.index ["imdb_id"], name: "index_contents_on_imdb_id"
     t.index ["source_id", "content_type"], name: "index_contents_on_source_id_and_content_type", unique: true
-    t.index ["source_id"], name: "index_contents_on_source_id", unique: true
   end
 
   create_table "genres", force: :cascade do |t|
