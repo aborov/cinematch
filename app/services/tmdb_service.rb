@@ -114,6 +114,7 @@ class TmdbService
     end
 
     def fetch_details(id, type)
+      id = id.to_i  # Convert string ID to integer
       type == 'movie' ? fetch_movie_details(id) : fetch_tv_show_details(id)
     end
 

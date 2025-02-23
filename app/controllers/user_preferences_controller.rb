@@ -26,12 +26,9 @@ class UserPreferencesController < ApplicationController
 
     if @user_preference.update(update_params)
       Rails.logger.info "User preference updated: #{@user_preference.attributes}"
-      new_recommendations = @user_preference.generate_recommendations
-      if new_recommendations.present?
-        redirect_to recommendations_path, notice: 'Preferences updated successfully. Your recommendations have been updated.'
-      else
-        redirect_to recommendations_path, alert: 'Preferences updated, but we couldn\'t generate new recommendations. Please try again later.'
-      end
+      @user_preference.update(processing: true)
+      GenerateRecommendationsJob.perform_later(@user_preference.id)
+      redirect_to recommendations_path, notice: 'Preferences updated. Your recommendations are being generated...'
     else
       Rails.logger.error "Failed to update user preference: #{@user_preference.errors.full_messages}"
       @genres = TmdbService.fetch_genres[:user_facing_genres]

@@ -49,28 +49,37 @@ class UserPreference < ApplicationRecord
   def generate_recommendations
     return [] if personality_profiles.blank? || favorite_genres.blank?
 
-    if use_ai
-      recommended_ids, reasons, match_scores = AiRecommendationService.generate_recommendations(self)
-      update(
-        recommended_content_ids: recommended_ids,
-        recommendation_reasons: reasons,
-        recommendation_scores: match_scores,
-        recommendations_generated_at: Time.current
-      )
-    else
-      recommended_ids = generate_internal_recommendations
-      update(
-        recommended_content_ids: recommended_ids,
-        recommendation_reasons: {},
-        recommendation_scores: {},
-        recommendations_generated_at: Time.current
-      )
+    begin
+      if use_ai
+        recommended_ids, reasons, match_scores = AiRecommendationService.generate_recommendations(self)
+        update(
+          recommended_content_ids: recommended_ids,
+          recommendation_reasons: reasons,
+          recommendation_scores: match_scores,
+          recommendations_generated_at: Time.current,
+          processing: false
+        )
+      else
+        recommended_ids = generate_internal_recommendations
+        update(
+          recommended_content_ids: recommended_ids,
+          recommendation_reasons: {},
+          recommendation_scores: {},
+          recommendations_generated_at: Time.current,
+          processing: false
+        )
+      end
+      
+      Rails.cache.delete_matched("user_#{user_id}_recommendations_*")
+      Rails.cache.delete("user_#{user_id}_recommendations_page_1")
+      
+      recommended_ids
+    rescue StandardError => e
+      update(processing: false)
+      Rails.logger.error "Failed to generate recommendations: #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+      []
     end
-    
-    Rails.cache.delete_matched("user_#{user_id}_recommendations_*")
-    Rails.cache.delete("user_#{user_id}_recommendations_page_1")
-    
-    recommended_ids
   end
 
   def calculate_match_score(genre_ids)
