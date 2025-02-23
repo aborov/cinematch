@@ -57,14 +57,14 @@ module TmdbTasks
 
     puts "Found #{content_attributes.size} valid items"
 
-    # Remove duplicates based on source_id
-    unique_content_attributes = content_attributes.uniq { |item| item[:source_id] }
+    # Remove duplicates based on source_id and content_type
+    unique_content_attributes = content_attributes.uniq { |item| [item[:source_id], item[:content_type]] }
 
     if unique_content_attributes.any?
       Content.upsert_all(
         unique_content_attributes,
-        unique_by: :source_id,
-        update_only: unique_content_attributes.first.keys - [:source_id, :source]
+        unique_by: [:source_id, :content_type],
+        update_only: unique_content_attributes.first.keys - [:source_id, :source, :content_type]
       )
     else
       puts "No valid content attributes found to update."

@@ -80,14 +80,12 @@ class RecommendationsController < ApplicationController
   def check_status
     authorize :recommendation, :check_status?
     
-    @page = 1
-    per_page = 15
-    recommendations = load_recommendations(@page, per_page)
-    
-    if recommendations.present?
+    if @user_preference.processing?
+      render json: { status: 'processing' }
+    elsif @user_preference.recommended_content_ids.present?
       render json: { status: 'ready' }
     else
-      render json: { status: 'processing' }
+      render json: { status: 'error', message: 'No recommendations found' }
     end
   end
 
@@ -105,16 +103,13 @@ class RecommendationsController < ApplicationController
         return
       end
       
-      @user_preference.generate_recommendations
+      @user_preference.update(processing: true)
+      GenerateRecommendationsJob.perform_later(@user_preference.id)
       
-      render json: { status: 'success', message: 'Recommendations refresh started' }
+      render json: { status: 'processing' }
     rescue StandardError => e
       Rails.logger.error "Failed to refresh recommendations: #{e.message}"
-      Rails.logger.error e.backtrace.join("\n")
-      render json: { 
-        status: 'error', 
-        message: 'Failed to refresh recommendations' 
-      }, status: :internal_server_error
+      render json: { status: 'error', message: 'Failed to refresh recommendations' }
     end
   end
 
