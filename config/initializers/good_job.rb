@@ -10,17 +10,17 @@ Rails.application.configure do
   config.good_job.enable_cron = true
   config.good_job.cron = {
     fetch_new_content: {
-      cron: "0 9 * * *",  # Daily at 9:00 UTC (3:00 CST)
+      cron: "0 9 * * *",  # Daily at 09:00 UTC (3:00 AM CST)
       class: "FetchContentJob",
       args: [{ fetch_new: true }]
     },
     update_existing_content: {
-      cron: "0 4 * * 1,4",  # Monday and Thursday at 4:00 UTC (22:00 CST previous day)
+      cron: "0 21 * * *",  # Daily at 21:00 UTC (3:00 PM CST)
       class: "FetchContentJob",
       args: [{ update_existing: true }]
     },
     fill_missing_details: {
-      cron: "0 6 * * 3,6",  # Wednesday and Saturday at 6:00 UTC (0:00 CST)
+      cron: "0 4 * * 2,5",  # Tuesday/Friday at 04:00 UTC (10:00 PM CST Mon/Thu)
       class: "FetchContentJob",
       args: [{ fill_missing: true }]
     }
