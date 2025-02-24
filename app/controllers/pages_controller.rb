@@ -73,6 +73,11 @@ class PagesController < ApplicationController
   def data_deletion
   end
 
+  def about
+    @app_version = Rails.application.config.version
+    @changelog = Rails.application.config.changelog rescue []
+  end
+
   private
 
   def contact_params

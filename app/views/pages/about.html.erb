@@ -1,0 +1,62 @@
+<% content_for :title, "About Cinematch" %>
+<% content_for :h1, "About Cinematch" %>
+<div class="container mt-5 pb-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-xl-10">
+      <div class="card shadow-sm mx-auto" style="max-width: 1000px;">
+        <div class="card-body">
+          <h1 class="display-5 mb-4">About Cinematch</h1>
+          
+          <!-- Current Status -->
+          <div class="mb-4">
+            <h5 class="border-bottom border-2 pb-2 text-primary-emphasis">Current Version</h5>
+            <p>
+              Cinematch is currently in its beta testing phase, offering free access to all features as we continue to develop and improve the platform. 
+              Our focus is on creating the best possible experience for discovering entertainment that matches your interests.
+            </p>
+            <p class="text-muted"><small>Version: <%= @app_version %></small></p>
+          </div>
+
+          <!-- Changelog -->
+          <div class="mb-4">
+            <h5 class="border-bottom border-2 pb-2 text-primary-emphasis">Changelog</h5>
+            <% if @changelog.present? %>
+              <% @changelog.each do |release| %>
+                <div class="mb-3">
+                  <h6 class="mb-2">Version <%= release[:version] %> - <%= release[:date].strftime("%B %d, %Y") %></h6>
+                  <ul class="list-unstyled ps-3">
+                    <% release[:changes].each do |change| %>
+                      <li><small class="text-muted">• <%= change %></small></li>
+                    <% end %>
+                  </ul>
+                </div>
+              <% end %>
+            <% else %>
+              <p class="text-muted">No changelog entries yet.</p>
+            <% end %>
+          </div>
+
+          <!-- Contact -->
+          <div class="mb-4">
+            <h5 class="border-bottom border-2 pb-2 text-primary-emphasis">Contact Us</h5>
+            <p>
+              Have questions or feedback? We'd love to hear from you!<br>
+              <%= link_to "Contact Us", contact_path, class: "btn btn-primary mt-2" %>
+            </p>
+          </div>
+
+          <!-- Attribution -->
+          <div>
+            <h5 class="border-bottom border-2 pb-2 text-primary-emphasis">Data Attribution</h5>
+            <p>
+              This product uses the TMDB API but is not endorsed or certified by TMDB.
+            </p>
+            <%= link_to "https://www.themoviedb.org", target: "_blank" do %>
+              <%= image_tag "logos/tmdb_logo.svg", alt: "TMDB Logo", height: "15" %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

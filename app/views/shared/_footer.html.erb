@@ -1,24 +1,13 @@
 <footer class="footer mt-auto py-3 px-3">
-  <div class="container">
+  <div class="container text-center">
     <div class="row">
-      <div class="col-md-4">
-        <span class="text-muted small">
-          This product uses the TMDB API but is not endorsed or certified by TMDB.
-          <br>
-          <a href="https://www.themoviedb.org/" target="_blank" class="mt-2 d-inline-block">
-            <img src="<%= asset_path("logos/tmdb_logo.svg") %>" alt="TMDB Logo" height="15">
-          </a>
-        </span>
-      </div>
-      <div class="col-md-4 text-md-center">
-        <span class="text-muted small">
-          © <%= Date.today.year %> Cinematch.
-        </span>
-      </div>
-      <div class="col-md-4 text-md-end">
-        <%= link_to "Terms of Service", terms_path, class: "text-muted small footer-link me-3" %>
-        <%= link_to "Privacy Policy", privacy_path, class: "text-muted small footer-link me-3" %>
-        <%= link_to "Contact Us", contact_path, class: "text-muted small footer-link" %>
+      <div class="col">
+        <p class="mb-1">
+          <%= link_to "About", about_path, class: "text-muted small footer-link" %> |
+          <%= link_to "Privacy Policy", privacy_path, class: "text-muted small footer-link" %> |
+          <%= link_to "Terms", terms_path, class: "text-muted small footer-link" %>
+        </p>
+        <p class="text-muted small mb-0">&copy; <%= Time.current.year %> Cinematch. All rights reserved.</p>
       </div>
     </div>
   </div>
