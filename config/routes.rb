@@ -59,6 +59,7 @@ Rails.application.routes.draw do
   post "send_contact_email", to: "pages#send_contact_email"
   get "terms", to: "pages#terms"
   get "privacy", to: "pages#privacy"
+  get 'about', to: 'pages#about'
   get "data_deletion", to: "pages#data_deletion"
   get '/sitemap.xml.gz', to: 'sitemaps#show'
   get "/service-worker.js", to: "service_worker#service_worker"
