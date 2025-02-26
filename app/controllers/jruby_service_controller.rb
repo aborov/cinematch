@@ -5,6 +5,9 @@ class JrubyServiceController < ApplicationController
   # Skip CSRF protection for API endpoints
   skip_before_action :verify_authenticity_token, only: [:ping, :status]
   
+  # Skip Pundit authorization for these endpoints
+  skip_after_action :verify_authorized
+  
   # Simple endpoint to check if the service is running
   def ping
     render json: { status: 'ok', engine: RUBY_ENGINE, version: RUBY_VERSION }
