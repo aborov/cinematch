@@ -82,4 +82,7 @@ Rails.application.routes.draw do
   
   # Simple ping endpoint for health checks
   get 'ping', to: proc { [200, {}, ['pong']] }
+
+  # Add a route for testing JRuby job routing
+  get 'test/jruby_job', to: 'test#test_jruby_job'
 end

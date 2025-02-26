@@ -16,7 +16,8 @@ class JobRoutingService
   
   # Check if a job should be routed to JRuby
   def self.jruby_job?(job_class)
-    JRUBY_JOBS.include?(job_class.to_s)
+    job_class_name = job_class.is_a?(String) ? job_class : job_class.to_s
+    JRUBY_JOBS.include?(job_class_name)
   end
   
   # Check if a queue is for JRuby
@@ -29,34 +30,24 @@ class JobRoutingService
     # Wake up the JRuby service if this is a JRuby job
     wake_jruby_service if jruby_job?(job_class)
     
-    # Add JRuby-specific metadata if needed
-    if jruby_job?(job_class)
-      # Add metadata to indicate this job should be picked up by JRuby
-      job = job_class.set(queue: job_class.queue_name)
-      
-      # Perform the job later
-      job.perform_later(*args)
-    else
-      # Use the standard enqueue for non-JRuby jobs
-      job_class.perform_later(*args)
-    end
+    # Log the job enqueuing
+    Rails.logger.info("Enqueuing job #{job_class} with args: #{args.inspect}")
+    
+    # For JRuby jobs, we still use the standard enqueuing mechanism
+    # The job will be picked up by the JRuby service based on its queue
+    job_class.set(queue: determine_queue(job_class)).perform_later(*args)
   end
   
-  # Schedule a job to run at a specific time
-  def self.schedule(job_class, scheduled_at, options = {})
-    # Wake up the JRuby service if this is a JRuby job
-    wake_jruby_service if jruby_job?(job_class)
-    
-    # Add JRuby-specific metadata if needed
-    if jruby_job?(job_class)
-      # Add metadata to indicate this job should be picked up by JRuby
-      job = job_class.set(wait_until: scheduled_at, queue: job_class.queue_name)
-      
-      # Perform the job later
-      job.perform_later(options)
+  # Determine the appropriate queue for a job
+  def self.determine_queue(job_class)
+    if job_class.respond_to?(:queue_name)
+      job_class.queue_name
+    elsif job_class.to_s == 'FetchContentJob'
+      'content_fetching'
+    elsif job_class.to_s == 'UpdateAllRecommendationsJob'
+      'recommendations'
     else
-      # Use the standard scheduling for non-JRuby jobs
-      job_class.set(wait_until: scheduled_at).perform_later(options)
+      'default'
     end
   end
   

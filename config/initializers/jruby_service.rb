@@ -26,39 +26,47 @@ Rails.application.config.after_initialize do
       )
     end
     
+    # For development environment, add a flag to simulate JRuby service
+    if Rails.env.development?
+      Rails.application.config.simulate_jruby = true
+      Rails.logger.info "Development mode: JRuby service simulation enabled"
+    end
+    
     # Monkey patch ActiveJob to route jobs to JRuby when appropriate
     ActiveJob::Base.class_eval do
       class_attribute :jruby_job, default: false
       
-      class << self
-        # Allow jobs to be marked as JRuby jobs
-        def runs_on_jruby
-          self.jruby_job = true
-        end
-        
-        # Override the enqueue method to use JobRoutingService for JRuby jobs
-        alias_method :original_enqueue, :enqueue
-        
-        def enqueue(*args)
-          if self.jruby_job && defined?(JobRoutingService)
-            JobRoutingService.enqueue(self, *args)
+      # Allow jobs to be marked as JRuby jobs
+      def self.runs_on_jruby
+        self.jruby_job = true
+      end
+      
+      # Override the perform_later method to route JRuby jobs appropriately
+      module JRubyJobRouting
+        def perform_later(*args)
+          if self.class.jruby_job && defined?(JobRoutingService)
+            Rails.logger.info "Routing job #{self.class.name} to JRuby service"
+            
+            # In development, we can simulate JRuby service by logging and running locally
+            if Rails.env.development? && Rails.application.config.simulate_jruby
+              Rails.logger.info "SIMULATING JRUBY SERVICE: Would send job #{self.class.name} with args: #{args.inspect}"
+              Rails.logger.info "Job would be processed on queue: #{JobRoutingService.determine_queue(self.class)}"
+              
+              # Actually run the job locally for testing
+              Rails.logger.info "DEVELOPMENT MODE: Running JRuby job locally for testing"
+              return super
+            end
+            
+            # Use JobRoutingService to handle JRuby jobs
+            JobRoutingService.enqueue(self.class, *args)
           else
-            original_enqueue(*args)
-          end
-        end
-        
-        # Override the set method to use JobRoutingService for JRuby jobs
-        alias_method :original_set, :set
-        
-        def set(options = {})
-          if self.jruby_job && defined?(JobRoutingService) && options[:wait_until]
-            JobRoutingService.schedule(self, options[:wait_until], options.except(:wait_until))
-            return self
-          else
-            original_set(options)
+            super
           end
         end
       end
+      
+      # Include the module to override perform_later
+      include JRubyJobRouting
     end
   else
     # Running on JRuby - log this fact
