@@ -11,7 +11,7 @@ class FetchContentJob < JrubyCompatibleJob
 
   def perform(options = {})
     # Store the job ID for cancellation checks
-    @job_id = GoodJob::CurrentExecution.current_execution&.job_id
+    @job_id = provider_job_id
     
     # Log the job start with memory usage
     current_memory = `ps -o rss= -p #{Process.pid}`.to_i / 1024
