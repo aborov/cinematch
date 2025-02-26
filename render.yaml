@@ -4,7 +4,7 @@
 services:
   # Main Rails application (MRI Ruby)
   - type: web
-    name: cinematch
+    name: Cinematch
     env: ruby
     plan: starter
     buildCommand: ./bin/render-build.sh
