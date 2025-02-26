@@ -36,4 +36,21 @@ class PingJrubyServiceJob < ApplicationJob
       raise e
     end
   end
+  
+  # Class method to schedule this job via cron
+  # This is an alternative way to schedule the job if the configuration approach doesn't work
+  def self.schedule_ping
+    if defined?(GoodJob)
+      cron = '*/10 * * * *' # Every 10 minutes
+      GoodJob.configuration.cron = {
+        ping_jruby_service: {
+          cron: cron,
+          class: name,
+          args: {},
+          set: { queue: 'default' }
+        }
+      }
+      Rails.logger.info "Scheduled #{name} to run with cron: #{cron}"
+    end
+  end
 end 

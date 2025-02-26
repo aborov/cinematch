@@ -13,19 +13,6 @@ Rails.application.config.after_initialize do
     # Log the configuration
     Rails.logger.info "JRuby service configured with URL: #{jruby_service_url}"
     
-    # Set up a periodic ping to keep the JRuby service awake on Render free tier
-    if defined?(GoodJob::Scheduler) && Rails.env.production?
-      Rails.logger.info "Setting up periodic ping for JRuby service"
-      
-      # Schedule a job to ping the JRuby service every 10 minutes to prevent it from sleeping
-      GoodJob::Scheduler.instance.schedule(
-        cron: '*/10 * * * *', # Every 10 minutes
-        class: 'PingJrubyServiceJob',
-        args: {},
-        set: { queue: 'default' }
-      )
-    end
-    
     # For development environment, add a flag to simulate JRuby service
     if Rails.env.development?
       Rails.application.config.simulate_jruby = true

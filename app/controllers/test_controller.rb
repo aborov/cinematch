@@ -9,9 +9,9 @@ class TestController < ApplicationController
     authorize :test, :test_jruby_job?
     
     # Enqueue the test job
-    SimpleTestJob.perform_later('test argument from controller')
+    TestJRubyJob.perform_later('test argument from controller')
     
     # Return a simple response
-    render json: { status: 'ok', message: 'SimpleTestJob enqueued' }
+    render json: { status: 'ok', message: 'TestJRubyJob enqueued' }
   end
 end 

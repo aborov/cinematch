@@ -5,13 +5,15 @@ class JobRoutingService
   # List of job classes that should be routed to JRuby
   JRUBY_JOBS = [
     'FetchContentJob',
-    'UpdateAllRecommendationsJob'
+    'UpdateAllRecommendationsJob',
+    'TestJRubyJob'
   ].freeze
   
   # Queue names for JRuby-specific jobs
   JRUBY_QUEUES = [
     'content_fetching',
-    'recommendations'
+    'recommendations',
+    'default'
   ].freeze
   
   # Check if a job should be routed to JRuby
