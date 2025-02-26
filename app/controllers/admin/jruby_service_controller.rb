@@ -2,7 +2,7 @@
 
 module Admin
   # Controller for managing the JRuby service from the admin interface
-  class JrubyServiceController < Admin::ApplicationController
+  class JrubyServiceController < Admin::BaseController
     before_action :authenticate_admin_user!
     
     # Show the JRuby service status and management interface
