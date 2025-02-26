@@ -25,8 +25,8 @@ class FetchContentJob < JrubyCompatibleJob
     
     # Set memory management parameters from options or environment variables
     # These parameters will be used by the MemoryMonitor
-    memory_threshold_mb = options[:memory_threshold_mb] || ENV.fetch('MEMORY_THRESHOLD_MB', '250').to_i
-    memory_critical_mb = options[:memory_critical_mb] || ENV.fetch('MEMORY_CRITICAL_MB', '350').to_i
+    memory_threshold_mb = options[:memory_threshold_mb] || ENV.fetch('MEMORY_THRESHOLD_MB', '300').to_i
+    memory_critical_mb = options[:memory_critical_mb] || ENV.fetch('MEMORY_CRITICAL_MB', '400').to_i
     max_batch_size = options[:max_batch_size] || ENV.fetch('MAX_BATCH_SIZE', '50').to_i
     batch_size = options[:batch_size] || ENV.fetch('BATCH_SIZE', '20').to_i
     min_batch_size = options[:min_batch_size] || ENV.fetch('MIN_BATCH_SIZE', '3').to_i
@@ -97,7 +97,7 @@ class FetchContentJob < JrubyCompatibleJob
     @memory_monitor = MemoryMonitor.new
     
     # Get environment variables or use defaults
-    memory_threshold_mb = (ENV['MEMORY_THRESHOLD_MB'] || 250).to_i
+    memory_threshold_mb = (ENV['MEMORY_THRESHOLD_MB'] || 300).to_i
     max_batch_size = (ENV['MAX_BATCH_SIZE'] || 50).to_i
     batch_size = (ENV['BATCH_SIZE'] || 20).to_i
     processing_batch_size = (ENV['PROCESSING_BATCH_SIZE'] || 5).to_i
@@ -237,7 +237,7 @@ class FetchContentJob < JrubyCompatibleJob
     Rails.logger.info "Starting update_existing_content at #{@start_time}"
     
     # Get environment variables or use defaults
-    memory_threshold_mb = (ENV['MEMORY_THRESHOLD_MB'] || 250).to_i
+    memory_threshold_mb = (ENV['MEMORY_THRESHOLD_MB'] || 300).to_i
     max_batch_size = (ENV['MAX_BATCH_SIZE'] || 50).to_i
     batch_size = (ENV['BATCH_SIZE'] || 20).to_i
     min_batch_size = (ENV['MIN_BATCH_SIZE'] || 3).to_i
@@ -324,7 +324,7 @@ class FetchContentJob < JrubyCompatibleJob
     Rails.logger.info "Starting fill_missing_details at #{@start_time}"
     
     # Get environment variables or use defaults
-    memory_threshold_mb = (ENV['MEMORY_THRESHOLD_MB'] || 250).to_i
+    memory_threshold_mb = (ENV['MEMORY_THRESHOLD_MB'] || 300).to_i
     max_batch_size = (ENV['MAX_BATCH_SIZE'] || 50).to_i
     batch_size = (ENV['BATCH_SIZE'] || 20).to_i
     min_batch_size = (ENV['MIN_BATCH_SIZE'] || 3).to_i

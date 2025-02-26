@@ -90,7 +90,7 @@ namespace :tmdb do
   end
 
   # Helper method to process content with memory management
-  def process_content_with_memory_management(items, source_name, content_type, memory_monitor, memory_threshold, initial_batch_size, initial_processing_batch_size, max_batch_size, min_batch_size, start_time, job_id = nil)
+  def process_content_with_memory_management(items, source_name, content_type, memory_monitor, memory_threshold, initial_batch_size, initial_processing_batch_size, max_batch_size, min_batch_size, start_time, job_id = nil, max_chunk_size = 100)
     batch_size = initial_batch_size
     processing_batch_size = initial_processing_batch_size
     total_items = items.size

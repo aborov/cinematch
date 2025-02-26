@@ -9,7 +9,7 @@ class MemoryMonitor
   
   def initialize(options = {})
     @memory_monitor = GetProcessMem.new
-    @memory_threshold = options[:memory_threshold] || ENV.fetch('MEMORY_THRESHOLD_MB', 250).to_i
+    @memory_threshold = options[:memory_threshold] || ENV.fetch('MEMORY_THRESHOLD_MB', 300).to_i
     @max_batch_size = options[:max_batch_size] || ENV.fetch('MAX_BATCH_SIZE', 50).to_i
     @batch_size = options[:batch_size] || ENV.fetch('BATCH_SIZE', 20).to_i
     @processing_batch_size = options[:processing_batch_size] || ENV.fetch('PROCESSING_BATCH_SIZE', 5).to_i
