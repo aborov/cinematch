@@ -64,7 +64,7 @@ services:
       - key: RUBY_VERSION
         value: jruby-9.4.3.0
       - key: BUNDLER_VERSION
-        value: 2.4.10
+        value: 2.4.6
       - key: MEMORY_THRESHOLD_MB
         value: 350
       - key: MAX_BATCH_SIZE

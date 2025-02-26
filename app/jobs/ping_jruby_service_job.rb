@@ -5,12 +5,19 @@ class PingJrubyServiceJob < ApplicationJob
   queue_as :default
   
   # Retry with exponential backoff if the service is not responding
-  retry_on StandardError, wait: :exponentially_longer, attempts: 3
+  retry_on StandardError, wait: :exponentially_longer, attempts: 5
   
   def perform(*args)
     # Get the JRuby service URL from configuration
     jruby_url = Rails.application.config.jruby_service_url
-    return unless jruby_url.present?
+    
+    if !jruby_url.present?
+      Rails.logger.warn "JRuby service URL not configured. Check JRUBY_SERVICE_URL environment variable."
+      return
+    end
+    
+    # Log the URL we're using
+    Rails.logger.info "JRuby service URL: #{jruby_url}"
     
     # Make a request to ping the service
     require 'net/http'
@@ -19,7 +26,13 @@ class PingJrubyServiceJob < ApplicationJob
     Rails.logger.info "Pinging JRuby service at #{uri}"
     
     begin
-      response = Net::HTTP.get_response(uri)
+      # Use a shorter timeout to avoid long waits
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = (uri.scheme == 'https')
+      http.open_timeout = 5  # seconds
+      http.read_timeout = 10 # seconds
+      
+      response = http.get(uri.path)
       
       if response.code == '200'
         # Parse the response to get service details
@@ -32,7 +45,8 @@ class PingJrubyServiceJob < ApplicationJob
         return false
       end
     rescue => e
-      Rails.logger.error "Error pinging JRuby service: #{e.message}"
+      Rails.logger.error "Error pinging JRuby service at #{uri}: #{e.message}"
+      Rails.logger.error "This is normal if the JRuby service is not yet deployed or is starting up."
       raise e
     end
   end

@@ -5,13 +5,22 @@ Rails.application.config.after_initialize do
   # Only configure if not running on JRuby (i.e., in the main MRI Ruby app)
   if RUBY_ENGINE != 'jruby'
     # Set up JRuby service URL from environment or use a default for development
-    jruby_service_url = ENV['JRUBY_SERVICE_URL'] || 'http://localhost:3001'
+    jruby_service_url = ENV['JRUBY_SERVICE_URL']
+    
+    if jruby_service_url.present?
+      Rails.logger.info "JRuby service URL from environment: #{jruby_service_url}"
+    else
+      # Default for development
+      jruby_service_url = 'http://localhost:3001'
+      Rails.logger.info "JRuby service URL not found in environment, using default: #{jruby_service_url}"
+      
+      if Rails.env.production?
+        Rails.logger.warn "WARNING: Running in production but JRUBY_SERVICE_URL is not set. JRuby jobs may not work correctly."
+      end
+    end
     
     # Store the URL in a global configuration
     Rails.application.config.jruby_service_url = jruby_service_url
-    
-    # Log the configuration
-    Rails.logger.info "JRuby service configured with URL: #{jruby_service_url}"
     
     # For development environment, add a flag to simulate JRuby service
     if Rails.env.development?
