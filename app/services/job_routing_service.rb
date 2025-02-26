@@ -6,7 +6,7 @@ class JobRoutingService
   JRUBY_JOBS = [
     'FetchContentJob',
     'UpdateAllRecommendationsJob',
-    'TestJRubyJob'
+    'TestJrubyJob'
   ].freeze
   
   # Queue names for JRuby-specific jobs
