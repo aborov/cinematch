@@ -1,0 +1,5 @@
+# Procfile for JRuby service on Render
+# This service will run a minimal web server and process background jobs inline
+
+# Web process - handles both web requests and processes jobs
+web: JRUBY_OPTS="--dev -J-Xmx400m" bundle exec rails server -p $PORT -e $RAILS_ENV

@@ -54,3 +54,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 });
+
+//= require chartkick
+//= require Chart.bundle

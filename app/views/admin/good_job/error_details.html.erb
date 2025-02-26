@@ -1,0 +1,76 @@
+<div class="error-details">
+  <div class="header">
+    <%= link_to "← Back to Dashboard", admin_good_job_dashboard_path, class: "back-link" %>
+    <h2>Job Error Details</h2>
+  </div>
+  
+  <div class="job-info">
+    <p><strong>Job ID:</strong> <%= @job.id %></p>
+    <p><strong>Job Class:</strong> <%= @job.job_class %></p>
+    <p><strong>Queue:</strong> <%= @job.queue_name %></p>
+    <p><strong>Enqueued At:</strong> <%= enqueued_at(@job) %></p>
+    <p><strong>Started At:</strong> <%= @job.performed_at&.strftime('%Y-%m-%d %H:%M:%S') %></p>
+    <p><strong>Failed At:</strong> <%= @job.finished_at&.strftime('%Y-%m-%d %H:%M:%S') %></p>
+  </div>
+
+  <div class="error-message">
+    <h3>Error Message</h3>
+    <pre><%= @job.error %></pre>
+  </div>
+
+  <div class="job-params">
+    <h3>Job Parameters</h3>
+    <pre><%= JSON.pretty_generate(@job.serialized_params) rescue @job.serialized_params %></pre>
+  </div>
+</div>
+
+<style>
+.error-details {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 20px;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 10px;
+  color: #666;
+  text-decoration: none;
+}
+
+.back-link:hover {
+  color: #333;
+}
+
+.error-details h2 {
+  color: #c00;
+  margin-bottom: 20px;
+}
+
+.job-info {
+  background: #f8f8f8;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.error-message pre {
+  background: #fff3f3;
+  padding: 15px;
+  border-radius: 4px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  margin-bottom: 20px;
+}
+
+.job-params pre {
+  background: #f5f5f5;
+  padding: 15px;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+</style>

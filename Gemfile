@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
@@ -9,6 +7,7 @@ gem "acts_as_list"
 gem "appdev_support"
 gem "awesome_print"
 gem "bootsnap", require: false
+gem "chartkick", "~> 5.0"
 gem "clamav-client"
 gem "csso-rails"
 gem "devise"
@@ -17,7 +16,9 @@ gem "devise-two-factor"
 gem "dotenv-rails"
 gem "email_validator"
 gem "faker"
+gem "get_process_mem"
 gem "good_job"
+gem "groupdate", "~> 6.4"
 gem "htmlbeautifier"
 gem "http"
 gem "importmap-rails"

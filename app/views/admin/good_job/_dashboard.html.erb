@@ -1,4 +1,133 @@
 <div class="good-job-dashboard">
+  <div class="run-job-panel">
+    <h3>Run New Job</h3>
+    <div class="alert alert-warning">
+      <strong>Warning:</strong> Running jobs with high memory thresholds or large batch sizes can cause the server to become unresponsive. 
+      Use conservative values (below 300MB memory threshold) for better stability.
+    </div>
+    
+    <div class="job-forms">
+      <%= form_tag admin_good_job_run_job_path, method: :post, class: "job-form", id: "job-form" do %>
+        <div class="form-option">
+          <%= label_tag :job_class, "Job Type" %>
+          <%= select_tag :job_class, 
+            options_for_select([
+              ["Fetch Content", "FetchContentJob"], 
+              ["Update Recommendations", "UpdateRecommendationsJob"]
+            ]), 
+            class: "select-input", 
+            id: "job_class_select" 
+          %>
+        </div>
+        
+        <div id="fetch_content_options" class="job-options">
+          <h4>Action Type</h4>
+          <div class="form-option">
+            <%= label_tag :action_type, "Action" %>
+            <%= select_tag :action_type, 
+              options_for_select([
+                ["Fetch New Content", "fetch_new_content"], 
+                ["Update Existing Content", "update_existing_content"],
+                ["Fill Missing Details", "fill_missing_details"]
+              ]), 
+              class: "select-input" 
+            %>
+          </div>
+          
+          <h5>Memory Management</h5>
+          <div class="form-options memory-options">
+            <div class="form-option">
+              <%= label_tag :memory_threshold_mb, "Memory Threshold (MB)" %>
+              <%= number_field_tag :memory_threshold_mb, 250, min: 100, max: 1000, class: "number-input" %>
+              <small class="help-text">When memory exceeds this threshold, batch size will be reduced</small>
+            </div>
+            <div class="form-option">
+              <%= label_tag :memory_critical_mb, "Critical Memory (MB)" %>
+              <%= number_field_tag :memory_critical_mb, 350, min: 150, max: 1500, class: "number-input" %>
+              <small class="help-text">When memory exceeds this threshold, emergency measures will be taken</small>
+            </div>
+            <div class="form-option">
+              <%= label_tag :max_batch_size, "Max Batch Size" %>
+              <%= number_field_tag :max_batch_size, 50, min: 10, max: 200, class: "number-input" %>
+            </div>
+            <div class="form-option">
+              <%= label_tag :batch_size, "Initial Batch Size" %>
+              <%= number_field_tag :batch_size, 20, min: 5, max: 50, class: "number-input" %>
+            </div>
+            <div class="form-option">
+              <%= label_tag :min_batch_size, "Min Batch Size" %>
+              <%= number_field_tag :min_batch_size, 3, min: 1, max: 20, class: "number-input" %>
+            </div>
+            <div class="form-option">
+              <%= label_tag :processing_batch_size, "Processing Batch Size" %>
+              <%= number_field_tag :processing_batch_size, 5, min: 1, max: 20, class: "number-input" %>
+              <small class="help-text">Number of items to process in a single batch</small>
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-actions">
+          <%= submit_tag "Run Job", class: "action-button run" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const jobClassSelect = document.getElementById('job_class_select');
+      const fetchContentOptions = document.getElementById('fetch_content_options');
+      
+      function toggleJobOptions() {
+        if (jobClassSelect.value === 'FetchContentJob') {
+          fetchContentOptions.style.display = 'block';
+        } else {
+          fetchContentOptions.style.display = 'none';
+        }
+      }
+      
+      // Initial toggle
+      toggleJobOptions();
+      
+      // Toggle on change
+      jobClassSelect.addEventListener('change', toggleJobOptions);
+    });
+  </script>
+
+  <% running_jobs = @jobs.where.not(performed_at: nil).where(finished_at: nil).order(performed_at: :desc) %>
+  <% if running_jobs.any? %>
+    <div class="running-jobs-panel">
+      <h3>Currently Running Jobs</h3>
+      <table class="jobs-table">
+        <thead>
+          <tr>
+            <th>Job</th>
+            <th>Queue</th>
+            <th>Started At</th>
+            <th>Running For</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% running_jobs.each do |job| %>
+            <tr class="running">
+              <td><%= job.job_class %></td>
+              <td><%= job.queue_name %></td>
+              <td><%= job.performed_at&.strftime('%Y-%m-%d %H:%M:%S') %></td>
+              <td><%= ((Time.now - job.performed_at).round(2) rescue nil) %> sec</td>
+              <td class="job-actions">
+                <div class="action-buttons">
+                  <%= button_to "Cancel", admin_good_job_cancel_path(id: job.id), method: :post, class: "action-button cancel", data: { confirm: "Are you sure you want to cancel this job?" } %>
+                  <%= button_to "Delete", admin_good_job_delete_path(id: job.id), method: :delete, class: "action-button delete", data: { confirm: "Are you sure you want to delete this job?" } %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+
   <div class="stats-panel">
     <h3>Job Statistics</h3>
     <div class="stats-grid">
@@ -37,20 +166,26 @@
           <th>Duration</th>
           <th>Error</th>
           <th>Details</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
         <% @jobs.order(created_at: :desc).limit(20).each do |job| %>
-          <tr class="<%= job.error.present? ? 'error' : '' %>">
+          <tr class="<%= job.error.present? ? 'error' : '' %> <%= job.performed_at.present? && job.finished_at.nil? ? 'running' : '' %>">
             <td><%= job.job_class %></td>
             <td><%= job.queue_name %></td>
-            <td><%= job_status(job) %></td>
-            <td><%= job.performed_at&.strftime('%Y-%m-%d %H:%M:%S') %></td>
+            <td>
+              <% if job.performed_at.present? && job.finished_at.nil? %>
+                <span class="status-indicator running"></span>
+              <% end %>
+              <%= job_status(job) %>
+            </td>
+            <td><%= job.performed_at&.strftime('%Y-%m-%d %H:%M:%S') || enqueued_at(job) %></td>
             <td><%= job.finished_at ? ((job.finished_at - job.performed_at).round(2) rescue nil) : nil %> sec</td>
             <td><%= truncate(job.error, length: 50) if job.error.present? %></td>
             <td>
               <% if job.error.present? %>
-                <%= link_to "View Error", admin_good_job_path(job) %>
+                <%= link_to "View Error", admin_good_job_dashboard_show_path(id: job.id), data: { turbo: false } %>
               <% end %>
               <% if job.serialized_params&.dig('arguments')&.first&.is_a?(Hash) %>
                 <% args = job.serialized_params['arguments'].first %>
@@ -58,6 +193,20 @@
                   <%= "#{key}: #{value}" if value == true %><br>
                 <% end %>
               <% end %>
+            </td>
+            <td class="job-actions">
+              <div class="action-buttons">
+                <% if job.error.present? %>
+                  <%= button_to "Retry", admin_good_job_retry_path(id: job.id), method: :post, class: "action-button retry", data: { confirm: "Are you sure you want to retry this job?" } %>
+                <% elsif job.finished_at.nil? %>
+                  <% if job.performed_at.present? %>
+                    <%= button_to "Cancel", admin_good_job_cancel_path(id: job.id), method: :post, class: "action-button cancel", data: { confirm: "Are you sure you want to cancel this job?" } %>
+                  <% else %>
+                    <%= button_to "Run", admin_good_job_run_path(id: job.id), method: :post, class: "action-button run", data: { confirm: "Are you sure you want to run this job?" } %>
+                  <% end %>
+                <% end %>
+                <%= button_to "Delete", admin_good_job_delete_path(id: job.id), method: :delete, class: "action-button delete", data: { confirm: "Are you sure you want to delete this job?" } %>
+              </div>
             </td>
           </tr>
         <% end %>
@@ -112,5 +261,87 @@
 
 .error {
   background-color: #fff3f3;
+}
+
+.job-actions {
+  white-space: nowrap;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-button {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: none;
+  color: white;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.action-button.run {
+  background-color: #4CAF50;
+}
+
+.action-button.retry {
+  background-color: #2196F3;
+}
+
+.action-button.delete {
+  background-color: #F44336;
+}
+
+.action-button:hover {
+  opacity: 0.9;
+}
+
+.run-job-panel {
+  margin-bottom: 2rem;
+  background: #f9f9f9;
+  padding: 1rem;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.job-forms {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.job-form {
+  flex: 1;
+  min-width: 300px;
+  background: white;
+  padding: 1rem;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.form-options {
+  margin: 1rem 0;
+}
+
+.form-option {
+  margin-bottom: 0.5rem;
+}
+
+.memory-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.5rem;
+}
+
+.number-input {
+  width: 100%;
+  padding: 0.25rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.form-actions {
+  margin-top: 1rem;
 }
 </style>

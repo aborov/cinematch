@@ -1,0 +1,10 @@
+<div class="memory-chart">
+  <%= line_chart({
+    "Peak Memory" => metric.peak_memory_mb,
+    "Average Memory" => metric.average_memory_mb
+  }, 
+  min: 0, 
+  max: 512, 
+  suffix: "MB",
+  colors: ["#FF0000", "#0000FF"]) %>
+</div> 

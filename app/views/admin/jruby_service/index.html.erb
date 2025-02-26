@@ -1,0 +1,121 @@
+<h1>JRuby Service Management</h1>
+
+<div class="panel">
+  <div class="panel_contents">
+    <h3>Service Status</h3>
+    
+    <% if @service_running %>
+      <div class="status-box status-ok">
+        <p><strong>Status:</strong> Running</p>
+        <p><strong>Engine:</strong> <%= @status['engine'] %></p>
+        <p><strong>Version:</strong> <%= @status['version'] %></p>
+        <p><strong>Uptime:</strong> <%= @status['uptime'] %></p>
+      </div>
+      
+      <h4>Memory Usage</h4>
+      <div class="memory-stats">
+        <% if @status['memory']['used'] && @status['memory']['total'] %>
+          <p>Used: <%= @status['memory']['used'] %> MB / <%= @status['memory']['total'] %> MB 
+             (<%= ((@status['memory']['used'].to_f / @status['memory']['total'].to_f) * 100).round(1) %>%)</p>
+          
+          <div class="memory-bar">
+            <div class="memory-used" style="width: <%= ((@status['memory']['used'].to_f / @status['memory']['total'].to_f) * 100).round(1) %>%"></div>
+          </div>
+        <% else %>
+          <p>Used: <%= @status['memory']['used'] %> <%= @status['memory']['unit'] %></p>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="status-box status-error">
+        <p><strong>Status:</strong> Not Running</p>
+        <p><strong>Error:</strong> <%= @error %></p>
+      </div>
+      
+      <%= link_to "Wake JRuby Service", wake_admin_jruby_service_path, method: :post, class: "button" %>
+    <% end %>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel_contents">
+    <h3>JRuby Job Queues</h3>
+    
+    <table class="index_table">
+      <thead>
+        <tr>
+          <th>Queue</th>
+          <th>Total Jobs</th>
+          <th>Pending</th>
+          <th>Processed</th>
+          <th>Failed</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @queue_stats.each do |queue, stats| %>
+          <tr>
+            <td><%= queue %></td>
+            <td><%= stats[:total] %></td>
+            <td><%= stats[:pending] %></td>
+            <td><%= stats[:processed] %></td>
+            <td><%= stats[:failed] %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel_contents">
+    <h3>Run Test Job</h3>
+    
+    <%= form_tag test_job_admin_jruby_service_path, method: :post do %>
+      <div class="form-group">
+        <label for="job_class">Select Job:</label>
+        <select name="job_class" id="job_class">
+          <% @jruby_jobs.each do |job| %>
+            <option value="<%= job %>"><%= job %></option>
+          <% end %>
+        </select>
+      </div>
+      
+      <div class="form-actions">
+        <%= submit_tag "Run Test Job", class: "button" %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<style>
+  .status-box {
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+  }
+  
+  .status-ok {
+    background-color: #dff0d8;
+    border: 1px solid #d6e9c6;
+    color: #3c763d;
+  }
+  
+  .status-error {
+    background-color: #f2dede;
+    border: 1px solid #ebccd1;
+    color: #a94442;
+  }
+  
+  .memory-bar {
+    width: 100%;
+    height: 20px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    margin-top: 10px;
+    overflow: hidden;
+  }
+  
+  .memory-used {
+    height: 100%;
+    background-color: #337ab7;
+  }
+</style> 

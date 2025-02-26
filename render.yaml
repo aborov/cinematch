@@ -1,19 +1,34 @@
+# Render configuration for Cinematch application
+# This file defines both the main app and JRuby service
+
 services:
+  # Main Rails application (MRI Ruby)
   - type: web
-    name: Cinematch 
-    env: ruby 
+    name: cinematch
+    env: ruby
     plan: starter
-    buildCommand: "./bin/render-build.sh" 
-    startCommand: "./bin/render-start.sh"
-    envVars: 
+    buildCommand: ./bin/render-build.sh
+    startCommand: ./bin/render-start.sh
+    envVars:
+      - key: RAILS_ENV
+        value: production
       - key: SECRET_KEY_BASE
         generateValue: true
       - key: DATABASE_URL
         fromDatabase:
           name: db
           property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: cinematch-redis
+          property: connectionString
+      - key: JRUBY_SERVICE_URL
+        value: https://cinematch-jruby.onrender.com
       - key: CLAMAV_ENABLED
         value: false
+    healthCheckPath: /ping
+    autoDeploy: true
     buildFilter:
       paths:
       - "**/*.rb"
@@ -21,8 +36,56 @@ services:
       - "Gemfile*"
       - "config/**/*"
       - "bin/**/*"
+    
+  # JRuby service for memory-intensive background jobs
+  - type: web
+    name: cinematch-jruby
+    env: ruby
+    plan: free
+    buildCommand: bundle install
+    startCommand: JRUBY_OPTS="--dev -J-Xmx400m" bundle exec rails server -p $PORT -e $RAILS_ENV
+    envVars:
+      - key: RAILS_ENV
+        value: production
+      - key: SECRET_KEY_BASE
+        fromService:
+          name: cinematch
+          type: web
+          envVarKey: SECRET_KEY_BASE
+      - key: DATABASE_URL
+        fromDatabase:
+          name: db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: cinematch-redis
+          property: connectionString
+      - key: RUBY_VERSION
+        value: jruby-9.4.3.0
+      - key: BUNDLER_VERSION
+        value: 2.4.10
+      - key: MEMORY_THRESHOLD_MB
+        value: 350
+      - key: MAX_BATCH_SIZE
+        value: 50
+      - key: BATCH_SIZE
+        value: 20
+      - key: MIN_BATCH_SIZE
+        value: 3
+      - key: PROCESSING_BATCH_SIZE
+        value: 5
+    healthCheckPath: /jruby/ping
+    autoDeploy: true
 
-databases: 
+# Database - using the existing db
+databases:
   - name: db
     plan: starter
+    ipAllowList: []
+
+# Redis for caching and job queue
+redis:
+  - name: cinematch-redis
+    plan: free
     ipAllowList: []

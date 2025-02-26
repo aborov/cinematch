@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_02_22_182425) do
+ActiveRecord::Schema[7.1].define(version: 2025_02_24_171809) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "pgcrypto"
@@ -164,6 +164,20 @@ ActiveRecord::Schema[7.1].define(version: 2025_02_22_182425) do
     t.index ["scheduled_at"], name: "index_good_jobs_on_scheduled_at", where: "(finished_at IS NULL)"
   end
 
+  create_table "job_performance_metrics", force: :cascade do |t|
+    t.uuid "good_job_id"
+    t.string "job_type"
+    t.float "peak_memory_mb"
+    t.float "average_memory_mb"
+    t.integer "duration_seconds"
+    t.integer "items_processed"
+    t.jsonb "batch_sizes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["good_job_id"], name: "index_job_performance_metrics_on_good_job_id"
+    t.index ["job_type", "created_at"], name: "index_job_performance_metrics_on_job_type_and_created_at"
+  end
+
   create_table "survey_questions", force: :cascade do |t|
     t.string "question_text"
     t.string "question_type"
@@ -199,6 +213,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_02_22_182425) do
     t.jsonb "recommendation_reasons", default: {}
     t.string "ai_model"
     t.jsonb "recommendation_scores", default: {}
+    t.boolean "processing", default: false
     t.index ["deleted_at"], name: "index_user_preferences_on_deleted_at"
     t.index ["user_id"], name: "index_user_preferences_on_user_id"
   end
