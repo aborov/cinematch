@@ -41,16 +41,39 @@ class PingJrubyServiceJob < ApplicationJob
   # This is an alternative way to schedule the job if the configuration approach doesn't work
   def self.schedule_ping
     if defined?(GoodJob)
-      cron = '*/10 * * * *' # Every 10 minutes
-      GoodJob.configuration.cron = {
-        ping_jruby_service: {
-          cron: cron,
-          class: name,
-          args: {},
-          set: { queue: 'default' }
-        }
-      }
-      Rails.logger.info "Scheduled #{name} to run with cron: #{cron}"
+      begin
+        # Try to schedule using the cron API if available
+        if GoodJob.respond_to?(:configure)
+          Rails.logger.info "Scheduling #{name} using GoodJob.configure"
+          GoodJob.configure do |config|
+            config.cron = {
+              ping_jruby_service: {
+                cron: '*/10 * * * *', # Every 10 minutes
+                class: name,
+                args: {},
+                set: { queue: 'default' }
+              }
+            } if config.respond_to?(:cron=)
+          end
+        # Fallback to using Scheduler directly if available
+        elsif defined?(GoodJob::Scheduler) && GoodJob::Scheduler.respond_to?(:instance)
+          Rails.logger.info "Scheduling #{name} using GoodJob::Scheduler.instance"
+          scheduler = GoodJob::Scheduler.instance
+          if scheduler.respond_to?(:schedule)
+            scheduler.schedule(
+              PingJrubyServiceJob,
+              cron: '*/10 * * * *', # Every 10 minutes
+              kwargs: {}
+            )
+          end
+        else
+          Rails.logger.warn "Could not schedule #{name} - GoodJob scheduler API not available"
+        end
+        
+        Rails.logger.info "Scheduled #{name} to run every 10 minutes"
+      rescue => e
+        Rails.logger.error "Error scheduling #{name}: #{e.message}"
+      end
     end
   end
 end 
