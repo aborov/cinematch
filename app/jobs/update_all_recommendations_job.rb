@@ -256,8 +256,8 @@ class UpdateAllRecommendationsJob < JrubyCompatibleJob
             avg_time_per_user = elapsed_time / processed_so_far
             estimated_remaining = avg_time_per_user * (total_users - processed_so_far)
             
-            puts "[UpdateAllRecommendationsJob] Progress: #{processed_so_far}/#{total_users} users processed (#{(processed_so_far.to_f / total_users * 100).round(1)}%)")
-            puts "[UpdateAllRecommendationsJob] Elapsed time: #{elapsed_time.round(1)}s, Estimated remaining: #{estimated_remaining.round(1)}s")
+            puts "[UpdateAllRecommendationsJob] Progress: #{processed_so_far}/#{total_users} users processed (#{(processed_so_far.to_f / total_users * 100).round(1)}%)"
+            puts "[UpdateAllRecommendationsJob] Elapsed time: #{elapsed_time.round(1)}s, Estimated remaining: #{estimated_remaining.round(1)}s"
             puts "[UpdateAllRecommendationsJob] Memory usage: #{@memory_monitor.mb.round(1)}MB, Batch size: #{current_batch_size}"
             
             # Throttle if needed
