@@ -20,7 +20,7 @@ services:
           property: connectionString
       - key: REDIS_URL
         fromService:
-          type: redis
+          type: keyvalue
           name: cinematch-redis
           property: connectionString
       - key: JRUBY_SERVICE_URL
@@ -49,7 +49,7 @@ services:
         value: production
       - key: SECRET_KEY_BASE
         fromService:
-          name: cinematch
+          name: Cinematch
           type: web
           envVarKey: SECRET_KEY_BASE
       - key: DATABASE_URL
@@ -58,7 +58,7 @@ services:
           property: connectionString
       - key: REDIS_URL
         fromService:
-          type: redis
+          type: keyvalue
           name: cinematch-redis
           property: connectionString
       - key: RUBY_VERSION
@@ -77,15 +77,17 @@ services:
         value: 5
     healthCheckPath: /jruby/ping
     autoDeploy: true
+    
+  # Redis service (Key Value in Render terminology)
+  - type: keyvalue
+    name: cinematch-redis
+    plan: free
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: everywhere
 
 # Database - using the existing db
 databases:
   - name: db
     plan: starter
-    ipAllowList: []
-
-# Redis for caching and job queue
-redis:
-  - name: cinematch-redis
-    plan: free
     ipAllowList: []
