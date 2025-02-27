@@ -38,12 +38,15 @@ class FetchContentJob < JrubyCompatibleJob
       Rails.logger.error "  Job queue: #{queue_name}"
       Rails.logger.error "  Job ID: #{@job_id}"
       
-      # In development, we might want to continue anyway
-      if !Rails.env.development?
+      # Check for emergency override flag
+      allow_mri_execution = options[:allow_mri_execution] || ENV['ALLOW_JRUBY_JOBS_ON_MRI'] == 'true'
+      
+      # In development or with override, we might want to continue anyway
+      if !Rails.env.development? && !allow_mri_execution
         Rails.logger.error "This job should only run on JRuby. Aborting execution."
         return
       else
-        Rails.logger.warn "Continuing execution in development mode despite incorrect Ruby engine."
+        Rails.logger.warn "Continuing execution #{Rails.env.development? ? 'in development mode' : 'with emergency override'} despite incorrect Ruby engine."
       end
     end
     

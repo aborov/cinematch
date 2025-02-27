@@ -99,47 +99,46 @@ module Admin
     end
     
     def run_job
-      job_class = params[:job_class]
+      # Get the job class
+      job_class_name = params[:job_class]
+      job_class = job_class_name.constantize
       
-      # Log the parameters received from the form
-      Rails.logger.info "Running job #{job_class} with parameters: #{params.inspect}"
+      # Get the job parameters
+      job_params = {}
       
-      # Get memory management parameters from the form
-      memory_threshold_mb = params[:memory_threshold_mb].presence&.to_i
-      memory_critical_mb = params[:memory_critical_mb].presence&.to_i
-      max_batch_size = params[:max_batch_size].presence&.to_i
-      batch_size = params[:batch_size].presence&.to_i
-      min_batch_size = params[:min_batch_size].presence&.to_i
-      processing_batch_size = params[:processing_batch_size].presence&.to_i
-      
-      # Log the parameters that will be used
-      Rails.logger.info "Memory parameters for job: threshold=#{memory_threshold_mb}MB, critical=#{memory_critical_mb}MB, " +
-                        "max_batch=#{max_batch_size}, batch=#{batch_size}, min_batch=#{min_batch_size}, processing_batch=#{processing_batch_size}"
-      
-      # Create options hash with the parameters
-      options = {
-        action: params[:action_type],
-        memory_threshold_mb: memory_threshold_mb,
-        memory_critical_mb: memory_critical_mb,
-        max_batch_size: max_batch_size,
-        batch_size: batch_size,
-        min_batch_size: min_batch_size,
-        processing_batch_size: processing_batch_size
-      }.compact
-      
-      # Queue the job with the options
-      case job_class
-      when 'FetchContentJob'
-        job = FetchContentJob.perform_later(options)
-        flash[:notice] = "FetchContentJob queued with action: #{params[:action_type]}"
-      when 'UpdateRecommendationsJob'
-        job = UpdateRecommendationsJob.perform_later
-        flash[:notice] = "UpdateRecommendationsJob queued"
-      else
-        flash[:alert] = "Unknown job class: #{job_class}"
+      # Parse the action parameter
+      if params[:action_param].present?
+        job_params[:action] = params[:action_param]
       end
       
-      redirect_to admin_good_job_dashboard_path
+      # Parse memory management parameters
+      job_params[:memory_threshold_mb] = params[:memory_threshold_mb].to_i if params[:memory_threshold_mb].present?
+      job_params[:memory_critical_mb] = params[:memory_critical_mb].to_i if params[:memory_critical_mb].present?
+      job_params[:max_batch_size] = params[:max_batch_size].to_i if params[:max_batch_size].present?
+      job_params[:batch_size] = params[:batch_size].to_i if params[:batch_size].present?
+      job_params[:min_batch_size] = params[:min_batch_size].to_i if params[:min_batch_size].present?
+      job_params[:processing_batch_size] = params[:processing_batch_size].to_i if params[:processing_batch_size].present?
+      
+      # Check if this is a JRuby job and if we should allow it to run on MRI Ruby
+      if JobRoutingService.jruby_job?(job_class) && params[:allow_mri_execution].present?
+        job_params[:allow_mri_execution] = true
+        flash[:warning] = "Running JRuby job on MRI Ruby with emergency override. This may cause memory issues!"
+      end
+      
+      # Log the parameters
+      Rails.logger.info "Running job #{job_class_name} with parameters: #{job_params.inspect}"
+      
+      # Enqueue the job
+      if JobRoutingService.jruby_job?(job_class)
+        # Use the JobRoutingService for JRuby jobs
+        job = JobRoutingService.enqueue(job_class, job_params)
+      else
+        # Use standard ActiveJob for regular jobs
+        job = job_class.perform_later(job_params)
+      end
+      
+      # Redirect back to the dashboard
+      redirect_to admin_good_job_dashboard_path, notice: "Job #{job_class_name} has been enqueued with ID: #{job.provider_job_id}"
     end
     
     helper_method :job_status, :admin_good_job_path, :enqueued_at

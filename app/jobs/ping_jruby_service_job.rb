@@ -34,8 +34,8 @@ class PingJrubyServiceJob < ApplicationJob
         # Use a shorter timeout to avoid long waits
         http = Net::HTTP.new(uri.host, uri.port)
         http.use_ssl = (uri.scheme == 'https')
-        http.open_timeout = 5  # seconds
-        http.read_timeout = 10 # seconds
+        http.open_timeout = 15  # seconds (increased from 5)
+        http.read_timeout = 30  # seconds (increased from 10)
         
         response = http.get(uri.path)
         
@@ -53,6 +53,16 @@ class PingJrubyServiceJob < ApplicationJob
           Rails.logger.warn "JRuby service ping failed with status code: #{response.code}"
           return false
         end
+      rescue Net::OpenTimeout => e
+        Rails.logger.error "Timeout opening connection to JRuby service at #{uri}: #{e.message}"
+        Rails.logger.error "This may indicate that the JRuby service is starting up or is not deployed."
+        # Don't raise the exception for open timeouts, as this is expected when the service is sleeping
+        return false
+      rescue Net::ReadTimeout => e
+        Rails.logger.error "Timeout reading from JRuby service at #{uri}: #{e.message}"
+        Rails.logger.error "This may indicate that the JRuby service is busy or overloaded."
+        # Don't raise the exception for read timeouts, as this is expected when the service is busy
+        return false
       rescue => e
         Rails.logger.error "Error pinging JRuby service at #{uri}: #{e.message}"
         Rails.logger.error "This is normal if the JRuby service is not yet deployed or is starting up."

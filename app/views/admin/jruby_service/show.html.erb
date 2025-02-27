@@ -1,0 +1,21 @@
+<div class="card mb-4">
+  <div class="card-header">
+    <h5 class="mb-0">JRuby Service Management</h5>
+  </div>
+  <div class="card-body">
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <h6>Service URL</h6>
+        <p><code><%= @jruby_url %></code></p>
+      </div>
+      <div class="col-md-6">
+        <h6>Actions</h6>
+        <div class="btn-group">
+          <%= link_to "Check Status", admin_jruby_service_path, class: "btn btn-primary" %>
+          <%= button_to "Wake Up Service", wake_up_admin_jruby_service_path, method: :post, class: "btn btn-warning", data: { confirm: "This will attempt to wake up the JRuby service. Continue?" } %>
+          <%= button_to "Run Test Job", test_job_admin_jruby_service_path, method: :post, class: "btn btn-info", data: { confirm: "This will enqueue a test job to run on JRuby. Continue?" } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

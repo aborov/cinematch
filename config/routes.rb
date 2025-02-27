@@ -16,6 +16,20 @@ Rails.application.routes.draw do
     get 'jruby_service', to: 'jruby_service#index'
     post 'jruby_service/wake', to: 'jruby_service#wake', as: 'wake_jruby_service'
     post 'jruby_service/test_job', to: 'jruby_service#test_job', as: 'test_job_jruby_service'
+    
+    # Admin routes
+    resources :users
+    resources :movies
+    resources :tv_shows
+    resources :genres
+    resources :recommendations
+    resources :watchlist_items
+    resources :content_providers
+    
+    # JRuby service management
+    resource :jruby_service, only: [:show, :update] do
+      post :wake_up, on: :collection
+    end
   end
   
   authenticate :user, lambda { |u| u.admin? } do
