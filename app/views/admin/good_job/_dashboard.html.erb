@@ -38,12 +38,12 @@
           <div class="form-options memory-options">
             <div class="form-option">
               <%= label_tag :memory_threshold_mb, "Memory Threshold (MB)" %>
-              <%= number_field_tag :memory_threshold_mb, 250, min: 100, max: 1000, class: "number-input" %>
+              <%= number_field_tag :memory_threshold_mb, 300, min: 100, max: 1000, class: "number-input" %>
               <small class="help-text">When memory exceeds this threshold, batch size will be reduced</small>
             </div>
             <div class="form-option">
               <%= label_tag :memory_critical_mb, "Critical Memory (MB)" %>
-              <%= number_field_tag :memory_critical_mb, 350, min: 150, max: 1500, class: "number-input" %>
+              <%= number_field_tag :memory_critical_mb, 400, min: 150, max: 1500, class: "number-input" %>
               <small class="help-text">When memory exceeds this threshold, emergency measures will be taken</small>
             </div>
             <div class="form-option">
