@@ -334,15 +334,7 @@ module TmdbTasks
       batch_sizes: stats[:batch_sizes]
     }
     
-    # Only create JobPerformanceMetric if we're in a job context
-    if defined?(GoodJob::CurrentThread.active_job)
-      JobPerformanceMetric.create!(
-        good_job: GoodJob::CurrentThread.active_job,
-        job_type: stats[:job_type],
-        **metrics
-      )
-    end
-    
+    # Log performance metrics to Rails logger
     Rails.logger.info "[Performance] Process completed:" \
       "\n  Items: #{total_items}" \
       "\n  Peak Memory: #{metrics[:peak_memory_mb]}MB" \

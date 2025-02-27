@@ -231,6 +231,63 @@
       </div>
     </div>
   </div>
+  
+  <div class="job-performance-panel">
+    <h3>Job Performance Metrics</h3>
+    <div class="stats-grid">
+      <div class="stat-box">
+        <h4>Jobs Run (24h)</h4>
+        <p><%= GoodJob::Job.where('created_at > ?', 24.hours.ago).count %></p>
+      </div>
+      <div class="stat-box">
+        <h4>Avg Duration (Finished Jobs)</h4>
+        <% 
+          finished_jobs = GoodJob::Job.where.not(performed_at: nil).where.not(finished_at: nil)
+          avg_duration = finished_jobs.any? ? (finished_jobs.sum('EXTRACT(EPOCH FROM (finished_at - performed_at))') / finished_jobs.count).round(2) : 0
+        %>
+        <p><%= avg_duration %> sec</p>
+      </div>
+      <div class="stat-box">
+        <h4>Success Rate (24h)</h4>
+        <% 
+          recent_jobs = GoodJob::Job.where('created_at > ?', 24.hours.ago)
+          success_rate = recent_jobs.any? ? ((recent_jobs.where(error: nil).count.to_f / recent_jobs.count) * 100).round(1) : 0
+        %>
+        <p><%= success_rate %>%</p>
+      </div>
+    </div>
+    
+    <h4>Job Type Performance</h4>
+    <table class="jobs-table">
+      <thead>
+        <tr>
+          <th>Job Type</th>
+          <th>Count (24h)</th>
+          <th>Avg Duration</th>
+          <th>Success Rate</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% 
+          job_types = GoodJob::Job.where('created_at > ?', 7.days.ago).distinct.pluck(:job_class)
+          job_types.each do |job_type|
+            jobs_of_type = GoodJob::Job.where(job_class: job_type).where('created_at > ?', 24.hours.ago)
+            finished_jobs_of_type = jobs_of_type.where.not(performed_at: nil).where.not(finished_at: nil)
+            
+            count = jobs_of_type.count
+            avg_duration = finished_jobs_of_type.any? ? (finished_jobs_of_type.sum('EXTRACT(EPOCH FROM (finished_at - performed_at))') / finished_jobs_of_type.count).round(2) : 0
+            success_rate = jobs_of_type.any? ? ((jobs_of_type.where(error: nil).count.to_f / jobs_of_type.count) * 100).round(1) : 0
+        %>
+          <tr>
+            <td><%= job_type %></td>
+            <td><%= count %></td>
+            <td><%= avg_duration %> sec</td>
+            <td><%= success_rate %>%</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <style>
@@ -343,5 +400,33 @@
 
 .form-actions {
   margin-top: 1rem;
+}
+
+.job-performance-panel {
+  margin-top: 2rem;
+  background: #f9f9f9;
+  padding: 1rem;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.job-performance-panel h4 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 0.5rem;
+}
+
+.job-performance-panel .jobs-table {
+  margin-top: 1rem;
+  background: white;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.job-performance-panel .jobs-table th {
+  background: #f0f0f0;
+  font-weight: 600;
 }
 </style>
