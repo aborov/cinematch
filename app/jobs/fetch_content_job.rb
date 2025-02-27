@@ -13,9 +13,39 @@ class FetchContentJob < JrubyCompatibleJob
     # Store the job ID for cancellation checks
     @job_id = provider_job_id
     
-    # Log the job start with memory usage
+    # Log the job start with memory usage and execution environment
     current_memory = `ps -o rss= -p #{Process.pid}`.to_i / 1024
     Rails.logger.info "Starting FetchContentJob (ID: #{@job_id}) with options: #{options.inspect}. Current memory: #{current_memory}MB"
+    Rails.logger.info "Running on Ruby engine: #{RUBY_ENGINE}, version: #{RUBY_VERSION}"
+    
+    # If we're not running on JRuby, log a warning and notify admins
+    if RUBY_ENGINE != 'jruby'
+      error_message = "CRITICAL WARNING: FetchContentJob is running on MRI Ruby instead of JRuby. This may cause memory issues and should be investigated immediately."
+      Rails.logger.error error_message
+      
+      # Send notification to admins if notification service is available
+      if defined?(NotificationService) && NotificationService.respond_to?(:notify_admins)
+        NotificationService.notify_admins(
+          title: "JRuby Job Running on MRI",
+          message: error_message,
+          level: :critical
+        )
+      end
+      
+      # Log additional debugging information
+      Rails.logger.error "Job routing configuration:"
+      Rails.logger.error "  JRuby service URL: #{Rails.application.config.jruby_service_url}" if Rails.application.config.respond_to?(:jruby_service_url)
+      Rails.logger.error "  Job queue: #{queue_name}"
+      Rails.logger.error "  Job ID: #{@job_id}"
+      
+      # In development, we might want to continue anyway
+      if !Rails.env.development?
+        Rails.logger.error "This job should only run on JRuby. Aborting execution."
+        return
+      else
+        Rails.logger.warn "Continuing execution in development mode despite incorrect Ruby engine."
+      end
+    end
     
     # Check for cancellation before starting
     if @job_id && JobCancellationService.cancelled?(@job_id)
@@ -52,8 +82,14 @@ class FetchContentJob < JrubyCompatibleJob
       update_existing_content(options)
     elsif options[:action] == 'fill_missing_details'
       fill_missing_details(options)
+    elsif options[:fetch_new]
+      fetch_new_content(options)
+    elsif options[:update_existing]
+      update_existing_content(options)
+    elsif options[:fill_missing]
+      fill_missing_details(options)
     else
-      Rails.logger.error "Unknown action: #{options[:action]}"
+      Rails.logger.error "Unknown action or option: #{options.inspect}"
     end
   rescue => e
     Rails.logger.error "Error in FetchContentJob: #{e.message}\n#{e.backtrace.join("\n")}"

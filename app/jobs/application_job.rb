@@ -26,9 +26,21 @@ class ApplicationJob < ActiveJob::Base
       end
       
       # Use JobRoutingService to handle JRuby jobs
-      JobRoutingService.enqueue(self, *args)
+      # This will wake up the JRuby service and enqueue the job
+      return JobRoutingService.enqueue(self, *args)
     else
+      # If we're already on JRuby or this is not a JRuby job, use the standard perform_later
       super
     end
+  end
+  
+  # Add a method to check if we're running on JRuby
+  def self.running_on_jruby?
+    RUBY_ENGINE == 'jruby'
+  end
+  
+  # Add a method to log job execution details
+  def log_job_execution(job_id, args)
+    Rails.logger.info "Executing job #{self.class.name} (ID: #{job_id}) on #{RUBY_ENGINE} with args: #{args.inspect}"
   end
 end

@@ -28,41 +28,14 @@ Rails.application.config.after_initialize do
       Rails.logger.info "Development mode: JRuby service simulation enabled"
     end
     
-    # Monkey patch ActiveJob to route jobs to JRuby when appropriate
-    ActiveJob::Base.class_eval do
-      class_attribute :jruby_job, default: false
-      
-      # Allow jobs to be marked as JRuby jobs
-      def self.runs_on_jruby
-        self.jruby_job = true
-      end
-      
-      # Override the perform_later method to route JRuby jobs appropriately
-      module JRubyJobRouting
-        def perform_later(*args)
-          if self.class.jruby_job && defined?(JobRoutingService)
-            Rails.logger.info "Routing job #{self.class.name} to JRuby service"
-            
-            # In development, we can simulate JRuby service by logging and running locally
-            if Rails.env.development? && Rails.application.config.simulate_jruby
-              Rails.logger.info "SIMULATING JRUBY SERVICE: Would send job #{self.class.name} with args: #{args.inspect}"
-              Rails.logger.info "Job would be processed on queue: #{JobRoutingService.determine_queue(self.class)}"
-              
-              # Actually run the job locally for testing
-              Rails.logger.info "DEVELOPMENT MODE: Running JRuby job locally for testing"
-              return super
-            end
-            
-            # Use JobRoutingService to handle JRuby jobs
-            JobRoutingService.enqueue(self.class, *args)
-          else
-            super
-          end
-        end
-      end
-      
-      # Include the module to override perform_later
-      include JRubyJobRouting
+    # We don't need to monkey patch ActiveJob here since we've already
+    # implemented the routing logic in ApplicationJob
+    Rails.logger.info "JRuby service integration configured for main app"
+    
+    # Schedule the ping job to keep the JRuby service awake
+    if Rails.env.production? && defined?(PingJrubyServiceJob)
+      Rails.logger.info "Ensuring PingJrubyServiceJob is scheduled"
+      # The actual scheduling is done in the GoodJob configuration
     end
   else
     # Running on JRuby - log this fact
@@ -85,6 +58,8 @@ Rails.application.config.after_initialize do
       GoodJob.configuration.queues = 'content_fetching,recommendations'
       GoodJob.configuration.max_threads = 5
       GoodJob.configuration.poll_interval = 30
+      
+      Rails.logger.info "JRuby service ready to process jobs"
     end
   end
 end 

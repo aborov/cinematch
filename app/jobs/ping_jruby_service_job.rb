@@ -16,43 +16,117 @@ class PingJrubyServiceJob < ApplicationJob
       return
     end
     
-    # Log the URL we're using
-    Rails.logger.info "JRuby service URL: #{jruby_url}"
+    # Check if there are any pending jobs in JRuby queues
+    pending_jobs = check_jruby_queues
     
-    # Make a request to ping the service
-    require 'net/http'
-    uri = URI("#{jruby_url}/jruby/ping")
-    
-    Rails.logger.info "Pinging JRuby service at #{uri}"
-    
-    begin
-      # Use a shorter timeout to avoid long waits
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = (uri.scheme == 'https')
-      http.open_timeout = 5  # seconds
-      http.read_timeout = 10 # seconds
+    # Only ping if there are pending jobs or if it's been a long time since last ping
+    if pending_jobs > 0 || should_ping_anyway?
+      # Log the URL we're using
+      Rails.logger.info "JRuby service URL: #{jruby_url}"
       
-      response = http.get(uri.path)
+      # Make a request to ping the service
+      require 'net/http'
+      uri = URI("#{jruby_url}/jruby/ping")
       
-      if response.code == '200'
-        # Parse the response to get service details
-        json_response = JSON.parse(response.body)
+      Rails.logger.info "Pinging JRuby service at #{uri} (#{pending_jobs} pending jobs)"
+      
+      begin
+        # Use a shorter timeout to avoid long waits
+        http = Net::HTTP.new(uri.host, uri.port)
+        http.use_ssl = (uri.scheme == 'https')
+        http.open_timeout = 5  # seconds
+        http.read_timeout = 10 # seconds
         
-        Rails.logger.info "JRuby service is awake. Engine: #{json_response['engine']}, Version: #{json_response['version']}"
-        return true
-      else
-        Rails.logger.warn "JRuby service ping failed with status code: #{response.code}"
-        return false
+        response = http.get(uri.path)
+        
+        if response.code == '200'
+          # Parse the response to get service details
+          json_response = JSON.parse(response.body)
+          
+          Rails.logger.info "JRuby service is awake. Engine: #{json_response['engine']}, Version: #{json_response['version']}"
+          
+          # Update the last ping timestamp
+          update_last_ping_timestamp
+          
+          return true
+        else
+          Rails.logger.warn "JRuby service ping failed with status code: #{response.code}"
+          return false
+        end
+      rescue => e
+        Rails.logger.error "Error pinging JRuby service at #{uri}: #{e.message}"
+        Rails.logger.error "This is normal if the JRuby service is not yet deployed or is starting up."
+        raise e
       end
-    rescue => e
-      Rails.logger.error "Error pinging JRuby service at #{uri}: #{e.message}"
-      Rails.logger.error "This is normal if the JRuby service is not yet deployed or is starting up."
-      raise e
+    else
+      Rails.logger.info "Skipping JRuby service ping - no pending jobs and last ping was recent"
+      return true
     end
   end
   
+  # Check if there are any jobs in the JRuby queues
+  def check_jruby_queues
+    begin
+      # Get the queues that should be processed by JRuby
+      jruby_queues = JobRoutingService::JRUBY_QUEUES
+      
+      # Count pending jobs across all JRuby queues
+      pending_count = 0
+      
+      # Check each queue for pending jobs
+      jruby_queues.each do |queue|
+        queue_pending_count = GoodJob::Job.where(queue_name: queue, performed_at: nil).count
+        pending_count += queue_pending_count
+        
+        if queue_pending_count > 0
+          Rails.logger.info "Found #{queue_pending_count} pending jobs in JRuby queue '#{queue}'"
+        end
+      end
+      
+      # If there are pending jobs, wake up the JRuby service
+      if pending_count > 0
+        Rails.logger.info "Found a total of #{pending_count} pending jobs across all JRuby queues"
+        JobRoutingService.wake_jruby_service_with_retries(5)
+      end
+      
+      return pending_count
+    rescue => e
+      Rails.logger.error "Error checking JRuby queues: #{e.message}"
+      return 0
+    end
+  end
+  
+  # Check if we should ping anyway (e.g., it's been a long time since last ping)
+  def should_ping_anyway?
+    # Get the last ping timestamp
+    last_ping = Rails.cache.read('jruby_service_last_ping')
+    
+    if last_ping.nil?
+      # If we've never pinged before, we should ping
+      Rails.logger.info "No record of previous JRuby service ping, will ping"
+      return true
+    end
+    
+    # Calculate time since last ping
+    time_since_last_ping = Time.now - Time.parse(last_ping)
+    
+    # If it's been more than 30 minutes, ping anyway to keep the service warm
+    # This is especially important for free tier services that sleep after inactivity
+    should_ping = time_since_last_ping > 30.minutes
+    
+    if should_ping
+      Rails.logger.info "Last JRuby service ping was #{(time_since_last_ping / 60).round} minutes ago, will ping to keep warm"
+    end
+    
+    return should_ping
+  end
+  
+  # Update the timestamp of the last ping
+  def update_last_ping_timestamp
+    Rails.cache.write('jruby_service_last_ping', Time.now.to_s)
+  end
+  
   # Class method to schedule this job via cron
-  # This is an alternative way to schedule the job if the configuration approach doesn't work
   def self.schedule_ping
     if defined?(GoodJob)
       begin
