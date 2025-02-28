@@ -62,6 +62,8 @@ services:
           type: keyvalue
           name: cinematch-redis
           property: connectionString
+      - key: RUBY_VERSION
+        value: jruby-9.4.3.0
       - key: BUNDLER_VERSION
         value: 2.4.6
       - key: MEMORY_THRESHOLD_MB
