@@ -13,9 +13,9 @@ class TestJrubyJob < JrubyCompatibleJob
     
     # Log the GoodJob configuration
     Rails.logger.info("GoodJob configuration:")
-    Rails.logger.info("  Execution mode: #{GoodJob.configuration.execution_mode}")
-    Rails.logger.info("  Queues: #{GoodJob.configuration.queues}")
-    Rails.logger.info("  Max threads: #{GoodJob.configuration.max_threads}")
+    Rails.logger.info("  Execution mode: #{Rails.application.config.good_job.execution_mode}")
+    Rails.logger.info("  Queues: #{Rails.application.config.good_job.queues}")
+    Rails.logger.info("  Max threads: #{Rails.application.config.good_job.max_threads}")
     
     # Log the options
     Rails.logger.info("Options: #{options.inspect}")

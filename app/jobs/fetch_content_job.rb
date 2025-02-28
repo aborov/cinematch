@@ -40,9 +40,9 @@ class FetchContentJob < JrubyCompatibleJob
       
       # Log GoodJob configuration
       if defined?(GoodJob)
-        Rails.logger.error "  GoodJob execution mode: #{GoodJob.configuration.execution_mode}"
-        Rails.logger.error "  GoodJob queues: #{GoodJob.configuration.queues}"
-        Rails.logger.error "  GoodJob max threads: #{GoodJob.configuration.max_threads}"
+        Rails.logger.error "  GoodJob execution mode: #{Rails.application.config.good_job.execution_mode}"
+        Rails.logger.error "  GoodJob queues: #{Rails.application.config.good_job.queues}"
+        Rails.logger.error "  GoodJob max threads: #{Rails.application.config.good_job.max_threads}"
       end
       
       # Log JRuby service status

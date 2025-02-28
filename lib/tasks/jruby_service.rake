@@ -167,13 +167,13 @@ namespace :jruby_service do
       puts "Running on JRuby: #{RUBY_ENGINE == 'jruby' ? 'YES' : 'NO'}"
       
       # Check execution mode
-      puts "Execution mode: #{GoodJob.configuration.execution_mode}"
+      puts "Execution mode: #{Rails.application.config.good_job.execution_mode}"
       
       # Check queues being processed
-      puts "Queues being processed: #{GoodJob.configuration.queues}"
+      puts "Queues being processed: #{Rails.application.config.good_job.queues}"
       
       # Check max threads
-      puts "Max threads: #{GoodJob.configuration.max_threads}"
+      puts "Max threads: #{Rails.application.config.good_job.max_threads}"
       
       # Check JRuby service URL
       jruby_url = Rails.application.config.jruby_service_url

@@ -39,7 +39,7 @@ Rails.application.config.after_initialize do
     end
     
     # IMPORTANT: Configure the main app to NOT process JRuby queues
-    if defined?(GoodJob) && GoodJob.configuration.respond_to?(:queues=)
+    if defined?(GoodJob)
       # Get all queues except JRuby queues
       jruby_queues = JobRoutingService::JRUBY_QUEUES
       Rails.logger.info "Configuring main app to exclude JRuby queues: #{jruby_queues.join(', ')}"
@@ -47,9 +47,9 @@ Rails.application.config.after_initialize do
       # Set the queues to process - exclude JRuby queues
       # Use a negated queue pattern to exclude JRuby queues
       excluded_queues = jruby_queues.map { |q| "!#{q}" }
-      GoodJob.configuration.queues = "*,#{excluded_queues.join(',')}"
+      Rails.application.config.good_job.queues = "*,#{excluded_queues.join(',')}"
       
-      Rails.logger.info "Main app configured to process queues: #{GoodJob.configuration.queues}"
+      Rails.logger.info "Main app configured to process queues: #{Rails.application.config.good_job.queues}"
     end
   else
     # Running on JRuby - log this fact
@@ -70,15 +70,15 @@ Rails.application.config.after_initialize do
       Rails.logger.info "Configuring Good Job to run in inline mode on JRuby"
       
       # IMPORTANT: Configure JRuby to ONLY process JRuby queues
-      if defined?(GoodJob) && GoodJob.configuration.respond_to?(:queues=)
+      if defined?(GoodJob)
         jruby_queues = JobRoutingService::JRUBY_QUEUES
-        GoodJob.configuration.queues = jruby_queues.join(',')
-        GoodJob.configuration.execution_mode = :async_server
-        GoodJob.configuration.max_threads = 5
-        GoodJob.configuration.poll_interval = 30
+        Rails.application.config.good_job.queues = jruby_queues.join(',')
+        Rails.application.config.good_job.execution_mode = :async_server
+        Rails.application.config.good_job.max_threads = 5
+        Rails.application.config.good_job.poll_interval = 30
         
-        Rails.logger.info "JRuby service configured to process queues: #{GoodJob.configuration.queues}"
-        Rails.logger.info "JRuby service execution mode: #{GoodJob.configuration.execution_mode}"
+        Rails.logger.info "JRuby service configured to process queues: #{Rails.application.config.good_job.queues}"
+        Rails.logger.info "JRuby service execution mode: #{Rails.application.config.good_job.execution_mode}"
       end
       
       Rails.logger.info "JRuby service ready to process jobs"

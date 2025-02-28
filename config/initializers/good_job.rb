@@ -59,8 +59,8 @@ end
 Rails.application.config.after_initialize do
   # Only log if we're not in JRuby - JRuby will log its own configuration
   if RUBY_ENGINE != 'jruby'
-    Rails.logger.info "GoodJob configured with execution_mode: #{GoodJob.configuration.execution_mode}"
-    Rails.logger.info "GoodJob max_threads: #{GoodJob.configuration.max_threads}"
+    Rails.logger.info "GoodJob configured with execution_mode: #{Rails.application.config.good_job.execution_mode}"
+    Rails.logger.info "GoodJob max_threads: #{Rails.application.config.good_job.max_threads}"
     Rails.logger.info "Running on Ruby engine: #{RUBY_ENGINE}"
   end
 end
