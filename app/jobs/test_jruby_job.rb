@@ -9,7 +9,7 @@ class TestJrubyJob < JrubyCompatibleJob
   def perform(options = {})
     # Log the start of the job with memory usage
     Rails.logger.info("TestJrubyJob starting on #{RUBY_ENGINE} #{RUBY_VERSION}")
-    Rails.logger.info("Memory usage at start: #{get_memory_usage} MB")
+    Rails.logger.info("Memory usage at start: #{memory_usage_mb} MB")
     
     # Log the GoodJob configuration
     Rails.logger.info("GoodJob configuration:")
@@ -50,14 +50,14 @@ class TestJrubyJob < JrubyCompatibleJob
       end
       
       # Log memory usage after allocation
-      Rails.logger.info("Memory usage after allocation: #{get_memory_usage} MB")
+      Rails.logger.info("Memory usage after allocation: #{memory_usage_mb} MB")
     end
     
     # Sleep to simulate work
     sleep(duration)
     
     # Log memory usage at the end
-    Rails.logger.info("Memory usage at end: #{get_memory_usage} MB")
+    Rails.logger.info("Memory usage at end: #{memory_usage_mb} MB")
     Rails.logger.info("TestJrubyJob completed successfully")
   end
 end 

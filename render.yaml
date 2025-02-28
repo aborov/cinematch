@@ -40,7 +40,8 @@ services:
   # JRuby service for memory-intensive background jobs
   - type: web
     name: cinematch-jruby
-    env: ruby
+    runtime: ruby
+    runtimeVersion: jruby-9.4.3.0
     plan: free
     buildCommand: bundle install
     startCommand: JRUBY_OPTS="--dev -J-Xmx400m" bundle exec rails server -p $PORT -e $RAILS_ENV
@@ -61,8 +62,6 @@ services:
           type: keyvalue
           name: cinematch-redis
           property: connectionString
-      - key: RUBY_VERSION
-        value: jruby-9.4.3.0
       - key: BUNDLER_VERSION
         value: 2.4.6
       - key: MEMORY_THRESHOLD_MB
