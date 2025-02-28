@@ -13,6 +13,7 @@ CineMatch is a personalized content recommendation platform that matches feature
     - [Configuration](#configuration)
     - [Installation](#installation)
   - [Usage](#usage)
+  - [JRuby Service](#jruby-service)
   - [Contributing](#contributing)
   - [ERD](#erd)
   - [User Journey](#user-journey)
@@ -61,6 +62,41 @@ rails server
 5. Browse the personalized content recommendations on the main screen.
 6. Click on any recommended title to view detailed information.
 7. To make changes to account data or refine the recommendation results, click Profile icon in the right top corner to go to the Profile dashboard).
+
+## JRuby Service
+
+CineMatch uses a dual-runtime architecture with a separate JRuby service for memory-intensive background jobs:
+
+- **Main Application (MRI Ruby)**: Handles web requests and lightweight background jobs
+- **JRuby Service**: Handles memory-intensive background jobs that benefit from JRuby's superior memory management
+
+For detailed information about the JRuby service, refer to the following documentation:
+
+- [JRuby Render Setup Guide](docs/jruby_render_setup.md) - Overview of the architecture, deployment process, and rationale
+- [JRuby Service Guide](docs/jruby_service.md) - Technical troubleshooting guide and debugging tools
+
+### Local Development with JRuby Service
+
+To run the application with the JRuby service locally:
+
+1. Install JRuby:
+```bash
+rbenv install jruby-9.4.3.0
+# or
+rvm install jruby-9.4.3.0
+```
+
+2. Start the JRuby service:
+```bash
+# In one terminal
+RUBY_VERSION=jruby-9.4.3.0 SIMULATE_JRUBY_SERVICE=true bundle exec rails server -p 3001
+```
+
+3. Start the main application:
+```bash
+# In another terminal
+JRUBY_SERVICE_URL=http://localhost:3001 bundle exec rails server -p 3000
+```
 
 ## Contributing
 

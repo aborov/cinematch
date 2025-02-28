@@ -37,6 +37,20 @@ Rails.application.config.after_initialize do
       Rails.logger.info "Ensuring PingJrubyServiceJob is scheduled"
       # The actual scheduling is done in the GoodJob configuration
     end
+    
+    # IMPORTANT: Configure the main app to NOT process JRuby queues
+    if defined?(GoodJob) && GoodJob.configuration.respond_to?(:queues=)
+      # Get all queues except JRuby queues
+      jruby_queues = JobRoutingService::JRUBY_QUEUES
+      Rails.logger.info "Configuring main app to exclude JRuby queues: #{jruby_queues.join(', ')}"
+      
+      # Set the queues to process - exclude JRuby queues
+      # Use a negated queue pattern to exclude JRuby queues
+      excluded_queues = jruby_queues.map { |q| "!#{q}" }
+      GoodJob.configuration.queues = "*,#{excluded_queues.join(',')}"
+      
+      Rails.logger.info "Main app configured to process queues: #{GoodJob.configuration.queues}"
+    end
   else
     # Running on JRuby - log this fact
     Rails.logger.info "Running on JRuby #{JRUBY_VERSION}"
@@ -54,10 +68,18 @@ Rails.application.config.after_initialize do
       # Configure Good Job to run in inline mode on JRuby
       # This allows the web process to process jobs without a separate worker
       Rails.logger.info "Configuring Good Job to run in inline mode on JRuby"
-      GoodJob.configuration.execution_mode = :inline
-      GoodJob.configuration.queues = 'content_fetching,recommendations'
-      GoodJob.configuration.max_threads = 5
-      GoodJob.configuration.poll_interval = 30
+      
+      # IMPORTANT: Configure JRuby to ONLY process JRuby queues
+      if defined?(GoodJob) && GoodJob.configuration.respond_to?(:queues=)
+        jruby_queues = JobRoutingService::JRUBY_QUEUES
+        GoodJob.configuration.queues = jruby_queues.join(',')
+        GoodJob.configuration.execution_mode = :async_server
+        GoodJob.configuration.max_threads = 5
+        GoodJob.configuration.poll_interval = 30
+        
+        Rails.logger.info "JRuby service configured to process queues: #{GoodJob.configuration.queues}"
+        Rails.logger.info "JRuby service execution mode: #{GoodJob.configuration.execution_mode}"
+      end
       
       Rails.logger.info "JRuby service ready to process jobs"
     end

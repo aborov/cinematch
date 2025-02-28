@@ -34,10 +34,18 @@ class JobRoutingService
       Rails.logger.info("Routing job #{job_class} to JRuby service")
       
       # Try to wake up the JRuby service with retries
-      wake_success = wake_jruby_service_with_retries
+      wake_success = wake_jruby_service_with_retries(5) # Increased retries
       
       if !wake_success
         Rails.logger.warn("Failed to wake JRuby service after multiple attempts. Job will be enqueued anyway, but may not be processed immediately.")
+        
+        # Log additional information about the JRuby service
+        begin
+          status = jruby_service_status
+          Rails.logger.warn("JRuby service status: #{status.inspect}")
+        rescue => e
+          Rails.logger.error("Error checking JRuby service status: #{e.message}")
+        end
       end
     end
     
@@ -75,7 +83,14 @@ class JobRoutingService
       # Make a request to get the status
       require 'net/http'
       uri = URI("#{jruby_url}/jruby/status")
-      response = Net::HTTP.get_response(uri)
+      
+      # Use a longer timeout for status checks
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = (uri.scheme == 'https')
+      http.open_timeout = 30  # seconds
+      http.read_timeout = 70  # seconds
+      
+      response = http.get(uri.path)
       
       if response.code == '200'
         # Parse the response to get service details
@@ -106,10 +121,22 @@ class JobRoutingService
         # Record the successful wake-up time
         Rails.cache.write('jruby_service_last_wakeup', Time.now.to_s)
         
+        # Verify that the service is actually running JRuby
+        begin
+          status = jruby_service_status
+          if status.is_a?(Hash) && status['engine'] == 'jruby'
+            Rails.logger.info("Confirmed JRuby service is running JRuby #{status['version']}")
+          else
+            Rails.logger.warn("JRuby service responded but may not be running JRuby: #{status.inspect}")
+          end
+        rescue => e
+          Rails.logger.warn("Error verifying JRuby service engine: #{e.message}")
+        end
+        
         break
       elsif attempts < max_attempts
         # Wait a bit longer between each retry
-        sleep_time = attempts * 2
+        sleep_time = attempts * 3  # Increased sleep time
         Rails.logger.info("JRuby service wake attempt #{attempts} failed. Waiting #{sleep_time} seconds before retry...")
         sleep(sleep_time)
       end
@@ -145,8 +172,8 @@ class JobRoutingService
       
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = (uri.scheme == 'https')
-      http.open_timeout = 30  # seconds (increased from 10)
-      http.read_timeout = 60  # seconds (increased from 30)
+      http.open_timeout = 60  # seconds (increased from 30)
+      http.read_timeout = 120  # seconds (increased from 60)
       
       response = http.get(uri.path)
       
@@ -157,6 +184,11 @@ class JobRoutingService
         begin
           json_response = JSON.parse(response.body)
           Rails.logger.info("JRuby service wake successful. Engine: #{json_response['engine']}, Version: #{json_response['version']}")
+          
+          # Verify that it's actually JRuby
+          if json_response['engine'] != 'jruby'
+            Rails.logger.warn("Service responded but is not running JRuby! Engine: #{json_response['engine']}")
+          end
         rescue JSON::ParserError
           Rails.logger.info("JRuby service wake successful, but response was not valid JSON")
         end
@@ -165,6 +197,14 @@ class JobRoutingService
       end
       
       success
+    rescue Net::OpenTimeout => e
+      Rails.logger.error("Timeout opening connection to JRuby service: #{e.message}")
+      Rails.logger.error("This is normal if the service is sleeping and starting up. Will retry.")
+      false
+    rescue Net::ReadTimeout => e
+      Rails.logger.error("Timeout reading from JRuby service: #{e.message}")
+      Rails.logger.error("This may indicate that the service is busy or starting up. Will retry.")
+      false
     rescue => e
       Rails.logger.error("Error waking JRuby service: #{e.message}")
       Rails.logger.error(e.backtrace.join("\n"))

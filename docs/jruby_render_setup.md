@@ -1,5 +1,7 @@
 # Running Memory-Intensive Jobs on JRuby with Render
 
+> **Note:** This document provides an overview of the JRuby service architecture and deployment process. For detailed troubleshooting information and debugging tools, see the [JRuby Service Guide](jruby_service.md).
+
 This guide provides detailed instructions on how to set up and deploy the JRuby service for running memory-intensive background jobs on Render's free tier.
 
 ## Overview
@@ -169,4 +171,4 @@ If jobs are failing:
 
 Using JRuby for memory-intensive background jobs allows you to leverage its superior memory management capabilities while keeping your main application on MRI Ruby. This dual-runtime architecture is particularly useful for applications running on limited resources like Render's free tier.
 
-For more information, see the [JRuby Service documentation](JRUBY_SERVICE.md). 
+For more detailed troubleshooting information, see the [JRuby Service Guide](jruby_service.md). 

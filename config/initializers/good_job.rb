@@ -11,7 +11,8 @@ Rails.application.configure do
   # In production, use async_server mode to process jobs in the background
   config.good_job.execution_mode = Rails.env.development? ? :inline : :async_server
   
-  # Configure queues and threads
+  # Configure queues and threads - this will be overridden for JRuby in jruby_service.rb
+  # For MRI Ruby, we'll exclude JRuby queues in jruby_service.rb
   config.good_job.queues = '*'
   config.good_job.max_threads = 2
   config.good_job.poll_interval = 30 # seconds
@@ -56,7 +57,10 @@ end
 
 # Log the current configuration
 Rails.application.config.after_initialize do
-  Rails.logger.info "GoodJob configured with execution_mode: #{GoodJob.configuration.execution_mode}"
-  Rails.logger.info "GoodJob max_threads: #{GoodJob.configuration.max_threads}"
-  Rails.logger.info "Running on Ruby engine: #{RUBY_ENGINE}"
+  # Only log if we're not in JRuby - JRuby will log its own configuration
+  if RUBY_ENGINE != 'jruby'
+    Rails.logger.info "GoodJob configured with execution_mode: #{GoodJob.configuration.execution_mode}"
+    Rails.logger.info "GoodJob max_threads: #{GoodJob.configuration.max_threads}"
+    Rails.logger.info "Running on Ruby engine: #{RUBY_ENGINE}"
+  end
 end

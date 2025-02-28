@@ -38,6 +38,28 @@ class FetchContentJob < JrubyCompatibleJob
       Rails.logger.error "  Job queue: #{queue_name}"
       Rails.logger.error "  Job ID: #{@job_id}"
       
+      # Log GoodJob configuration
+      if defined?(GoodJob)
+        Rails.logger.error "  GoodJob execution mode: #{GoodJob.configuration.execution_mode}"
+        Rails.logger.error "  GoodJob queues: #{GoodJob.configuration.queues}"
+        Rails.logger.error "  GoodJob max threads: #{GoodJob.configuration.max_threads}"
+      end
+      
+      # Log JRuby service status
+      if defined?(JobRoutingService)
+        begin
+          status = JobRoutingService.jruby_service_status
+          Rails.logger.error "  JRuby service status: #{status.inspect}"
+          
+          # Try to wake the JRuby service
+          Rails.logger.error "  Attempting to wake JRuby service..."
+          wake_result = JobRoutingService.wake_jruby_service_with_retries(5)
+          Rails.logger.error "  Wake result: #{wake_result}"
+        rescue => e
+          Rails.logger.error "  Error checking JRuby service: #{e.message}"
+        end
+      end
+      
       # Check for emergency override flag
       allow_mri_execution = options[:allow_mri_execution] || ENV['ALLOW_JRUBY_JOBS_ON_MRI'] == 'true'
       
