@@ -80,7 +80,14 @@ Rails.application.routes.draw do
   get 'health_check', to: 'api/job_runner#health_check'
   
   namespace :api do
-    post 'run_job', to: 'job_runner#run_job'
-    get 'job_status', to: 'job_runner#job_status'
+    # Job runner API
+    resources :job_runner, only: [] do
+      collection do
+        get 'health_check'
+        post 'run_job'
+        post 'run_specific_job'
+        get 'job_status/:job_id', action: :job_status, as: :status
+      end
+    end
   end
 end

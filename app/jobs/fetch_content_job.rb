@@ -2,17 +2,22 @@ class FetchContentJob < ApplicationJob
   queue_as :default
 
   def perform(options = {})
-    # If we're not on the job runner instance and the job runner URL is configured,
-    # delegate the job to the job runner service
-    if !ENV['JOB_RUNNER_ONLY'] && ENV['JOB_RUNNER_URL'].present?
+    # If we're not on the job runner instance, delegate the job to the job runner service
+    if ENV['JOB_RUNNER_ONLY'] != 'true'
       Rails.logger.info "[FetchContentJob] Delegating to job runner service"
-      job_id = JobRunnerService.run_job('FetchContentJob', options)
       
-      if job_id
-        Rails.logger.info "[FetchContentJob] Successfully delegated to job runner. Job ID: #{job_id}"
-        return
+      # First wake up the job runner
+      unless JobRunnerService.wake_up_job_runner
+        Rails.logger.warn "[FetchContentJob] Failed to wake up job runner. Running locally instead."
       else
-        Rails.logger.warn "[FetchContentJob] Failed to delegate to job runner. Running locally instead."
+        job_id = JobRunnerService.run_job('FetchContentJob', options)
+        
+        if job_id
+          Rails.logger.info "[FetchContentJob] Successfully delegated to job runner. Job ID: #{job_id}"
+          return
+        else
+          Rails.logger.warn "[FetchContentJob] Failed to delegate to job runner. Running locally instead."
+        end
       end
     end
     
@@ -41,16 +46,17 @@ class FetchContentJob < ApplicationJob
     Rails.logger.info "[FetchContentJob] Job completed in #{duration.round(2)}s. Total content items: #{Content.count}"
     
     # Schedule the recommendations update job
-    if ENV['JOB_RUNNER_ONLY'] && ENV['MAIN_APP_URL'].present?
+    if ENV['JOB_RUNNER_ONLY'] == 'true' && ENV['MAIN_APP_URL'].present?
       # If we're on the job runner, we need to notify the main app to update recommendations
       Rails.logger.info "[FetchContentJob] Notifying main app to update recommendations"
       begin
-        HTTP.timeout(30).post(
-          "#{ENV['MAIN_APP_URL']}/api/run_job",
-          json: {
+        HTTParty.post(
+          "#{ENV['MAIN_APP_URL']}/api/job_runner/run_job",
+          body: {
             job_class: 'UpdateAllRecommendationsJob',
             secret: ENV['SECRET_KEY_BASE'].to_s[0..15]
-          }
+          }.to_json,
+          headers: { 'Content-Type' => 'application/json' }
         )
       rescue => e
         Rails.logger.error "[FetchContentJob] Failed to notify main app: #{e.message}"
@@ -64,6 +70,51 @@ class FetchContentJob < ApplicationJob
   rescue => e
     Rails.logger.error "[FetchContentJob] Failed after #{(Time.current - @start_time).round(2)}s: #{e.message}\n#{e.backtrace.join("\n")}"
     raise e
+  end
+
+  # Class methods for direct invocation
+  class << self
+    def fetch_new_content(options = {})
+      if ENV['JOB_RUNNER_ONLY'] != 'true'
+        Rails.logger.info "[FetchContentJob] Delegating fetch_new_content to job runner"
+        JobRunnerService.wake_up_job_runner
+        JobRunnerService.run_specific_job('FetchContentJob', 'fetch_new_content', options)
+      else
+        Rails.logger.info "[FetchContentJob] Running fetch_new_content locally"
+        require 'rake'
+        Rails.application.load_tasks
+        Rake::Task['tmdb:fetch_content'].invoke
+        Rake::Task['tmdb:fetch_content'].reenable
+      end
+    end
+    
+    def update_existing_content(options = {})
+      if ENV['JOB_RUNNER_ONLY'] != 'true'
+        Rails.logger.info "[FetchContentJob] Delegating update_existing_content to job runner"
+        JobRunnerService.wake_up_job_runner
+        JobRunnerService.run_specific_job('FetchContentJob', 'update_existing_content', options)
+      else
+        Rails.logger.info "[FetchContentJob] Running update_existing_content locally"
+        require 'rake'
+        Rails.application.load_tasks
+        Rake::Task['tmdb:update_content'].invoke
+        Rake::Task['tmdb:update_content'].reenable
+      end
+    end
+    
+    def fill_missing_details(options = {})
+      if ENV['JOB_RUNNER_ONLY'] != 'true'
+        Rails.logger.info "[FetchContentJob] Delegating fill_missing_details to job runner"
+        JobRunnerService.wake_up_job_runner
+        JobRunnerService.run_specific_job('FetchContentJob', 'fill_missing_details', options)
+      else
+        Rails.logger.info "[FetchContentJob] Running fill_missing_details locally"
+        require 'rake'
+        Rails.application.load_tasks
+        Rake::Task['tmdb:fill_missing_details'].invoke
+        Rake::Task['tmdb:fill_missing_details'].reenable
+      end
+    end
   end
 
   private
