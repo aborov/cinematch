@@ -1,7 +1,8 @@
 class FetcherController < ApplicationController
-  skip_before_action :authenticate_user!, if: -> { respond_to?(:authenticate_user!) }
+  # Only skip these callbacks if they exist
+  skip_before_action :authenticate_user!, if: -> { self.class.instance_methods.include?(:authenticate_user!) || self.class.private_instance_methods.include?(:authenticate_user!) }
   skip_before_action :verify_authenticity_token
-  skip_after_action :verify_authorized, if: -> { respond_to?(:verify_authorized) }
+  skip_after_action :verify_authorized, if: -> { self.class.instance_methods.include?(:verify_authorized) || self.class.private_instance_methods.include?(:verify_authorized) }
   
   # Health check endpoint
   def ping
@@ -32,9 +33,6 @@ class FetcherController < ApplicationController
           
           # Log the result
           Rails.logger.info("Fetcher job completed: #{result.inspect}")
-          
-          # Update the last run timestamp
-          FetcherStatus.update_last_run(provider)
         rescue => e
           Rails.logger.error("Fetcher job failed: #{e.message}")
           Rails.logger.error(e.backtrace.join("\n"))
@@ -47,19 +45,11 @@ class FetcherController < ApplicationController
   
   # Get status of the fetcher service
   def status
-    statuses = FetcherStatus.all.map do |status|
-      {
-        provider: status.provider,
-        last_run: status.last_run,
-        status: status.status,
-        movies_fetched: status.movies_fetched
-      }
-    end
-    
     render json: { 
       status: "ok", 
       memory_usage: current_memory_usage,
-      providers: statuses
+      uptime: process_uptime,
+      environment: Rails.env
     }
   end
   
@@ -71,5 +61,10 @@ class FetcherController < ApplicationController
   
   def current_memory_usage
     `ps -o rss= -p #{Process.pid}`.to_i / 1024 # Convert KB to MB
+  end
+  
+  def process_uptime
+    process_start_time = File.stat("/proc/#{Process.pid}").ctime rescue Time.now - 60
+    ((Time.now - process_start_time) / 60).round # in minutes
   end
 end 

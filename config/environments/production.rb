@@ -111,7 +111,4 @@ Rails.application.configure do
   
   # Fetcher service configuration
   config.fetcher_service_url = ENV['FETCHER_SERVICE_URL']
-  
-  # Legacy JRuby service configuration (for backward compatibility)
-  config.jruby_service_url = ENV['JRUBY_SERVICE_URL']
 end

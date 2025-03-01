@@ -1,17 +1,14 @@
 # frozen_string_literal: true
 
-# This initializer is named with a 'z_' prefix to ensure it loads after other initializers
-# It schedules the ping job for the JRuby service
+# This initializer schedules the ping job for the fetcher service
+# It runs after all other initializers (hence the z_ prefix)
 
-Rails.application.config.after_initialize do
-  # Only schedule the ping job in production and if we're not running on JRuby
-  if Rails.env.production? && RUBY_ENGINE != 'jruby' && defined?(PingJrubyServiceJob)
-    begin
-      Rails.logger.info "Scheduling PingJrubyServiceJob from initializer"
-      PingJrubyServiceJob.schedule_ping
-    rescue => e
-      Rails.logger.error "Failed to schedule PingJrubyServiceJob: #{e.message}"
-      Rails.logger.error e.backtrace.join("\n")
-    end
+# Only schedule the ping job in production
+if Rails.env.production? && defined?(PingFetcherServiceJob)
+  begin
+    Rails.logger.info "Scheduling PingFetcherServiceJob from initializer"
+    PingFetcherServiceJob.schedule_ping
+  rescue => e
+    Rails.logger.error "Failed to schedule PingFetcherServiceJob: #{e.message}"
   end
 end 

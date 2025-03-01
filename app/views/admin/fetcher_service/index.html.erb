@@ -34,12 +34,16 @@
           <tr>
             <th>Memory Usage</th>
             <th>Status</th>
+            <th>Uptime</th>
+            <th>Environment</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td><%= @fetcher_status['memory_usage'] %> MB</td>
             <td><%= @fetcher_status['status'] %></td>
+            <td><%= @fetcher_status['uptime'] %> minutes</td>
+            <td><%= @fetcher_status['environment'] %></td>
           </tr>
         </tbody>
       </table>

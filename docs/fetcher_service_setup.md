@@ -36,14 +36,14 @@ This architecture provides several benefits:
    - **Branch**: main (or your deployment branch)
    - **Region**: Choose the region closest to your users
    - **Instance Type**: Standard (1x CPU, 2GB RAM)
-   - **Health Check Path**: /health
+   - **Health Check Path**: /fetcher/ping
    - **Auto-Deploy**: Yes
 
 5. Add the following environment variables:
    - `RAILS_ENV=production`
    - `RAILS_MASTER_KEY=[your-master-key]`
    - `DATABASE_URL=[your-database-url]`
-   - `REDIS_URL=[your-redis-url]`
+   - `REDIS_URL=[your-redis-url]` (if using Redis)
    - `THEMOVIEDB_KEY=[your-tmdb-api-key]`
    - `SIMULATE_FETCHER=true`
 
@@ -55,30 +55,23 @@ After deploying the fetcher service, you need to configure the main application 
 
 1. Go to your main application's environment variables in Render
 2. Add the following environment variable:
-   - `FETCHER_SERVICE_URL=https://cinematch-fetcher.onrender.com`
+   - `FETCHER_SERVICE_URL=https://cinematch-fetcher.onrender.com` (or your actual fetcher service URL)
 
-## Local Development
+## Testing in Production
 
-To run the application with the fetcher service locally:
+Since local testing is challenging due to port conflicts, it's best to test the fetcher service in production:
 
-1. Start the fetcher service:
-```bash
-# In one terminal
-SIMULATE_FETCHER=true bundle exec rails server -p 3001
-```
-
-2. Start the main application:
-```bash
-# In another terminal
-FETCHER_SERVICE_URL=http://localhost:3001 bundle exec rails server -p 3000
-```
+1. Deploy both the main application and fetcher service to Render
+2. Use the admin dashboard to monitor the fetcher service status
+3. Run test jobs through the admin dashboard
+4. Check the logs in Render to verify that jobs are being processed correctly
 
 ## Monitoring and Troubleshooting
 
 ### Monitoring
 
 - Check the fetcher service logs in the Render dashboard
-- Use the admin dashboard at `/admin/fetcher_service` to monitor the service status and job queue
+- Use the admin dashboard at `/admin/fetcher_service` to monitor the service status
 
 ### Troubleshooting
 

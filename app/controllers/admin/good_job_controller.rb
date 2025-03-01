@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Admin
   class GoodJobController < Admin::BaseController
     def dashboard
@@ -119,12 +121,6 @@ module Admin
       job_params[:min_batch_size] = params[:min_batch_size].to_i if params[:min_batch_size].present?
       job_params[:processing_batch_size] = params[:processing_batch_size].to_i if params[:processing_batch_size].present?
       
-      # Check if this is a JRuby job and if we should allow it to run on MRI Ruby
-      if JobRoutingService.jruby_job?(job_class) && params[:allow_mri_execution].present?
-        job_params[:allow_mri_execution] = true
-        flash[:warning] = "Running JRuby job on MRI Ruby with emergency override. This may cause memory issues!"
-      end
-      
       # Check if this is a fetcher job and if we should allow it to run on the main app
       if JobRoutingService.fetcher_job?(job_class) && params[:allow_mri_execution].present?
         job_params[:allow_mri_execution] = true
@@ -137,9 +133,6 @@ module Admin
       # Enqueue the job
       if JobRoutingService.fetcher_job?(job_class)
         # Use the JobRoutingService for fetcher jobs
-        job = JobRoutingService.enqueue(job_class, job_params)
-      elsif JobRoutingService.jruby_job?(job_class)
-        # Use the JobRoutingService for JRuby jobs (legacy)
         job = JobRoutingService.enqueue(job_class, job_params)
       else
         # Use standard ActiveJob for regular jobs

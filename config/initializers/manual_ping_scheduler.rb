@@ -1,45 +1,38 @@
 # frozen_string_literal: true
 
-# This initializer provides a fallback mechanism for scheduling the ping job
-# if GoodJob's cron functionality isn't available
+# This initializer sets up a manual scheduler for pinging the fetcher service
+# This is needed because GoodJob's cron scheduler doesn't always work reliably in production
+# It schedules the ping job for the fetcher service
 
-Rails.application.config.after_initialize do
-  # Only run in production and if we're not running on JRuby
-  if Rails.env.production? && RUBY_ENGINE != 'jruby' && defined?(PingJrubyServiceJob)
-    # Check if we need to use the manual scheduler
+# Only run in production
+if Rails.env.production? && defined?(PingFetcherServiceJob)
+  # Create a thread to schedule the ping job
+  Thread.new do
+    # Wait for Rails to fully initialize
+    sleep 30
+
     begin
-      # Try to access GoodJob's cron functionality
-      if !defined?(GoodJob) || 
-         (!GoodJob.respond_to?(:configure) && 
-          !(defined?(GoodJob::Scheduler) && GoodJob::Scheduler.respond_to?(:instance)))
+      # Log that we're using the manual scheduler
+      Rails.logger.info "Using manual scheduler for PingFetcherServiceJob"
+      
+      # Schedule the ping job
+      PingFetcherServiceJob.schedule_ping
+      
+      # Log that the scheduler has started
+      Rails.logger.info "Manual scheduler for PingFetcherServiceJob started"
+      
+      # Every 10 minutes, check if the job is scheduled and schedule it if not
+      loop do
+        sleep 10.minutes
         
-        Rails.logger.info "Using manual scheduler for PingJrubyServiceJob"
-        
-        # Start a thread that will enqueue the ping job every 10 minutes
-        Thread.new do
-          # Wait for Rails to fully initialize
-          sleep 30
-          
-          Rails.logger.info "Manual scheduler for PingJrubyServiceJob started"
-          
-          loop do
-            begin
-              # Enqueue the ping job
-              Rails.logger.info "Manually enqueueing PingJrubyServiceJob"
-              PingJrubyServiceJob.perform_later
-              
-              # Wait 10 minutes
-              sleep 600
-            rescue => e
-              Rails.logger.error "Error in manual ping scheduler: #{e.message}"
-              # Wait a bit before trying again
-              sleep 60
-            end
-          end
-        end
+        # Log that we're manually enqueueing the job
+        Rails.logger.info "Manually enqueueing PingFetcherServiceJob"
+        PingFetcherServiceJob.perform_later
       end
     rescue => e
-      Rails.logger.error "Error setting up manual ping scheduler: #{e.message}"
+      # Log any errors
+      Rails.logger.error "Error in manual ping scheduler: #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
     end
   end
 end 

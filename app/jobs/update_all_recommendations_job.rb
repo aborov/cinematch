@@ -6,9 +6,6 @@ class UpdateAllRecommendationsJob < ApplicationJob
   # Mark this job to run on the fetcher service
   runs_on_fetcher
   
-  # For backward compatibility
-  runs_on_jruby
-  
   require 'memory_monitor'
 
   # Custom error class for job cancellation
@@ -234,10 +231,10 @@ class UpdateAllRecommendationsJob < ApplicationJob
       # Force GC after each batch
       GC.start(full_mark: true, immediate_sweep: true)
       
-      # JRuby-specific: Request a GC after each batch
-      if RUBY_ENGINE == 'jruby' && current_memory > @memory_threshold_mb * 0.7
-        puts "[UpdateAllRecommendationsJob] JRuby GC after batch..."
-        java.lang.System.gc
+      # Request additional GC if memory usage is high
+      if current_memory > @memory_threshold_mb * 0.7
+        puts "[UpdateAllRecommendationsJob] Additional GC after batch due to high memory usage..."
+        GC.start(full_mark: true, immediate_sweep: true)
       end
       
       # Pause between batches to allow memory to stabilize

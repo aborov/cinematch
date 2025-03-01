@@ -6,9 +6,6 @@ class FetchContentJob < ApplicationJob
   # Mark this job to run on the fetcher service
   runs_on_fetcher
   
-  # For backward compatibility
-  runs_on_jruby
-  
   # Constants for API providers
   PROVIDERS = %w[tmdb omdb].freeze
   

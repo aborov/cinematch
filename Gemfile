@@ -52,7 +52,7 @@ gem "stimulus-rails"
 gem "table_print"
 gem "turbolinks", "~> 5"
 gem "turbo-rails"
-gem "tzinfo-data", platforms: %i[mingw mswin x64_mingw jruby]
+gem "tzinfo-data", platforms: %i[mingw mswin x64_mingw]
 gem "whenever"
 
 # Use Kredis to get higher-level data types in Redis [https://github.com/rails/kredis]
