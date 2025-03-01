@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Admin
-  class GoodJobController < BaseController
+  class GoodJobController < Admin::BaseController
     def dashboard
       @jobs = GoodJob::Job.all
       @queues = GoodJob::Job.distinct.pluck(:queue_name).compact.sort
