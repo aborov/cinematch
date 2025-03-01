@@ -21,18 +21,17 @@ RUN apt-get update -qq && \
 # Install bundler
 RUN gem install bundler:$BUNDLER_VERSION
 
-# Create a minimal Gemfile for JRuby
-RUN mkdir -p /app
-WORKDIR /app
+# Copy the application code
+COPY . .
 
-# Create a minimal Gemfile for JRuby with only the essential gems
+# Create a minimal Gemfile for JRuby
 RUN echo 'source "https://rubygems.org"' > Gemfile && \
     echo 'ruby "3.1.4"' >> Gemfile && \
     echo 'gem "rails", "~> 7.1.3"' >> Gemfile && \
     echo 'gem "activerecord-jdbcpostgresql-adapter"' >> Gemfile && \
     echo 'gem "puma"' >> Gemfile && \
     echo 'gem "jruby-openssl"' >> Gemfile && \
-    echo 'gem "tzinfo-data", platforms: :jruby' >> Gemfile && \
+    echo 'gem "tzinfo-data"' >> Gemfile && \
     echo 'gem "sprockets-rails"' >> Gemfile && \
     echo 'gem "importmap-rails"' >> Gemfile && \
     echo 'gem "turbo-rails"' >> Gemfile && \
@@ -50,20 +49,13 @@ RUN echo 'source "https://rubygems.org"' > Gemfile && \
     echo 'gem "chartkick", "~> 5.0"' >> Gemfile && \
     echo 'gem "groupdate", "~> 6.4"' >> Gemfile
 
-# Save our custom Gemfile
-RUN cp Gemfile Gemfile.jruby
+# Create .ruby-version file for JRuby
+RUN echo "jruby-9.4.3.0" > .ruby-version
 
 # Install gems with JRuby platform
 RUN bundle config set --local platform jruby && \
     bundle config set --local without 'development test' && \
     bundle install --jobs 4 --retry 3
-
-# Copy the application code
-COPY . .
-
-# Restore our custom Gemfile
-RUN cp Gemfile.jruby Gemfile && \
-    echo "jruby-9.4.3.0" > .ruby-version
 
 # Precompile assets with explicit environment variables
 RUN bundle exec rake assets:precompile || echo "Asset precompilation failed, but continuing build"
@@ -72,4 +64,4 @@ RUN bundle exec rake assets:precompile || echo "Asset precompilation failed, but
 EXPOSE $PORT
 
 # Start the server
-CMD bundle exec rails server -p $PORT -e $RAILS_ENV -b 0.0.0.0 
+CMD bundle exec rails server -p $PORT -e $RAILS_ENV -b 0.0.0.0
