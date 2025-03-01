@@ -25,11 +25,6 @@ Rails.application.routes.draw do
     resources :recommendations
     resources :watchlist_items
     resources :content_providers
-    
-    # Fetcher service management
-    resource :fetcher_service, only: [:show, :update] do
-      post :wake_up, on: :collection
-    end
   end
   
   authenticate :user, lambda { |u| u.admin? } do
