@@ -1,8 +1,16 @@
 class FetcherController < ApplicationController
-  # Only skip these callbacks if they exist
-  skip_before_action :authenticate_user!, if: -> { self.class.instance_methods.include?(:authenticate_user!) || self.class.private_instance_methods.include?(:authenticate_user!) }
+  # Skip authentication and CSRF protection for API endpoints
   skip_before_action :verify_authenticity_token
-  skip_after_action :verify_authorized, if: -> { self.class.instance_methods.include?(:verify_authorized) || self.class.private_instance_methods.include?(:verify_authorized) }
+  
+  # Only skip these callbacks if they exist
+  if defined?(Devise)
+    skip_before_action :authenticate_user!, raise: false
+  end
+  
+  # Skip Pundit authorization if it's being used
+  if defined?(Pundit)
+    skip_after_action :verify_authorized, raise: false
+  end
   
   # Health check endpoint
   def ping

@@ -3,6 +3,11 @@
 class PagesController < ApplicationController
   layout 'landing', only: [:landing]
 
+  # Health check endpoint for Render
+  def ping
+    render json: { status: "ok", service: "main" }
+  end
+
   def landing
     return unless user_signed_in?
 

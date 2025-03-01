@@ -96,7 +96,7 @@ Rails.application.routes.draw do
   post 'fetcher/fetch', to: 'fetcher#fetch'
   
   # Simple ping endpoint for health checks
-  get 'ping', to: proc { [200, {}, ['pong']] }
+  get 'ping', to: 'pages#ping'
 
   # Add a route for testing fetcher job routing
   get 'test/fetcher_job', to: 'test#test_fetcher_job'
