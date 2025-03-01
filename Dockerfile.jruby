@@ -7,10 +7,10 @@ WORKDIR /app
 ENV RAILS_ENV=production
 ENV JRUBY_OPTS="--dev -J-Xmx400m"
 ENV BUNDLER_VERSION=2.4.6
-# Force bundler to use platform-specific gems
-ENV BUNDLE_FORCE_RUBY_PLATFORM=true
 # Disable native extensions completely
 ENV JRUBY_SKIP_NATIVE=true
+# Force pure-Java implementations
+ENV FORCE_JRUBY_PLATFORM=true
 
 # Install dependencies
 RUN apt-get update -qq && \
@@ -21,57 +21,48 @@ RUN apt-get update -qq && \
 # Install bundler
 RUN gem install bundler:$BUNDLER_VERSION
 
-# Copy Gemfile and Gemfile.lock
-COPY Gemfile Gemfile.lock ./
+# Create a minimal Gemfile for JRuby
+RUN mkdir -p /app
+WORKDIR /app
 
-# Copy Ruby version file for JRuby
-COPY .ruby-version.jruby .ruby-version
+# Create a minimal Gemfile for JRuby with only the essential gems
+RUN echo 'source "https://rubygems.org"' > Gemfile && \
+    echo 'ruby "3.1.4"' >> Gemfile && \
+    echo 'gem "rails", "~> 7.1.3"' >> Gemfile && \
+    echo 'gem "activerecord-jdbcpostgresql-adapter"' >> Gemfile && \
+    echo 'gem "puma"' >> Gemfile && \
+    echo 'gem "jruby-openssl"' >> Gemfile && \
+    echo 'gem "tzinfo-data", platforms: :jruby' >> Gemfile && \
+    echo 'gem "sprockets-rails"' >> Gemfile && \
+    echo 'gem "importmap-rails"' >> Gemfile && \
+    echo 'gem "turbo-rails"' >> Gemfile && \
+    echo 'gem "stimulus-rails"' >> Gemfile && \
+    echo 'gem "jbuilder"' >> Gemfile && \
+    echo 'gem "redis", "~> 4.0"' >> Gemfile && \
+    echo 'gem "bootsnap", require: false' >> Gemfile && \
+    echo 'gem "devise"' >> Gemfile && \
+    echo 'gem "activeadmin"' >> Gemfile && \
+    echo 'gem "pundit"' >> Gemfile && \
+    echo 'gem "kaminari"' >> Gemfile && \
+    echo 'gem "paranoia", "~> 2.6"' >> Gemfile && \
+    echo 'gem "rack-attack"' >> Gemfile && \
+    echo 'gem "jquery-rails"' >> Gemfile && \
+    echo 'gem "chartkick", "~> 5.0"' >> Gemfile && \
+    echo 'gem "groupdate", "~> 6.4"' >> Gemfile
 
-# Create a modified Gemfile for JRuby compatibility
-RUN cp Gemfile Gemfile.jruby && \
-    # Modify the Ruby version in the Gemfile to match JRuby's Ruby compatibility
-    sed -i 's/ruby "3.2.1"/ruby "3.1.4"/' Gemfile.jruby && \
-    # Replace problematic gems with JRuby-compatible versions
-    sed -i 's/gem "pg", "~> 1.1"/gem "activerecord-jdbcpostgresql-adapter"/' Gemfile.jruby && \
-    sed -i 's/gem "sqlite3", "~> 1.4"/#gem "sqlite3", "~> 1.4" # Removed for JRuby compatibility/' Gemfile.jruby && \
-    sed -i 's/gem "nio4r"/#gem "nio4r" # Removed for JRuby compatibility/' Gemfile.jruby && \
-    sed -i 's/gem "date"/#gem "date" # Removed for JRuby compatibility/' Gemfile.jruby && \
-    sed -i 's/gem "io-console"/#gem "io-console" # Removed for JRuby compatibility/' Gemfile.jruby && \
-    sed -i 's/gem "bigdecimal"/#gem "bigdecimal" # Removed for JRuby compatibility/' Gemfile.jruby && \
-    sed -i 's/gem "racc"/#gem "racc" # Removed for JRuby compatibility/' Gemfile.jruby && \
-    sed -i 's/gem "debug", platforms: %i\[mri mingw x64_mingw\]/#gem "debug", platforms: %i[mri mingw x64_mingw] # Removed for JRuby compatibility/' Gemfile.jruby && \
-    sed -i 's/gem "puma"/gem "puma", platform: :ruby/' Gemfile.jruby && \
-    sed -i 's/gem "sassc-rails"/gem "sassc-rails", platform: :ruby/' Gemfile.jruby && \
-    sed -i 's/gem "openssl", "~> 3.2.0"/#gem "openssl", "~> 3.2.0" # Removed for JRuby compatibility/' Gemfile.jruby && \
-    sed -i 's/gem "clamav-client"/#gem "clamav-client" # Removed for JRuby compatibility/' Gemfile.jruby && \
-    # Add JRuby-specific gems
-    echo '# JRuby-specific gems' >> Gemfile.jruby && \
-    echo 'gem "nio4r", "2.7.3", platform: :jruby' >> Gemfile.jruby && \
-    echo 'gem "date", "3.3.4", platform: :jruby' >> Gemfile.jruby && \
-    echo 'gem "io-console", "0.7.2", platform: :jruby' >> Gemfile.jruby && \
-    echo 'gem "bigdecimal", "3.1.8", platform: :jruby' >> Gemfile.jruby && \
-    echo 'gem "racc", "1.8.1", platform: :jruby' >> Gemfile.jruby && \
-    echo 'gem "jruby-openssl", platform: :jruby' >> Gemfile.jruby && \
-    echo 'gem "puma", platform: :jruby' >> Gemfile.jruby && \
-    echo 'gem "activerecord-jdbcsqlite3-adapter", platform: :jruby' >> Gemfile.jruby && \
-    echo 'gem "therubyrhino", platform: :jruby' >> Gemfile.jruby
+# Install gems with JRuby platform
+RUN bundle config set --local platform jruby && \
+    bundle config set --local without 'development test' && \
+    bundle install --jobs 4 --retry 3
 
-# Install gems with JRuby platform using the modified Gemfile
-RUN BUNDLE_GEMFILE=Gemfile.jruby bundle config set --local platform jruby && \
-    BUNDLE_GEMFILE=Gemfile.jruby bundle config set --local without 'development test' && \
-    BUNDLE_GEMFILE=Gemfile.jruby bundle install --jobs 4 --retry 3
-
-# Copy the rest of the application
+# Copy the application code
 COPY . .
 
-# Make sure we're using the JRuby Gemfile
-RUN if [ -f Gemfile.jruby.lock ]; then \
-      cp Gemfile.jruby Gemfile && \
-      cp Gemfile.jruby.lock Gemfile.lock; \
-    fi
+# Create .ruby-version file for JRuby
+RUN echo "jruby-9.4.3.0" > .ruby-version
 
-# Precompile assets with BUNDLE_GEMFILE explicitly set
-RUN BUNDLE_GEMFILE=./Gemfile bundle exec rake assets:precompile || echo "Asset precompilation failed, but continuing build"
+# Precompile assets with explicit environment variables
+RUN bundle exec rake assets:precompile || echo "Asset precompilation failed, but continuing build"
 
 # Expose port
 EXPOSE $PORT
