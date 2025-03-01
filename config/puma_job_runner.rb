@@ -1,40 +1,39 @@
-# Puma configuration file for the job runner service
-# This configuration is optimized for low memory usage
+# Minimal Puma configuration for job runner service
+# This configuration is optimized for background job processing with minimal memory usage
 
-# Minimum and Maximum threads per worker
-max_threads_count = ENV.fetch("RAILS_MAX_THREADS") { 2 }
-min_threads_count = ENV.fetch("RAILS_MIN_THREADS") { 1 }
-threads min_threads_count, max_threads_count
+# Set the environment
+environment ENV.fetch("RAILS_ENV") { "job_runner" }
 
-# Use the `PORT` environment variable provided by Render
+# Specify the number of workers (processes)
+# For a free tier, we want to keep this minimal
+workers ENV.fetch("WEB_CONCURRENCY") { 1 }
+
+# Specify the number of threads per worker
+# Minimal configuration for job processing
+threads_count = ENV.fetch("RAILS_MAX_THREADS") { 2 }
+threads 1, threads_count
+
+# Set the port
 port ENV.fetch("PORT") { 3000 }
 
-# Specifies the `environment` that Puma will run in.
-environment ENV.fetch("RAILS_ENV") { "production" }
-
-# Specifies the `pidfile` that Puma will use.
-pidfile ENV.fetch("PIDFILE") { "tmp/pids/puma_job_runner.pid" }
-
-# Allow puma to be restarted by `rails restart` command.
-plugin :tmp_restart
-
-# Set very conservative worker settings for free tier
-workers ENV.fetch("WEB_CONCURRENCY") { 1 }
+# Preload the application
 preload_app!
 
-# Set lower timeout for job runner
-worker_timeout 60
+# Set the directory
+directory ENV.fetch("RAILS_ROOT") { "." }
 
-# Reduce memory usage by forcing garbage collection more frequently
-before_fork do
-  GC.compact if defined?(GC) && GC.respond_to?(:compact)
-end
+# Logging
+stdout_redirect "log/puma_job_runner.log", "log/puma_job_runner_error.log", true unless ENV["RAILS_LOG_TO_STDOUT"] == "true"
 
+# Set up hooks
 on_worker_boot do
   ActiveRecord::Base.establish_connection if defined?(ActiveRecord)
 end
 
-# Disconnect from database when shutting down
-on_worker_shutdown do
-  ActiveRecord::Base.connection_pool.disconnect! if defined?(ActiveRecord)
+# Allow puma to be restarted by `rails restart` command
+plugin :tmp_restart
+
+# Reduce memory usage
+before_fork do
+  GC.compact if defined?(GC) && GC.respond_to?(:compact)
 end 

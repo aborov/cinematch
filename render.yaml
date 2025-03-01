@@ -28,7 +28,7 @@ services:
     name: cinematch-job-runner
     env: ruby
     plan: free
-    buildCommand: "./bin/render-build.sh"
+    buildCommand: "./bin/render-job-runner-build.sh"
     startCommand: "./bin/render-job-runner-start.sh"
     envVars:
       - key: SECRET_KEY_BASE
@@ -42,6 +42,12 @@ services:
       - key: MAIN_APP_URL
         value: https://cinematch-ywet.onrender.com
       - key: JOB_RUNNER_ONLY
+        value: true
+      - key: RAILS_SERVE_STATIC_FILES
+        value: true
+      - key: RAILS_LOG_TO_STDOUT
+        value: true
+      - key: DISABLE_SPRING
         value: true
     buildFilter:
       paths:

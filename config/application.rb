@@ -43,3 +43,19 @@ module RailsTemplate
     config.active_job.queue_adapter = :good_job
   end
 end
+
+module Rails
+  class << self
+    def job_runner?
+      env.job_runner?
+    end
+  end
+end
+
+module Rails
+  class Env
+    def job_runner?
+      self == "job_runner".inquiry
+    end
+  end
+end
