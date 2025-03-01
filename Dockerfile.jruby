@@ -34,8 +34,19 @@ RUN sed -i 's/gem "pg"/gem "activerecord-jdbcpostgresql-adapter"/' Gemfile
 # Remove or replace SQLite with JDBC adapter
 RUN sed -i 's/gem "sqlite3"/#gem "sqlite3" # Removed for JRuby compatibility/' Gemfile
 
-# Install gems
-RUN bundle config set --local without 'development test' && \
+# Replace problematic gems with JRuby-compatible versions
+RUN sed -i 's/gem "nio4r"/#gem "nio4r" # Removed for JRuby compatibility/' Gemfile && \
+    sed -i 's/gem "date"/#gem "date" # Removed for JRuby compatibility/' Gemfile && \
+    sed -i 's/gem "io-console"/#gem "io-console" # Removed for JRuby compatibility/' Gemfile
+
+# Add platform-specific gems for JRuby
+RUN echo 'gem "nio4r", "2.7.3", platform: :jruby' >> Gemfile && \
+    echo 'gem "date", "3.3.4", platform: :jruby' >> Gemfile && \
+    echo 'gem "io-console", "0.7.2", platform: :jruby' >> Gemfile
+
+# Install gems with JRuby platform
+RUN bundle config set --local platform jruby && \
+    bundle config set --local without 'development test' && \
     bundle install
 
 # Copy the rest of the application
