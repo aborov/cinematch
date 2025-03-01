@@ -29,26 +29,25 @@ class FetcherController < ApplicationController
     end
     
     # Start the fetch job in a background thread to avoid timeout
+    job_id = nil
     Thread.new do
       ActiveRecord::Base.connection_pool.with_connection do
         begin
-          case provider
-          when 'tmdb'
-            result = TmdbService.fetch_movies(batch_size)
-          when 'omdb'
-            result = OmdbService.fetch_movies(batch_size)
-          end
+          # Use FetchContentJob instead of directly calling service classes
+          job = FetchContentJob.perform_later(provider, batch_size, { allow_mri_execution: true })
+          job_id = job.job_id
           
-          # Log the result
-          Rails.logger.info("Fetcher job completed: #{result.inspect}")
+          # Log the job ID
+          Rails.logger.info("Fetcher job started: #{job_id}")
         rescue => e
-          Rails.logger.error("Fetcher job failed: #{e.message}")
+          Rails.logger.error("Failed to start fetcher job: #{e.message}")
           Rails.logger.error(e.backtrace.join("\n"))
         end
       end
     end
     
-    render json: { status: "fetch_started", provider: provider, batch_size: batch_size }
+    # Return success response with job ID if available
+    render json: { status: "ok", message: "Fetch job started", job_id: job_id }
   end
   
   # Get status of the fetcher service
@@ -64,7 +63,7 @@ class FetcherController < ApplicationController
   private
   
   def valid_provider?(provider)
-    ['tmdb', 'omdb'].include?(provider)
+    FetchContentJob::PROVIDERS.include?(provider)
   end
   
   def current_memory_usage

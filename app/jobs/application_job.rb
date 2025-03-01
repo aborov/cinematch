@@ -10,6 +10,13 @@ class ApplicationJob < ActiveJob::Base
   # Most jobs are safe to ignore if the underlying records are no longer available
   discard_on ActiveJob::DeserializationError
 
+  # Log job execution for tracking purposes
+  def log_job_execution(job_id, args)
+    Rails.logger.info "Executing job #{self.class.name} (#{job_id}) with args: #{args.inspect}"
+  rescue => e
+    Rails.logger.error "Error logging job execution: #{e.message}"
+  end
+
   # Override perform to add routing logic
   def self.perform_later(*args)
     # For fetcher jobs, we need to route them to the fetcher service
