@@ -18,8 +18,9 @@ RUN apt-get update -qq && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Install bundler
-RUN gem install bundler:$BUNDLER_VERSION
+# Install bundler and update jar-dependencies
+RUN gem install bundler:$BUNDLER_VERSION && \
+    gem install jar-dependencies -v 0.5.5
 
 # Copy the application code
 COPY . .
@@ -47,13 +48,15 @@ RUN echo 'source "https://rubygems.org"' > Gemfile && \
     echo 'gem "rack-attack"' >> Gemfile && \
     echo 'gem "jquery-rails"' >> Gemfile && \
     echo 'gem "chartkick", "~> 5.0"' >> Gemfile && \
-    echo 'gem "groupdate", "~> 6.4"' >> Gemfile
+    echo 'gem "groupdate", "~> 6.4"' >> Gemfile && \
+    echo 'gem "jar-dependencies", "0.5.5"' >> Gemfile
 
 # Create .ruby-version file for JRuby
 RUN echo "jruby-9.4.3.0" > .ruby-version
 
 # Install gems with JRuby platform
-RUN bundle config set --local platform jruby && \
+RUN gem uninstall -I jar-dependencies -v 0.4.1 || true && \
+    bundle config set --local platform jruby && \
     bundle config set --local without 'development test' && \
     bundle install --jobs 4 --retry 3
 
