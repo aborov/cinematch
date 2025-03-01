@@ -7,6 +7,8 @@ WORKDIR /app
 ENV RAILS_ENV=production
 ENV JRUBY_OPTS="--dev -J-Xmx400m"
 ENV BUNDLER_VERSION=2.4.6
+# Force bundler to use platform-specific gems
+ENV BUNDLE_FORCE_RUBY_PLATFORM=true
 
 # Install dependencies
 RUN apt-get update -qq && \
@@ -39,8 +41,11 @@ RUN bundle config set --local without 'development test' && \
 # Copy the rest of the application
 COPY . .
 
-# Precompile assets
-RUN bundle exec rake assets:precompile
+# Make sure the Gemfile.lock doesn't override our Ruby version
+RUN bundle update --bundler
+
+# Precompile assets with BUNDLE_GEMFILE explicitly set
+RUN BUNDLE_GEMFILE=./Gemfile bundle exec rake assets:precompile
 
 # Expose port
 EXPOSE $PORT
