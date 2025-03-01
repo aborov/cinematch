@@ -14,6 +14,7 @@ CineMatch is a personalized content recommendation platform that matches feature
     - [Installation](#installation)
   - [Usage](#usage)
   - [Fetcher Service](#fetcher-service)
+  - [Deployment](#deployment)
   - [Contributing](#contributing)
   - [ERD](#erd)
   - [User Journey](#user-journey)
@@ -74,6 +75,18 @@ For detailed information about the fetcher service, refer to the following docum
 
 - [Fetcher Service Setup Guide](docs/fetcher_service_setup.md) - Overview of the architecture and deployment process
 - [Fetcher Service Guide](docs/fetcher_service.md) - Technical troubleshooting guide and debugging tools
+
+## Deployment
+
+CineMatch can be deployed on Render using a blueprint configuration. For detailed deployment instructions, refer to the following documentation:
+
+- [Deployment Guide](docs/deployment_guide.md) - Step-by-step guide for deploying CineMatch on Render using the blueprint approach
+
+To test the fetcher service after deployment, you can use the included test script:
+
+```bash
+FETCHER_SERVICE_URL=https://cinematch-fetcher.onrender.com bin/test_fetcher_service.sh
+```
 
 ## Contributing
 

@@ -25,7 +25,15 @@ services:
           property: connectionString
       - key: FETCHER_SERVICE_URL
         value: https://cinematch-fetcher.onrender.com
-      - key: CLAMAV_ENABLED
+      - key: THEMOVIEDB_KEY
+        sync: false
+      - key: SMTP_USERNAME
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: ALLOW_FETCHER_JOBS_ON_MAIN
+        value: false
+      - key: SIMULATE_FETCHER
         value: false
     healthCheckPath: /ping
     autoDeploy: true
@@ -60,6 +68,11 @@ services:
           type: keyvalue
           name: cinematch-redis
           property: connectionString
+      - key: THEMOVIEDB_KEY
+        fromService:
+          name: Cinematch
+          type: web
+          envVarKey: THEMOVIEDB_KEY
       - key: MEMORY_THRESHOLD_MB
         value: 350
       - key: MAX_BATCH_SIZE
@@ -70,6 +83,8 @@ services:
         value: 3
       - key: PROCESSING_BATCH_SIZE
         value: 5
+      - key: SIMULATE_FETCHER
+        value: true
     healthCheckPath: /fetcher/ping
     autoDeploy: true
     
