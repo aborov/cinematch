@@ -13,6 +13,7 @@ CineMatch is a personalized content recommendation platform that matches feature
     - [Configuration](#configuration)
     - [Installation](#installation)
   - [Usage](#usage)
+  - [Fetcher Service](#fetcher-service)
   - [JRuby Service](#jruby-service)
   - [Contributing](#contributing)
   - [ERD](#erd)
@@ -63,12 +64,40 @@ rails server
 6. Click on any recommended title to view detailed information.
 7. To make changes to account data or refine the recommendation results, click Profile icon in the right top corner to go to the Profile dashboard).
 
+## Fetcher Service
+
+CineMatch uses a dual-runtime architecture with a separate fetcher service for memory-intensive background jobs:
+
+- **Main Application**: Handles web requests and lightweight background jobs
+- **Fetcher Service**: Handles memory-intensive background jobs like content fetching and recommendation generation
+
+For detailed information about the fetcher service, refer to the following documentation:
+
+- [Fetcher Service Setup Guide](docs/fetcher_service_setup.md) - Overview of the architecture and deployment process
+- [Fetcher Service Guide](docs/fetcher_service.md) - Technical troubleshooting guide and debugging tools
+
+### Local Development with Fetcher Service
+
+To run the application with the fetcher service locally:
+
+1. Start the fetcher service:
+```bash
+# In one terminal
+SIMULATE_FETCHER=true bundle exec rails server -p 3001
+```
+
+2. Start the main application:
+```bash
+# In another terminal
+FETCHER_SERVICE_URL=http://localhost:3001 bundle exec rails server -p 3000
+```
+
 ## JRuby Service
 
-CineMatch uses a dual-runtime architecture with a separate JRuby service for memory-intensive background jobs:
+CineMatch previously used a JRuby service for memory-intensive background jobs, which has been replaced by the fetcher service. The documentation is kept for reference:
 
 - **Main Application (MRI Ruby)**: Handles web requests and lightweight background jobs
-- **JRuby Service**: Handles memory-intensive background jobs that benefit from JRuby's superior memory management
+- **JRuby Service (Legacy)**: Handled memory-intensive background jobs that benefit from JRuby's superior memory management
 
 For detailed information about the JRuby service, refer to the following documentation:
 

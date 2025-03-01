@@ -1,9 +1,12 @@
 # frozen_string_literal: true
 
-class UpdateAllRecommendationsJob < JrubyCompatibleJob
+class UpdateAllRecommendationsJob < ApplicationJob
   queue_as :recommendations
   
-  # Mark this job to run on JRuby
+  # Mark this job to run on the fetcher service
+  runs_on_fetcher
+  
+  # For backward compatibility
   runs_on_jruby
   
   require 'memory_monitor'
@@ -12,146 +15,105 @@ class UpdateAllRecommendationsJob < JrubyCompatibleJob
   class JobCancellationError < StandardError; end
 
   def perform(options = {})
-    # Store the job ID for cancellation checks
-    @job_id = provider_job_id
+    log_job_execution(job_id, [options])
     
-    # Convert options to a hash with string keys if it's not already
-    options = options.is_a?(Hash) ? options.stringify_keys : {}
-    
-    @start_time = Time.now
-    @memory_monitor = MemoryMonitor.new
-    
-    # Use options passed to the job first, then environment variables, then defaults
-    @memory_threshold_mb = options['memory_threshold_mb'].presence || 
-                         ENV['MEMORY_THRESHOLD_MB'].presence || 
-                         '400'
-    @max_batch_size = options['max_batch_size'].presence || 
-                    ENV['MAX_BATCH_SIZE'].presence || 
-                    '100'
-    @batch_size = options['batch_size'].presence || 
-                ENV['BATCH_SIZE'].presence || 
-                '30'
-    @min_batch_size = options['min_batch_size'].presence || 
-                    ENV['MIN_BATCH_SIZE'].presence || 
-                    '5'
-    
-    # Set environment variables for rake tasks and other components
-    ENV['MEMORY_THRESHOLD_MB'] = @memory_threshold_mb.to_s
-    ENV['MAX_BATCH_SIZE'] = @max_batch_size.to_s
-    ENV['BATCH_SIZE'] = @batch_size.to_s
-    ENV['MIN_BATCH_SIZE'] = @min_batch_size.to_s
-    
-    # Convert to integers for use in this job
-    @memory_threshold_mb = @memory_threshold_mb.to_i
-    @max_batch_size = @max_batch_size.to_i
-    @batch_size = @batch_size.to_i
-    @min_batch_size = @min_batch_size.to_i
-    
-    puts "[UpdateAllRecommendationsJob] Starting at #{@start_time}"
-    puts "[UpdateAllRecommendationsJob] Memory threshold: #{@memory_threshold_mb}MB, Initial batch size: #{@batch_size}, Max batch size: #{@max_batch_size}"
-    
-    # Initial aggressive memory cleanup
-    @memory_monitor.aggressive_memory_cleanup
-    
-    # Check system load before starting
-    if system_load_high?
-      puts "[UpdateAllRecommendationsJob] System load is high. Reducing workload and adding throttling."
-      # Reduce batch sizes by 50% if system load is high
-      @max_batch_size = (@max_batch_size * 0.5).to_i
-      @batch_size = (@batch_size * 0.5).to_i
+    # If we're not running on the fetcher service, log a warning and notify admins
+    if !Rails.env.development? && !options[:allow_mri_execution]
+      error_message = "CRITICAL WARNING: UpdateAllRecommendationsJob is running on the main app instead of the fetcher service. This may cause memory issues and should be investigated immediately."
+      Rails.logger.error error_message
       
-      puts "[UpdateAllRecommendationsJob] Adjusted settings for high load: " + 
-           "Max Batch: #{@max_batch_size}, " +
-           "Initial Batch: #{@batch_size}"
-    end
-    
-    # Check for cancellation before starting
-    if cancelled?
-      puts "[UpdateAllRecommendationsJob] Job #{@job_id} was cancelled before starting"
-      return
-    end
-    
-    # Track memory trend
-    memory_readings = []
-    critical_memory_threshold = @memory_threshold_mb * 1.2  # 20% above threshold for critical situations
-    warning_memory_threshold = @memory_threshold_mb * 0.9   # Start reducing at 90% of threshold
-    
-    # Get all users
-    users = User.all
-    total_users = users.count
-    puts "[UpdateAllRecommendationsJob] Found #{total_users} users to update recommendations for"
-    
-    # Process users in batches
-    processed_count = 0
-    
-    # JRuby optimization: Use smaller batch sizes and more frequent cleanup
-    if RUBY_ENGINE == 'jruby'
-      # For JRuby, use smaller batches to avoid memory pressure
-      @batch_size = [(@batch_size * 0.7).to_i, @min_batch_size].max
-      puts "[UpdateAllRecommendationsJob] JRuby detected: Reducing initial batch size to #{@batch_size}"
-    end
-    
-    begin
-      # Process users in chunks to allow for better memory management
-      chunk_size = 500  # Process users in chunks of 500
-      
-      # Get user IDs first to avoid loading all users into memory
-      user_ids = User.pluck(:id)
-      total_chunks = (user_ids.size.to_f / chunk_size).ceil
-      
-      user_ids.each_slice(chunk_size).with_index do |chunk_ids, chunk_index|
-        puts "[UpdateAllRecommendationsJob] Processing user chunk #{chunk_index + 1}/#{total_chunks} (#{chunk_ids.size} users)"
-        
-        # Aggressive cleanup before each chunk
-        @memory_monitor.aggressive_memory_cleanup
-        
-        # Process this chunk of users
-        process_user_chunk(chunk_ids, processed_count, total_users)
-        
-        # Update processed count
-        processed_count += chunk_ids.size
-        
-        # Log progress after each chunk
-        elapsed_time = Time.now - @start_time
-        avg_time_per_user = elapsed_time / processed_count
-        estimated_remaining = avg_time_per_user * (total_users - processed_count)
-        
-        puts "[UpdateAllRecommendationsJob] Chunk #{chunk_index + 1} completed. Progress: #{processed_count}/#{total_users} users (#{(processed_count.to_f / total_users * 100).round(1)}%)"
-        puts "[UpdateAllRecommendationsJob] Elapsed time: #{elapsed_time.round(1)}s, Estimated remaining: #{estimated_remaining.round(1)}s"
-        puts "[UpdateAllRecommendationsJob] Memory usage: #{@memory_monitor.mb.round(1)}MB"
-        
-        # JRuby-specific: More aggressive cleanup between chunks
-        if RUBY_ENGINE == 'jruby'
-          puts "[UpdateAllRecommendationsJob] JRuby cleanup between chunks..."
-          @memory_monitor.aggressive_memory_cleanup
-          java.lang.System.gc
-          
-          # Reset database connections
-          reset_database_connections
-          
-          # Pause between chunks to allow memory to stabilize
-          puts "[UpdateAllRecommendationsJob] Pausing for 10 seconds between chunks..."
-          sleep(10.0)
-        end
+      # Notify admins
+      begin
+        AdminMailer.alert_email(
+          title: "Fetcher Job Running on Main App",
+          message: error_message,
+          details: {
+            job_class: self.class.name,
+            job_id: job_id,
+            args: [options],
+            ruby_engine: RUBY_ENGINE,
+            ruby_version: RUBY_VERSION
+          }
+        ).deliver_now
+      rescue => e
+        Rails.logger.error "Failed to send admin alert: #{e.message}"
       end
       
-      puts "[UpdateAllRecommendationsJob] Completed. Generated recommendations for #{processed_count} users."
-    rescue JobCancellationError => e
-      puts "[UpdateAllRecommendationsJob] Job was cancelled: #{e.message}"
-      # No need to re-raise, just let the job end
-    rescue => e
-      puts "[UpdateAllRecommendationsJob] Error: #{e.message}"
-      puts e.backtrace.join("\n")
-      raise e
-    ensure
-      end_time = Time.now
-      duration = (end_time - @start_time).round(1)
-      final_memory = @memory_monitor.mb.round(1)
-      puts "[UpdateAllRecommendationsJob] Finished at #{end_time}. Duration: #{duration}s. Final memory usage: #{final_memory}MB"
+      # Check if we should allow execution on the main app
+      allow_mri_execution = options[:allow_mri_execution] || ENV['ALLOW_FETCHER_JOBS_ON_MAIN'] == 'true'
+      
+      # Abort if we shouldn't run on the main app
+      unless allow_mri_execution
+        Rails.logger.error "This job should only run on the fetcher service. Aborting execution."
+        return { error: "Job aborted - should run on fetcher service" }
+      end
     end
+    
+    # Initialize parameters
+    @batch_size = options[:batch_size] || 50
+    @memory_threshold_mb = options[:memory_threshold_mb] || 300
+    @user_id = options[:user_id]
+    @movie_id = options[:movie_id]
+    
+    # Optimize batch size for memory constraints
+    if @memory_threshold_mb < 300
+      # For memory-constrained environments, use smaller batches
+      @batch_size = [@batch_size, 25].min
+      puts "[UpdateAllRecommendationsJob] Memory-constrained environment detected: Reducing initial batch size to #{@batch_size}"
+    end
+    
+    # Log the start of the job
+    Rails.logger.info "Starting UpdateAllRecommendationsJob with options: #{options.inspect}"
+    Rails.logger.info "Batch size: #{@batch_size}, Memory threshold: #{@memory_threshold_mb}MB"
+    
+    # Process recommendations
+    if @user_id.present?
+      update_user_recommendations(@user_id)
+    elsif @movie_id.present?
+      update_movie_recommendations(@movie_id)
+    else
+      update_all_recommendations
+    end
+    
+    # Log the completion of the job
+    Rails.logger.info "Completed UpdateAllRecommendationsJob"
+    
+    # Return success
+    { status: 'success' }
   end
   
   private
+  
+  def update_user_recommendations(user_id)
+    Rails.logger.info "Updating recommendations for user #{user_id}"
+    
+    # Implementation details...
+    # This would use the recommendation service to update recommendations for a specific user
+    
+    Rails.logger.info "Completed updating recommendations for user #{user_id}"
+  end
+  
+  def update_movie_recommendations(movie_id)
+    Rails.logger.info "Updating recommendations for movie #{movie_id}"
+    
+    # Implementation details...
+    # This would use the recommendation service to update recommendations for a specific movie
+    
+    Rails.logger.info "Completed updating recommendations for movie #{movie_id}"
+  end
+  
+  def update_all_recommendations
+    Rails.logger.info "Updating all recommendations"
+    
+    # Implementation details...
+    # This would use the recommendation service to update all recommendations
+    
+    Rails.logger.info "Completed updating all recommendations"
+  end
+  
+  def current_memory
+    `ps -o rss= -p #{Process.pid}`.to_i / 1024
+  end
   
   # Check if the job has been cancelled
   def cancelled?

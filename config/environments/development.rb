@@ -102,4 +102,12 @@ Rails.application.configure do
   config.action_controller.forgery_protection_origin_check = false
 
   config.good_job.execution_mode = :inline
+  
+  # Fetcher service configuration
+  config.fetcher_service_url = ENV['FETCHER_SERVICE_URL'] || 'http://localhost:3001'
+  config.simulate_fetcher = ENV['SIMULATE_FETCHER'] == 'true'
+  
+  # Legacy JRuby service configuration (for backward compatibility)
+  config.jruby_service_url = ENV['JRUBY_SERVICE_URL'] || 'http://localhost:3001'
+  config.simulate_jruby = ENV['SIMULATE_JRUBY_SERVICE'] == 'true'
 end

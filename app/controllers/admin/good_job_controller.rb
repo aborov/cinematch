@@ -125,12 +125,21 @@ module Admin
         flash[:warning] = "Running JRuby job on MRI Ruby with emergency override. This may cause memory issues!"
       end
       
+      # Check if this is a fetcher job and if we should allow it to run on the main app
+      if JobRoutingService.fetcher_job?(job_class) && params[:allow_mri_execution].present?
+        job_params[:allow_mri_execution] = true
+        flash[:warning] = "Running fetcher job on the main app with emergency override. This may cause memory issues!"
+      end
+      
       # Log the parameters
       Rails.logger.info "Running job #{job_class_name} with parameters: #{job_params.inspect}"
       
       # Enqueue the job
-      if JobRoutingService.jruby_job?(job_class)
-        # Use the JobRoutingService for JRuby jobs
+      if JobRoutingService.fetcher_job?(job_class)
+        # Use the JobRoutingService for fetcher jobs
+        job = JobRoutingService.enqueue(job_class, job_params)
+      elsif JobRoutingService.jruby_job?(job_class)
+        # Use the JobRoutingService for JRuby jobs (legacy)
         job = JobRoutingService.enqueue(job_class, job_params)
       else
         # Use standard ActiveJob for regular jobs

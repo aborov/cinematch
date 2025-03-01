@@ -1,0 +1,102 @@
+<h1>Fetcher Service Management</h1>
+
+<div class="panel">
+  <div class="panel_contents">
+    <h3>Fetcher Service URL</h3>
+    <p><%= @fetcher_url || 'Not configured' %></p>
+    
+    <h3>Actions</h3>
+    <div class="actions">
+      <%= button_to "Wake Fetcher Service", admin_wake_fetcher_service_path, method: :post, class: "button" %>
+    </div>
+    
+    <h3>Run Test Job</h3>
+    <%= form_tag admin_test_job_fetcher_service_path, method: :post do %>
+      <div class="form-group">
+        <%= label_tag :provider, "Provider:" %>
+        <%= select_tag :provider, options_for_select(['tmdb', 'omdb'], 'tmdb') %>
+      </div>
+      
+      <div class="form-group">
+        <%= label_tag :batch_size, "Batch Size:" %>
+        <%= number_field_tag :batch_size, 5, min: 1, max: 50 %>
+      </div>
+      
+      <%= submit_tag "Run Test Job", class: "button" %>
+    <% end %>
+    
+    <h3>Current Status</h3>
+    <% if @fetcher_status.is_a?(Hash) && @fetcher_status['error'].present? %>
+      <p class="error"><%= @fetcher_status['error'] %></p>
+    <% else %>
+      <table border="0" cellspacing="0" cellpadding="0">
+        <thead>
+          <tr>
+            <th>Memory Usage</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><%= @fetcher_status['memory_usage'] %> MB</td>
+            <td><%= @fetcher_status['status'] %></td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <h4>Providers</h4>
+      <% if @fetcher_status['providers'].present? %>
+        <table border="0" cellspacing="0" cellpadding="0">
+          <thead>
+            <tr>
+              <th>Provider</th>
+              <th>Last Run</th>
+              <th>Status</th>
+              <th>Movies Fetched</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @fetcher_status['providers'].each do |provider| %>
+              <tr>
+                <td><%= provider['provider'] %></td>
+                <td><%= provider['last_run'] ? Time.parse(provider['last_run']).strftime("%Y-%m-%d %H:%M:%S") : 'Never' %></td>
+                <td><%= provider['status'] %></td>
+                <td><%= provider['movies_fetched'] %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <p>No provider data available</p>
+      <% end %>
+    <% end %>
+  </div>
+</div>
+
+<style>
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 5px;
+  }
+  
+  .button {
+    background-color: #5E6469;
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    cursor: pointer;
+    margin-right: 10px;
+  }
+  
+  .actions {
+    margin-bottom: 20px;
+  }
+  
+  .error {
+    color: red;
+  }
+</style> 

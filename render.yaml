@@ -1,5 +1,5 @@
 # Render configuration for Cinematch application
-# This file defines both the main app and JRuby service
+# This file defines both the main app and fetcher service
 
 services:
   # Main Rails application (MRI Ruby)
@@ -23,8 +23,8 @@ services:
           type: keyvalue
           name: cinematch-redis
           property: connectionString
-      - key: JRUBY_SERVICE_URL
-        value: https://cinematch-jruby.onrender.com
+      - key: FETCHER_SERVICE_URL
+        value: https://cinematch-fetcher.onrender.com
       - key: CLAMAV_ENABLED
         value: false
     healthCheckPath: /ping
@@ -37,12 +37,12 @@ services:
       - "config/**/*"
       - "bin/**/*"
     
-  # JRuby service for memory-intensive background jobs
+  # Fetcher service for memory-intensive background jobs
   - type: web
-    name: cinematch-jruby
+    name: cinematch-fetcher
     runtime: docker
     plan: free
-    dockerfilePath: ./Dockerfile.jruby
+    dockerfilePath: ./Dockerfile.fetcher
     envVars:
       - key: RAILS_ENV
         value: production
@@ -60,10 +60,6 @@ services:
           type: keyvalue
           name: cinematch-redis
           property: connectionString
-      - key: RUBY_VERSION
-        value: jruby-9.4.3.0
-      - key: BUNDLER_VERSION
-        value: 2.4.6
       - key: MEMORY_THRESHOLD_MB
         value: 350
       - key: MAX_BATCH_SIZE
@@ -74,7 +70,7 @@ services:
         value: 3
       - key: PROCESSING_BATCH_SIZE
         value: 5
-    healthCheckPath: /jruby/ping
+    healthCheckPath: /fetcher/ping
     autoDeploy: true
     
   # Redis service (Key Value in Render terminology)

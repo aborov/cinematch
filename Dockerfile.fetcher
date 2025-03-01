@@ -1,0 +1,30 @@
+FROM ruby:3.2.1-slim
+
+# Set working directory
+WORKDIR /app
+
+# Set environment variables
+ENV RAILS_ENV=production
+ENV BUNDLER_VERSION=2.4.6
+
+# Install dependencies
+RUN apt-get update -qq && \
+    apt-get install -y build-essential libpq-dev nodejs git curl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install bundler
+RUN gem install bundler:$BUNDLER_VERSION
+
+# Copy the application code
+COPY . .
+
+# Install gems
+RUN bundle config set --local without 'development test' && \
+    bundle install --jobs 4 --retry 3
+
+# Expose port
+EXPOSE $PORT
+
+# Start the server
+CMD bundle exec rails server -p $PORT -e $RAILS_ENV -b 0.0.0.0 

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-# Concern to mark jobs that should run on JRuby
+# Concern for marking jobs to run on JRuby
+# This will be replaced with FetcherJobConcern
 module JrubyJobConcern
   extend ActiveSupport::Concern
 

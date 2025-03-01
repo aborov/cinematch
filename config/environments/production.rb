@@ -106,6 +106,12 @@ Rails.application.configure do
   # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
   config.hosts << "cinematch.net"
   config.hosts << "cinematch-ywet.onrender.com"
-  config.hosts << "cinematch-jruby.onrender.com"
+  config.hosts << "cinematch-fetcher.onrender.com"
   config.good_job.execution_mode = :async
+  
+  # Fetcher service configuration
+  config.fetcher_service_url = ENV['FETCHER_SERVICE_URL']
+  
+  # Legacy JRuby service configuration (for backward compatibility)
+  config.jruby_service_url = ENV['JRUBY_SERVICE_URL']
 end

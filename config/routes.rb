@@ -12,10 +12,10 @@ Rails.application.routes.draw do
     post 'good_job/:id/cancel', to: 'good_job#cancel', as: 'good_job_cancel'
     post 'good_job/run_job', to: 'good_job#run_job', as: 'good_job_run_job'
     
-    # JRuby service management routes
-    get 'jruby_service', to: 'jruby_service#index'
-    post 'jruby_service/wake', to: 'jruby_service#wake', as: 'wake_jruby_service'
-    post 'jruby_service/test_job', to: 'jruby_service#test_job', as: 'test_job_jruby_service'
+    # Fetcher service management routes
+    get 'fetcher_service', to: 'fetcher_service#index'
+    post 'fetcher_service/wake', to: 'fetcher_service#wake', as: 'wake_fetcher_service'
+    post 'fetcher_service/test_job', to: 'fetcher_service#test_job', as: 'test_job_fetcher_service'
     
     # Admin routes
     resources :users
@@ -26,8 +26,8 @@ Rails.application.routes.draw do
     resources :watchlist_items
     resources :content_providers
     
-    # JRuby service management
-    resource :jruby_service, only: [:show, :update] do
+    # Fetcher service management
+    resource :fetcher_service, only: [:show, :update] do
       post :wake_up, on: :collection
     end
   end
@@ -90,13 +90,15 @@ Rails.application.routes.draw do
   get "/service-worker.js", to: "service_worker#service_worker"
   get "/manifest.json", to: "service_worker#manifest"
 
-  # JRuby service routes
-  get 'jruby/ping', to: 'jruby_service#ping'
-  get 'jruby/status', to: 'jruby_service#status'
+  # Fetcher service routes
+  get 'fetcher/ping', to: 'fetcher#ping'
+  get 'fetcher/status', to: 'fetcher#status'
+  post 'fetcher/fetch', to: 'fetcher#fetch'
   
   # Simple ping endpoint for health checks
   get 'ping', to: proc { [200, {}, ['pong']] }
 
-  # Add a route for testing JRuby job routing
-  get 'test/jruby_job', to: 'test#test_jruby_job'
+  # Add a route for testing fetcher job routing
+  get 'test/fetcher_job', to: 'test#test_fetcher_job'
+  get 'test/run_test_fetcher_job', to: 'test#run_test_fetcher_job'
 end
