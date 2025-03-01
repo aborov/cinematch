@@ -20,6 +20,12 @@ RUN gem install bundler:$BUNDLER_VERSION
 # Copy Gemfile and Gemfile.lock
 COPY Gemfile Gemfile.lock ./
 
+# Copy Ruby version file for JRuby
+COPY .ruby-version.jruby .ruby-version
+
+# Modify the Ruby version in the Gemfile to match JRuby's Ruby compatibility
+RUN sed -i 's/ruby "3.2.1"/ruby "3.1.4"/' Gemfile
+
 # Install gems
 RUN bundle config set --local without 'development test' && \
     bundle install
