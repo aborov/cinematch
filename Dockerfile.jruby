@@ -29,6 +29,9 @@ RUN sed -i 's/ruby "3.2.1"/ruby "3.1.4"/' Gemfile
 # Modify the pg gem to use the JDBC adapter for PostgreSQL
 RUN sed -i 's/gem "pg"/gem "activerecord-jdbcpostgresql-adapter"/' Gemfile
 
+# Remove or replace SQLite with JDBC adapter
+RUN sed -i 's/gem "sqlite3"/#gem "sqlite3" # Removed for JRuby compatibility/' Gemfile
+
 # Install gems
 RUN bundle config set --local without 'development test' && \
     bundle install
