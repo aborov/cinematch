@@ -68,16 +68,6 @@ ActiveRecord::Schema[7.1].define(version: 2025_02_27_005450) do
     t.index ["source_id", "content_type"], name: "index_contents_on_source_id_and_content_type", unique: true
   end
 
-  create_table "fetcher_statuses", force: :cascade do |t|
-    t.string "provider", null: false
-    t.datetime "last_run"
-    t.string "status", default: "idle"
-    t.integer "movies_fetched", default: 0
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["provider"], name: "index_fetcher_statuses_on_provider", unique: true
-  end
-
   create_table "genres", force: :cascade do |t|
     t.string "name"
     t.datetime "created_at", null: false

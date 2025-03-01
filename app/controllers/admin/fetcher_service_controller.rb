@@ -1,5 +1,5 @@
 module Admin
-  class FetcherServiceController < Admin::ApplicationController
+  class FetcherServiceController < Admin::BaseController
     def index
       @fetcher_url = ENV['FETCHER_SERVICE_URL']
       @fetcher_status = fetch_status
