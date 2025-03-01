@@ -5,7 +5,7 @@ services:
   # Main Rails application (MRI Ruby)
   - type: web
     name: Cinematch
-    env: ruby
+    runtime: ruby
     plan: starter
     buildCommand: ./bin/render-build.sh
     startCommand: ./bin/render-start.sh
@@ -40,11 +40,9 @@ services:
   # JRuby service for memory-intensive background jobs
   - type: web
     name: cinematch-jruby
-    runtime: ruby
-    runtimeVersion: jruby-9.4.3.0
+    runtime: docker
     plan: free
-    buildCommand: bundle install
-    startCommand: JRUBY_OPTS="--dev -J-Xmx400m" bundle exec rails server -p $PORT -e $RAILS_ENV
+    dockerfilePath: ./Dockerfile.jruby
     envVars:
       - key: RAILS_ENV
         value: production

@@ -1,0 +1,37 @@
+FROM jruby:9.4.3.0
+
+# Set working directory
+WORKDIR /app
+
+# Set environment variables
+ENV RAILS_ENV=production
+ENV JRUBY_OPTS="--dev -J-Xmx400m"
+ENV BUNDLER_VERSION=2.4.6
+
+# Install dependencies
+RUN apt-get update -qq && \
+    apt-get install -y build-essential libpq-dev nodejs && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install bundler
+RUN gem install bundler:$BUNDLER_VERSION
+
+# Copy Gemfile and Gemfile.lock
+COPY Gemfile Gemfile.lock ./
+
+# Install gems
+RUN bundle config set --local without 'development test' && \
+    bundle install
+
+# Copy the rest of the application
+COPY . .
+
+# Precompile assets
+RUN bundle exec rake assets:precompile
+
+# Expose port
+EXPOSE $PORT
+
+# Start the server
+CMD bundle exec rails server -p $PORT -e $RAILS_ENV -b 0.0.0.0 
