@@ -11,6 +11,8 @@ ENV BUNDLER_VERSION=2.4.6
 ENV JRUBY_SKIP_NATIVE=true
 # Force pure-Java implementations
 ENV FORCE_JRUBY_PLATFORM=true
+# Ignore jar-dependencies version
+ENV JRUBY_IGNORE_DEFAULT_GEM_DEPS=true
 
 # Install dependencies
 RUN apt-get update -qq && \
@@ -19,8 +21,7 @@ RUN apt-get update -qq && \
     rm -rf /var/lib/apt/lists/*
 
 # Install bundler and update jar-dependencies
-RUN gem install bundler:$BUNDLER_VERSION && \
-    gem install jar-dependencies -v 0.5.5
+RUN gem install bundler:$BUNDLER_VERSION
 
 # Copy the application code
 COPY . .
@@ -48,15 +49,13 @@ RUN echo 'source "https://rubygems.org"' > Gemfile && \
     echo 'gem "rack-attack"' >> Gemfile && \
     echo 'gem "jquery-rails"' >> Gemfile && \
     echo 'gem "chartkick", "~> 5.0"' >> Gemfile && \
-    echo 'gem "groupdate", "~> 6.4"' >> Gemfile && \
-    echo 'gem "jar-dependencies", "0.5.5"' >> Gemfile
+    echo 'gem "groupdate", "~> 6.4"'
 
 # Create .ruby-version file for JRuby
 RUN echo "jruby-9.4.3.0" > .ruby-version
 
 # Install gems with JRuby platform
-RUN gem uninstall -I jar-dependencies -v 0.4.1 || true && \
-    bundle config set --local platform jruby && \
+RUN bundle config set --local platform jruby && \
     bundle config set --local without 'development test' && \
     bundle install --jobs 4 --retry 3
 
@@ -66,5 +65,12 @@ RUN bundle exec rake assets:precompile || echo "Asset precompilation failed, but
 # Expose port
 EXPOSE $PORT
 
+# Create a startup script
+RUN echo '#!/bin/bash' > /app/start.sh && \
+    echo 'export GEM_PATH=$(gem env gempath)' >> /app/start.sh && \
+    echo 'export RUBYOPT="-r bundler/setup"' >> /app/start.sh && \
+    echo 'bundle exec rails server -p $PORT -e $RAILS_ENV -b 0.0.0.0' >> /app/start.sh && \
+    chmod +x /app/start.sh
+
 # Start the server
-CMD bundle exec rails server -p $PORT -e $RAILS_ENV -b 0.0.0.0
+CMD ["/app/start.sh"]
