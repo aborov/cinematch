@@ -53,5 +53,4 @@ services:
 
 databases: 
   - name: db
-    plan: starter
     ipAllowList: []
