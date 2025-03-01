@@ -50,6 +50,9 @@ RUN echo 'source "https://rubygems.org"' > Gemfile && \
     echo 'gem "chartkick", "~> 5.0"' >> Gemfile && \
     echo 'gem "groupdate", "~> 6.4"' >> Gemfile
 
+# Save our custom Gemfile
+RUN cp Gemfile Gemfile.jruby
+
 # Install gems with JRuby platform
 RUN bundle config set --local platform jruby && \
     bundle config set --local without 'development test' && \
@@ -58,8 +61,9 @@ RUN bundle config set --local platform jruby && \
 # Copy the application code
 COPY . .
 
-# Create .ruby-version file for JRuby
-RUN echo "jruby-9.4.3.0" > .ruby-version
+# Restore our custom Gemfile
+RUN cp Gemfile.jruby Gemfile && \
+    echo "jruby-9.4.3.0" > .ruby-version
 
 # Precompile assets with explicit environment variables
 RUN bundle exec rake assets:precompile || echo "Asset precompilation failed, but continuing build"
