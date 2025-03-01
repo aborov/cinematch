@@ -3,15 +3,26 @@ class GenerateRecommendationsJob < ApplicationJob
   retry_on StandardError, wait: 5.seconds, attempts: 3
 
   def perform(user_id)
-    begin
-      user = User.find(user_id)
-    rescue ActiveRecord::RecordNotFound
-      Rails.logger.warn "GenerateRecommendationsJob: User with ID #{user_id} not found. Skipping job."
-      return # Exit the job gracefully
+    # If we're not on the job runner instance and the job runner URL is configured,
+    # delegate the job to the job runner service
+    if !ENV['JOB_RUNNER_ONLY'] && ENV['JOB_RUNNER_URL'].present?
+      Rails.logger.info "[GenerateRecommendationsJob] Delegating to job runner service for user #{user_id}"
+      job_id = JobRunnerService.run_job('GenerateRecommendationsJob', { user_id: user_id })
+      
+      if job_id
+        Rails.logger.info "[GenerateRecommendationsJob] Successfully delegated to job runner. Job ID: #{job_id}"
+        return
+      else
+        Rails.logger.warn "[GenerateRecommendationsJob] Failed to delegate to job runner. Running locally instead."
+      end
     end
-    user_recommendation = user.ensure_user_recommendation
-    Rails.logger.info "Starting recommendation generation for user #{user_id}"
     
+    user = User.find_by(id: user_id)
+    return unless user
+
+    # Force garbage collection before processing
+    GC.start
+
     begin
       user_recommendation.generate_recommendations
     rescue => e

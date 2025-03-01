@@ -2,6 +2,20 @@ class FetchContentJob < ApplicationJob
   queue_as :default
 
   def perform(options = {})
+    # If we're not on the job runner instance and the job runner URL is configured,
+    # delegate the job to the job runner service
+    if !ENV['JOB_RUNNER_ONLY'] && ENV['JOB_RUNNER_URL'].present?
+      Rails.logger.info "[FetchContentJob] Delegating to job runner service"
+      job_id = JobRunnerService.run_job('FetchContentJob', options)
+      
+      if job_id
+        Rails.logger.info "[FetchContentJob] Successfully delegated to job runner. Job ID: #{job_id}"
+        return
+      else
+        Rails.logger.warn "[FetchContentJob] Failed to delegate to job runner. Running locally instead."
+      end
+    end
+    
     require 'rake'
     Rails.application.load_tasks
     
@@ -25,7 +39,28 @@ class FetchContentJob < ApplicationJob
     
     duration = Time.current - @start_time
     Rails.logger.info "[FetchContentJob] Job completed in #{duration.round(2)}s. Total content items: #{Content.count}"
-    UpdateAllRecommendationsJob.set(wait: 1.minute).perform_later
+    
+    # Schedule the recommendations update job
+    if ENV['JOB_RUNNER_ONLY'] && ENV['MAIN_APP_URL'].present?
+      # If we're on the job runner, we need to notify the main app to update recommendations
+      Rails.logger.info "[FetchContentJob] Notifying main app to update recommendations"
+      begin
+        HTTP.timeout(30).post(
+          "#{ENV['MAIN_APP_URL']}/api/run_job",
+          json: {
+            job_class: 'UpdateAllRecommendationsJob',
+            secret: ENV['SECRET_KEY_BASE'].to_s[0..15]
+          }
+        )
+      rescue => e
+        Rails.logger.error "[FetchContentJob] Failed to notify main app: #{e.message}"
+        # Fall back to running locally
+        UpdateAllRecommendationsJob.set(wait: 1.minute).perform_later
+      end
+    else
+      # Otherwise, schedule it locally
+      UpdateAllRecommendationsJob.set(wait: 1.minute).perform_later
+    end
   rescue => e
     Rails.logger.error "[FetchContentJob] Failed after #{(Time.current - @start_time).round(2)}s: #{e.message}\n#{e.backtrace.join("\n")}"
     raise e

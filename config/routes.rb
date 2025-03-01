@@ -75,4 +75,12 @@ Rails.application.routes.draw do
   get "/manifest.json", to: "service_worker#manifest"
 
   get 'proxy_image', to: 'proxy#image'
+  
+  # Job runner API endpoints
+  get 'health_check', to: 'api/job_runner#health_check'
+  
+  namespace :api do
+    post 'run_job', to: 'job_runner#run_job'
+    get 'job_status', to: 'job_runner#job_status'
+  end
 end
