@@ -58,4 +58,12 @@ Rails.application.routes.draw do
   get '/sitemap.xml.gz', to: 'sitemaps#show'
   get "/service-worker.js", to: "service_worker#service_worker"
   get "/manifest.json", to: "service_worker#manifest"
+  
+  # Job runner API endpoints
+  get 'health_check', to: 'api/job_runner#health_check'
+  
+  namespace :api do
+    post 'run_job', to: 'job_runner#run_job'
+    get 'job_status', to: 'job_runner#job_status'
+  end
 end
