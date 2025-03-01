@@ -247,6 +247,10 @@ GEM
     http-cookie (1.0.7)
       domain_name (~> 0.5)
     http-form_data (2.3.0)
+    httparty (0.22.0)
+      csv
+      mini_mime (>= 1.0.0)
+      multi_xml (>= 0.5.2)
     i18n (1.14.5)
       concurrent-ruby (~> 1.0)
     importmap-rails (2.0.1)
@@ -649,6 +653,7 @@ DEPENDENCIES
   groupdate (~> 6.4)
   htmlbeautifier
   http
+  httparty
   importmap-rails
   jbuilder
   jquery-rails
