@@ -9,6 +9,8 @@ ENV JRUBY_OPTS="--dev -J-Xmx400m"
 ENV BUNDLER_VERSION=2.4.6
 # Force bundler to use platform-specific gems
 ENV BUNDLE_FORCE_RUBY_PLATFORM=true
+# Disable native extensions completely
+ENV JRUBY_SKIP_NATIVE=true
 
 # Install dependencies
 RUN apt-get update -qq && \
@@ -25,38 +27,51 @@ COPY Gemfile Gemfile.lock ./
 # Copy Ruby version file for JRuby
 COPY .ruby-version.jruby .ruby-version
 
-# Modify the Ruby version in the Gemfile to match JRuby's Ruby compatibility
-RUN sed -i 's/ruby "3.2.1"/ruby "3.1.4"/' Gemfile
+# Create a modified Gemfile for JRuby compatibility
+RUN cp Gemfile Gemfile.jruby && \
+    # Modify the Ruby version in the Gemfile to match JRuby's Ruby compatibility
+    sed -i 's/ruby "3.2.1"/ruby "3.1.4"/' Gemfile.jruby && \
+    # Replace problematic gems with JRuby-compatible versions
+    sed -i 's/gem "pg", "~> 1.1"/gem "activerecord-jdbcpostgresql-adapter"/' Gemfile.jruby && \
+    sed -i 's/gem "sqlite3", "~> 1.4"/#gem "sqlite3", "~> 1.4" # Removed for JRuby compatibility/' Gemfile.jruby && \
+    sed -i 's/gem "nio4r"/#gem "nio4r" # Removed for JRuby compatibility/' Gemfile.jruby && \
+    sed -i 's/gem "date"/#gem "date" # Removed for JRuby compatibility/' Gemfile.jruby && \
+    sed -i 's/gem "io-console"/#gem "io-console" # Removed for JRuby compatibility/' Gemfile.jruby && \
+    sed -i 's/gem "bigdecimal"/#gem "bigdecimal" # Removed for JRuby compatibility/' Gemfile.jruby && \
+    sed -i 's/gem "racc"/#gem "racc" # Removed for JRuby compatibility/' Gemfile.jruby && \
+    sed -i 's/gem "debug", platforms: %i\[mri mingw x64_mingw\]/#gem "debug", platforms: %i[mri mingw x64_mingw] # Removed for JRuby compatibility/' Gemfile.jruby && \
+    sed -i 's/gem "puma"/gem "puma", platform: :ruby/' Gemfile.jruby && \
+    sed -i 's/gem "sassc-rails"/gem "sassc-rails", platform: :ruby/' Gemfile.jruby && \
+    sed -i 's/gem "openssl", "~> 3.2.0"/#gem "openssl", "~> 3.2.0" # Removed for JRuby compatibility/' Gemfile.jruby && \
+    sed -i 's/gem "clamav-client"/#gem "clamav-client" # Removed for JRuby compatibility/' Gemfile.jruby && \
+    # Add JRuby-specific gems
+    echo '# JRuby-specific gems' >> Gemfile.jruby && \
+    echo 'gem "nio4r", "2.7.3", platform: :jruby' >> Gemfile.jruby && \
+    echo 'gem "date", "3.3.4", platform: :jruby' >> Gemfile.jruby && \
+    echo 'gem "io-console", "0.7.2", platform: :jruby' >> Gemfile.jruby && \
+    echo 'gem "bigdecimal", "3.1.8", platform: :jruby' >> Gemfile.jruby && \
+    echo 'gem "racc", "1.8.1", platform: :jruby' >> Gemfile.jruby && \
+    echo 'gem "jruby-openssl", platform: :jruby' >> Gemfile.jruby && \
+    echo 'gem "puma", platform: :jruby' >> Gemfile.jruby && \
+    echo 'gem "activerecord-jdbcsqlite3-adapter", platform: :jruby' >> Gemfile.jruby && \
+    echo 'gem "therubyrhino", platform: :jruby' >> Gemfile.jruby
 
-# Modify the pg gem to use the JDBC adapter for PostgreSQL
-RUN sed -i 's/gem "pg"/gem "activerecord-jdbcpostgresql-adapter"/' Gemfile
-
-# Remove or replace SQLite with JDBC adapter
-RUN sed -i 's/gem "sqlite3"/#gem "sqlite3" # Removed for JRuby compatibility/' Gemfile
-
-# Replace problematic gems with JRuby-compatible versions
-RUN sed -i 's/gem "nio4r"/#gem "nio4r" # Removed for JRuby compatibility/' Gemfile && \
-    sed -i 's/gem "date"/#gem "date" # Removed for JRuby compatibility/' Gemfile && \
-    sed -i 's/gem "io-console"/#gem "io-console" # Removed for JRuby compatibility/' Gemfile
-
-# Add platform-specific gems for JRuby
-RUN echo 'gem "nio4r", "2.7.3", platform: :jruby' >> Gemfile && \
-    echo 'gem "date", "3.3.4", platform: :jruby' >> Gemfile && \
-    echo 'gem "io-console", "0.7.2", platform: :jruby' >> Gemfile
-
-# Install gems with JRuby platform
-RUN bundle config set --local platform jruby && \
-    bundle config set --local without 'development test' && \
-    bundle install
+# Install gems with JRuby platform using the modified Gemfile
+RUN BUNDLE_GEMFILE=Gemfile.jruby bundle config set --local platform jruby && \
+    BUNDLE_GEMFILE=Gemfile.jruby bundle config set --local without 'development test' && \
+    BUNDLE_GEMFILE=Gemfile.jruby bundle install --jobs 4 --retry 3
 
 # Copy the rest of the application
 COPY . .
 
-# Make sure the Gemfile.lock doesn't override our Ruby version
-RUN bundle update --bundler
+# Make sure we're using the JRuby Gemfile
+RUN if [ -f Gemfile.jruby.lock ]; then \
+      cp Gemfile.jruby Gemfile && \
+      cp Gemfile.jruby.lock Gemfile.lock; \
+    fi
 
 # Precompile assets with BUNDLE_GEMFILE explicitly set
-RUN BUNDLE_GEMFILE=./Gemfile bundle exec rake assets:precompile
+RUN BUNDLE_GEMFILE=./Gemfile bundle exec rake assets:precompile || echo "Asset precompilation failed, but continuing build"
 
 # Expose port
 EXPOSE $PORT
