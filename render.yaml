@@ -25,7 +25,7 @@ services:
       - "bin/**/*"
 
   - type: web
-    name: Cinematch-Job-Runner
+    name: cinematch-job-runner
     env: ruby
     plan: free
     buildCommand: "./bin/render-build.sh"
@@ -40,7 +40,7 @@ services:
       - key: CLAMAV_ENABLED
         value: false
       - key: MAIN_APP_URL
-        value: https://cinematch.onrender.com
+        value: https://cinematch-ywet.onrender.com
       - key: JOB_RUNNER_ONLY
         value: true
     buildFilter:
