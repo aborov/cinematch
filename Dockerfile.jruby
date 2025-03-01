@@ -26,6 +26,9 @@ COPY .ruby-version.jruby .ruby-version
 # Modify the Ruby version in the Gemfile to match JRuby's Ruby compatibility
 RUN sed -i 's/ruby "3.2.1"/ruby "3.1.4"/' Gemfile
 
+# Modify the pg gem to use the JDBC adapter for PostgreSQL
+RUN sed -i 's/gem "pg"/gem "activerecord-jdbcpostgresql-adapter"/' Gemfile
+
 # Install gems
 RUN bundle config set --local without 'development test' && \
     bundle install
