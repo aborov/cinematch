@@ -1,3 +1,5 @@
+require 'httparty'
+
 class FetcherServiceClient
   class << self
     def fetch_movies(provider, batch_size = nil)

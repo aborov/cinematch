@@ -14,7 +14,7 @@
     <%= form_tag admin_test_job_fetcher_service_path, method: :post do %>
       <div class="form-group">
         <%= label_tag :provider, "Provider:" %>
-        <%= select_tag :provider, options_for_select(['tmdb', 'omdb'], 'tmdb') %>
+        <%= select_tag :provider, options_for_select(FetchContentJob::PROVIDERS, 'tmdb') %>
       </div>
       
       <div class="form-group">
@@ -74,6 +74,72 @@
         <p>No provider data available</p>
       <% end %>
     <% end %>
+    
+    <h3>Pending Fetcher Jobs</h3>
+    <% if @pending_jobs.present? %>
+      <table border="0" cellspacing="0" cellpadding="0">
+        <thead>
+          <tr>
+            <th>Job ID</th>
+            <th>Job Class</th>
+            <th>Queue</th>
+            <th>Created At</th>
+            <th>Arguments</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @pending_jobs.each do |job| %>
+            <tr>
+              <td><%= job.id %></td>
+              <td><%= job.job_class %></td>
+              <td><%= job.queue_name %></td>
+              <td><%= job.created_at.strftime("%Y-%m-%d %H:%M:%S") %></td>
+              <td><%= job.serialized_params.truncate(100) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <p>No pending jobs</p>
+    <% end %>
+    
+    <h3>Recent Fetcher Jobs</h3>
+    <% if @recent_jobs.present? %>
+      <table border="0" cellspacing="0" cellpadding="0">
+        <thead>
+          <tr>
+            <th>Job ID</th>
+            <th>Job Class</th>
+            <th>Queue</th>
+            <th>Performed At</th>
+            <th>Finished At</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @recent_jobs.each do |job| %>
+            <tr>
+              <td><%= job.id %></td>
+              <td><%= job.job_class %></td>
+              <td><%= job.queue_name %></td>
+              <td><%= job.performed_at&.strftime("%Y-%m-%d %H:%M:%S") %></td>
+              <td><%= job.finished_at&.strftime("%Y-%m-%d %H:%M:%S") %></td>
+              <td>
+                <% if job.error.present? %>
+                  <span class="error">Failed</span>
+                <% elsif job.finished_at.present? %>
+                  <span class="success">Completed</span>
+                <% else %>
+                  <span class="warning">Running</span>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <p>No recent jobs</p>
+    <% end %>
   </div>
 </div>
 
@@ -102,5 +168,13 @@
   
   .error {
     color: red;
+  }
+  
+  .success {
+    color: green;
+  }
+  
+  .warning {
+    color: orange;
   }
 </style> 

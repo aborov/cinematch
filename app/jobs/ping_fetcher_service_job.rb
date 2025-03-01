@@ -22,12 +22,29 @@ class PingFetcherServiceJob < ApplicationJob
     Rails.logger.info "PingFetcherServiceJob running at #{Time.now}"
     
     # Wake up the fetcher service
-    result = JobRoutingService.wake_fetcher_service
-    
-    if result
-      Rails.logger.info "Successfully pinged fetcher service"
-    else
+    begin
+      if !ENV['FETCHER_SERVICE_URL'].present?
+        Rails.logger.error "Fetcher service URL not configured. Check FETCHER_SERVICE_URL environment variable."
+        return false
+      end
+      
+      Rails.logger.info "Attempting to wake fetcher service"
+      
+      # Use the FetcherServiceClient to wake the service
+      result = FetcherServiceClient.wake
+      
+      success = result.is_a?(Hash) && !result[:error]
+      
+      if success
+        Rails.logger.info "Successfully pinged fetcher service"
+      else
+        Rails.logger.warn "Fetcher service wake attempt failed: #{result.inspect}"
+        Rails.logger.warn "Failed to ping fetcher service"
+      end
+    rescue => e
+      Rails.logger.error "Error waking fetcher service: #{e.message}"
       Rails.logger.warn "Failed to ping fetcher service"
+      success = false
     end
     
     # Check if there are any pending jobs in fetcher queues
@@ -41,6 +58,6 @@ class PingFetcherServiceJob < ApplicationJob
     self.class.schedule_ping
     
     # Return the result
-    result
+    success
   end
 end 
