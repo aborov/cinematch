@@ -88,5 +88,4 @@ services:
 # Database - using the existing db
 databases:
   - name: db
-    plan: starter
     ipAllowList: []
