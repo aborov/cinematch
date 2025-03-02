@@ -3,6 +3,9 @@ require_relative "production"
 Rails.application.configure do
   # Use production as the base but override specific settings
   
+  # Allow requests from the job runner domain
+  config.hosts << "cinematch-job-runner.onrender.com"
+  
   # Disable asset compilation and related features
   config.assets.compile = false
   config.assets.digest = false

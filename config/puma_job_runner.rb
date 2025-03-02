@@ -4,11 +4,11 @@
 # Set the environment
 environment ENV.fetch("RAILS_ENV") { "job_runner" }
 
-# Specify the number of workers (processes)
-# For a free tier, we want to keep this minimal
-workers ENV.fetch("WEB_CONCURRENCY") { 1 }
+# Use single mode instead of cluster mode with a single worker
+# This reduces memory overhead as recommended by Puma
+workers 0
 
-# Specify the number of threads per worker
+# Specify the number of threads
 # Minimal configuration for job processing
 threads_count = ENV.fetch("RAILS_MAX_THREADS") { 2 }
 threads 1, threads_count

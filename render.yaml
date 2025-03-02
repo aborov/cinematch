@@ -53,6 +53,8 @@ services:
         value: 10
       - key: RAILS_ENV
         value: job_runner
+      - key: ALLOWED_HOSTS
+        value: cinematch-job-runner.onrender.com
     buildFilter:
       paths:
       - "**/*.rb"

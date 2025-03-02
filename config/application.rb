@@ -41,6 +41,11 @@ module RailsTemplate
     config.action_controller.allow_forgery_protection = true
 
     config.active_job.queue_adapter = :good_job
+    
+    # Configure allowed hosts
+    if ENV['ALLOWED_HOSTS'].present?
+      config.hosts = ENV['ALLOWED_HOSTS'].split(',')
+    end
   end
 end
 
