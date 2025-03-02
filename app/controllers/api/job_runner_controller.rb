@@ -148,7 +148,12 @@ module Api
         end
       end
       
-      expected_secret = ENV['SECRET_KEY_BASE'].to_s[0..15]
+      # Use a dedicated shared secret for job runner authentication
+      # Fall back to SECRET_KEY_BASE if JOB_RUNNER_SECRET is not set
+      expected_secret = ENV['JOB_RUNNER_SECRET'] || ENV['SECRET_KEY_BASE'].to_s[0..15]
+      
+      Rails.logger.info "[JobRunnerController] Authenticating request with secret: #{provided_secret.to_s[0..3]}..." if Rails.env.development?
+      Rails.logger.info "[JobRunnerController] Expected secret: #{expected_secret[0..3]}..." if Rails.env.development?
       
       unless provided_secret.present? && provided_secret == expected_secret
         Rails.logger.error "[JobRunnerController] Unauthorized request. Secret mismatch or missing."

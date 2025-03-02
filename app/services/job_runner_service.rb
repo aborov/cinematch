@@ -150,8 +150,11 @@ class JobRunnerService
     end
     
     def job_runner_secret
-      # Use the first 16 characters of the SECRET_KEY_BASE as a shared secret
-      ENV['SECRET_KEY_BASE'].to_s[0..15]
+      # Use a dedicated shared secret for job runner authentication
+      # Fall back to SECRET_KEY_BASE if JOB_RUNNER_SECRET is not set
+      secret = ENV['JOB_RUNNER_SECRET'] || ENV['SECRET_KEY_BASE'].to_s[0..15]
+      Rails.logger.info "[JobRunnerService] Using job runner secret: #{secret[0..3]}..." if Rails.env.development?
+      secret
     end
   end
 end 

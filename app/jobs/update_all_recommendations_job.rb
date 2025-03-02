@@ -35,13 +35,16 @@ class UpdateAllRecommendationsJob < ApplicationJob
       if ENV['JOB_RUNNER_ONLY'] == 'true' && ENV['MAIN_APP_URL'].present? && Rails.env.production?
         # If we're on the job runner, we need to notify the main app to generate recommendations
         begin
+          # Use a dedicated shared secret for job runner authentication
+          shared_secret = ENV['JOB_RUNNER_SECRET'] || ENV['SECRET_KEY_BASE'].to_s[0..15]
+          
           Rails.logger.info "[UpdateAllRecommendationsJob] Delegating recommendations for user #{user.id} to main app"
           response = HTTParty.post(
             "#{ENV['MAIN_APP_URL']}/api/job_runner/run_job",
             body: {
               job_class: 'GenerateRecommendationsJob',
               args: { user_id: user.id },
-              secret: ENV['SECRET_KEY_BASE'].to_s[0..15]
+              secret: shared_secret
             }.to_json,
             headers: { 'Content-Type' => 'application/json' },
             timeout: 10
