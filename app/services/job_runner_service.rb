@@ -3,9 +3,15 @@ class JobRunnerService
     def run_job(job_class, args = {})
       return false unless job_runner_enabled?
       
-      Rails.logger.info "[JobRunnerService] Delegating job #{job_class} to job runner service"
+      Rails.logger.info "[JobRunnerService] Delegating job #{job_class} to job runner service with args: #{args.inspect}"
       
       begin
+        # First ensure the job runner is awake
+        unless wake_up_job_runner
+          Rails.logger.error "[JobRunnerService] Job runner is not responding. Cannot delegate job #{job_class}"
+          return false
+        end
+        
         response = HTTParty.post(
           "#{job_runner_url}/api/job_runner/run_job",
           body: {
@@ -13,7 +19,8 @@ class JobRunnerService
             args: args,
             secret: job_runner_secret
           }.to_json,
-          headers: { 'Content-Type' => 'application/json' }
+          headers: { 'Content-Type' => 'application/json' },
+          timeout: 10 # Add a timeout to prevent hanging requests
         )
         
         if response.success?
@@ -25,6 +32,7 @@ class JobRunnerService
         end
       rescue => e
         Rails.logger.error "[JobRunnerService] Error delegating job #{job_class} to job runner: #{e.message}"
+        Rails.logger.error e.backtrace.join("\n")
         return false
       end
     end
@@ -32,9 +40,15 @@ class JobRunnerService
     def run_specific_job(job_class, method_name, args = {})
       return false unless job_runner_enabled?
       
-      Rails.logger.info "[JobRunnerService] Delegating specific job #{job_class}##{method_name} to job runner service"
+      Rails.logger.info "[JobRunnerService] Delegating specific job #{job_class}##{method_name} to job runner service with args: #{args.inspect}"
       
       begin
+        # First ensure the job runner is awake
+        unless wake_up_job_runner
+          Rails.logger.error "[JobRunnerService] Job runner is not responding. Cannot delegate job #{job_class}##{method_name}"
+          return false
+        end
+        
         response = HTTParty.post(
           "#{job_runner_url}/api/job_runner/run_specific_job",
           body: {
@@ -43,7 +57,8 @@ class JobRunnerService
             args: args,
             secret: job_runner_secret
           }.to_json,
-          headers: { 'Content-Type' => 'application/json' }
+          headers: { 'Content-Type' => 'application/json' },
+          timeout: 10 # Add a timeout to prevent hanging requests
         )
         
         if response.success?
@@ -55,6 +70,7 @@ class JobRunnerService
         end
       rescue => e
         Rails.logger.error "[JobRunnerService] Error delegating specific job #{job_class}##{method_name} to job runner: #{e.message}"
+        Rails.logger.error e.backtrace.join("\n")
         return false
       end
     end
@@ -66,7 +82,8 @@ class JobRunnerService
         response = HTTParty.get(
           "#{job_runner_url}/api/job_runner/job_status/#{job_id}",
           query: { secret: job_runner_secret },
-          headers: { 'Content-Type' => 'application/json' }
+          headers: { 'Content-Type' => 'application/json' },
+          timeout: 5 # Add a timeout to prevent hanging requests
         )
         
         if response.success?
@@ -85,10 +102,14 @@ class JobRunnerService
       return true if Rails.env.development? || ENV['JOB_RUNNER_ONLY'] == 'true'
       
       begin
-        response = HTTParty.get("#{job_runner_url}/health_check")
+        Rails.logger.info "[JobRunnerService] Attempting to wake up job runner at #{job_runner_url}/health_check"
+        response = HTTParty.get(
+          "#{job_runner_url}/health_check",
+          timeout: 10 # Add a timeout to prevent hanging requests
+        )
         
         if response.success?
-          Rails.logger.info "[JobRunnerService] Job runner is awake and healthy"
+          Rails.logger.info "[JobRunnerService] Job runner is awake and healthy: #{response.body}"
           return true
         else
           Rails.logger.error "[JobRunnerService] Job runner health check failed. Status: #{response.code}, Error: #{response.body}"
@@ -103,14 +124,27 @@ class JobRunnerService
     private
     
     def job_runner_enabled?
-      return false if Rails.env.development? && ENV['USE_JOB_RUNNER'] != 'true'
-      return false if ENV['JOB_RUNNER_ONLY'] == 'true' # Don't delegate if we are the job runner
+      # Don't delegate if we are in development and not explicitly using job runner
+      if Rails.env.development? && ENV['USE_JOB_RUNNER'] != 'true'
+        Rails.logger.info "[JobRunnerService] Job runner disabled in development environment"
+        return false
+      end
       
+      # Don't delegate if we are the job runner
+      if ENV['JOB_RUNNER_ONLY'] == 'true'
+        Rails.logger.info "[JobRunnerService] We are the job runner, not delegating"
+        return false
+      end
+      
+      # In production, always delegate unless we're the job runner
+      Rails.logger.info "[JobRunnerService] Job runner enabled, will delegate jobs"
       true
     end
     
     def job_runner_url
-      ENV.fetch('JOB_RUNNER_URL', 'https://cinematch-job-runner.onrender.com')
+      url = ENV.fetch('JOB_RUNNER_URL', 'https://cinematch-job-runner.onrender.com')
+      Rails.logger.info "[JobRunnerService] Using job runner URL: #{url}"
+      url
     end
     
     def job_runner_secret

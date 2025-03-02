@@ -3,8 +3,8 @@ class UpdateAllRecommendationsJob < ApplicationJob
 
   def perform
     # If we're not on the job runner instance, delegate the job to the job runner service
-    if ENV['JOB_RUNNER_ONLY'] != 'true'
-      Rails.logger.info "[UpdateAllRecommendationsJob] Delegating to job runner service"
+    if ENV['JOB_RUNNER_ONLY'] != 'true' && Rails.env.production?
+      Rails.logger.info "[UpdateAllRecommendationsJob] Running in production on main app, delegating to job runner service"
       
       # First wake up the job runner
       unless JobRunnerService.wake_up_job_runner
@@ -19,6 +19,8 @@ class UpdateAllRecommendationsJob < ApplicationJob
           Rails.logger.warn "[UpdateAllRecommendationsJob] Failed to delegate to job runner. Running locally instead."
         end
       end
+    else
+      Rails.logger.info "[UpdateAllRecommendationsJob] Running on job runner or in development, executing locally"
     end
     
     Rails.logger.info "[UpdateAllRecommendationsJob] Starting to update recommendations for all users"
@@ -28,19 +30,29 @@ class UpdateAllRecommendationsJob < ApplicationJob
     user_count = 0
     User.find_each(batch_size: 5) do |user|
       user_count += 1
-      if ENV['JOB_RUNNER_ONLY'] == 'true' && ENV['MAIN_APP_URL'].present?
+      if ENV['JOB_RUNNER_ONLY'] == 'true' && ENV['MAIN_APP_URL'].present? && Rails.env.production?
         # If we're on the job runner, we need to notify the main app to generate recommendations
         begin
           Rails.logger.info "[UpdateAllRecommendationsJob] Delegating recommendations for user #{user.id} to main app"
-          HTTParty.post(
+          response = HTTParty.post(
             "#{ENV['MAIN_APP_URL']}/api/job_runner/run_job",
             body: {
               job_class: 'GenerateRecommendationsJob',
               args: { user_id: user.id },
               secret: ENV['SECRET_KEY_BASE'].to_s[0..15]
             }.to_json,
-            headers: { 'Content-Type' => 'application/json' }
+            headers: { 'Content-Type' => 'application/json' },
+            timeout: 10
           )
+          
+          if response.success?
+            Rails.logger.info "[UpdateAllRecommendationsJob] Successfully delegated recommendations for user #{user.id} to main app"
+          else
+            Rails.logger.error "[UpdateAllRecommendationsJob] Failed to notify main app for user #{user.id}: #{response.code} - #{response.body}"
+            # Fall back to running locally
+            GenerateRecommendationsJob.set(wait: 5.seconds).perform_later(user_id: user.id)
+          end
+          
           sleep(2) # Add a delay to prevent overwhelming the main app
         rescue => e
           Rails.logger.error "[UpdateAllRecommendationsJob] Failed to notify main app for user #{user.id}: #{e.message}"
@@ -60,10 +72,17 @@ class UpdateAllRecommendationsJob < ApplicationJob
   
   # Class method for direct invocation
   def self.update_all_recommendations
-    if ENV['JOB_RUNNER_ONLY'] != 'true'
+    if ENV['JOB_RUNNER_ONLY'] != 'true' && Rails.env.production?
       Rails.logger.info "[UpdateAllRecommendationsJob] Delegating update_all_recommendations to job runner"
       JobRunnerService.wake_up_job_runner
-      JobRunnerService.run_specific_job('UpdateAllRecommendationsJob', 'update_all_recommendations')
+      job_id = JobRunnerService.run_specific_job('UpdateAllRecommendationsJob', 'update_all_recommendations')
+      
+      if job_id
+        Rails.logger.info "[UpdateAllRecommendationsJob] Successfully delegated update_all_recommendations to job runner. Job ID: #{job_id}"
+      else
+        Rails.logger.warn "[UpdateAllRecommendationsJob] Failed to delegate to job runner. Running locally instead."
+        new.perform
+      end
     else
       Rails.logger.info "[UpdateAllRecommendationsJob] Running update_all_recommendations locally"
       new.perform

@@ -30,38 +30,92 @@ ActiveAdmin.register_page "Good Job Dashboard" do
 
   page_action :run_fetch_content, method: :post do
     authorize :page, :run_fetch_content?
-    job = FetchContentJob.perform_later
-    redirect_to admin_good_job_dashboard_path, notice: "Content fetch job started (Job ID: #{job.job_id})"
+    
+    # Use JobRunnerService directly instead of perform_later
+    job_id = if Rails.env.production? && ENV['JOB_RUNNER_ONLY'] != 'true'
+      JobRunnerService.wake_up_job_runner
+      JobRunnerService.run_job('FetchContentJob')
+    else
+      job = FetchContentJob.perform_later
+      job.job_id
+    end
+    
+    redirect_to admin_good_job_dashboard_path, notice: "Content fetch job started (Job ID: #{job_id})"
   end
 
   page_action :run_fetch_new_content, method: :post do
     authorize :page, :run_fetch_new_content?
-    job = FetchContentJob.perform_later(fetch_new: true)
-    redirect_to admin_good_job_dashboard_path, notice: "Fetch new content job started (Job ID: #{job.job_id})"
+    
+    # Use JobRunnerService directly instead of perform_later
+    job_id = if Rails.env.production? && ENV['JOB_RUNNER_ONLY'] != 'true'
+      JobRunnerService.wake_up_job_runner
+      JobRunnerService.run_job('FetchContentJob', { fetch_new: true })
+    else
+      job = FetchContentJob.perform_later(fetch_new: true)
+      job.job_id
+    end
+    
+    redirect_to admin_good_job_dashboard_path, notice: "Fetch new content job started (Job ID: #{job_id})"
   end
 
   page_action :run_update_existing_content, method: :post do
     authorize :page, :run_update_existing_content?
-    job = FetchContentJob.perform_later(update_existing: true)
-    redirect_to admin_good_job_dashboard_path, notice: "Update existing content job started (Job ID: #{job.job_id})"
+    
+    # Use JobRunnerService directly instead of perform_later
+    job_id = if Rails.env.production? && ENV['JOB_RUNNER_ONLY'] != 'true'
+      JobRunnerService.wake_up_job_runner
+      JobRunnerService.run_job('FetchContentJob', { update_existing: true })
+    else
+      job = FetchContentJob.perform_later(update_existing: true)
+      job.job_id
+    end
+    
+    redirect_to admin_good_job_dashboard_path, notice: "Update existing content job started (Job ID: #{job_id})"
   end
 
   page_action :run_fill_missing_content_details, method: :post do
     authorize :page, :run_fill_missing_content_details?
-    job = FetchContentJob.perform_later(fill_missing: true)
-    redirect_to admin_good_job_dashboard_path, notice: "Fill missing content details job started (Job ID: #{job.job_id})"
+    
+    # Use JobRunnerService directly instead of perform_later
+    job_id = if Rails.env.production? && ENV['JOB_RUNNER_ONLY'] != 'true'
+      JobRunnerService.wake_up_job_runner
+      JobRunnerService.run_job('FetchContentJob', { fill_missing: true })
+    else
+      job = FetchContentJob.perform_later(fill_missing: true)
+      job.job_id
+    end
+    
+    redirect_to admin_good_job_dashboard_path, notice: "Fill missing content details job started (Job ID: #{job_id})"
   end
 
   page_action :run_update_recommendations, method: :post do
     authorize :page, :run_update_recommendations?
-    job = UpdateAllRecommendationsJob.perform_later
-    redirect_to admin_good_job_dashboard_path, notice: "Update recommendations job started (Job ID: #{job.job_id})"
+    
+    # Use JobRunnerService directly instead of perform_later
+    job_id = if Rails.env.production? && ENV['JOB_RUNNER_ONLY'] != 'true'
+      JobRunnerService.wake_up_job_runner
+      JobRunnerService.run_job('UpdateAllRecommendationsJob')
+    else
+      job = UpdateAllRecommendationsJob.perform_later
+      job.job_id
+    end
+    
+    redirect_to admin_good_job_dashboard_path, notice: "Update recommendations job started (Job ID: #{job_id})"
   end
 
   page_action :run_fill_missing_details, method: :post do
     authorize :page, :run_fill_missing_details?
-    job = FillMissingDetailsJob.perform_later
-    redirect_to admin_good_job_dashboard_path, notice: "Fill missing details job started (Job ID: #{job.job_id})"
+    
+    # Use JobRunnerService directly instead of perform_later
+    job_id = if Rails.env.production? && ENV['JOB_RUNNER_ONLY'] != 'true'
+      JobRunnerService.wake_up_job_runner
+      JobRunnerService.run_job('FillMissingDetailsJob')
+    else
+      job = FillMissingDetailsJob.perform_later
+      job.job_id
+    end
+    
+    redirect_to admin_good_job_dashboard_path, notice: "Fill missing details job started (Job ID: #{job_id})"
   end
 
   controller do
