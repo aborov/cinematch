@@ -118,6 +118,21 @@ ActiveAdmin.register_page "Good Job Dashboard" do
     redirect_to admin_good_job_dashboard_path, notice: "Fill missing details job started (Job ID: #{job_id})"
   end
 
+  page_action :delete_job, method: :delete do
+    authorize :page, :delete_job?
+    
+    job_id = params[:id]
+    job = GoodJob::Job.find_by(id: job_id)
+    
+    if job
+      job_class = job.job_class
+      job.destroy
+      redirect_to admin_good_job_dashboard_path, notice: "Job #{job_class} (ID: #{job_id}) has been deleted from history"
+    else
+      redirect_to admin_good_job_dashboard_path, alert: "Job with ID #{job_id} not found"
+    end
+  end
+
   controller do
     helper_method :job_status
 

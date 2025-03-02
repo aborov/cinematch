@@ -95,6 +95,7 @@
           <th>Duration</th>
           <th>Error</th>
           <th>Details</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -118,6 +119,14 @@
                 <% args.except('_aj_symbol_keys').map do |key, value| %>
                   <%= "#{key}: #{value}" if value == true %><br>
                 <% end %>
+              <% end %>
+            </td>
+            <td>
+              <% if policy(:page).delete_job? %>
+                <%= link_to 'Delete', admin_good_job_dashboard_delete_job_path(id: job.id), 
+                            method: :delete, 
+                            class: 'delete-job-btn',
+                            data: { confirm: 'Are you sure you want to delete this job from history?' } %>
               <% end %>
             </td>
           </tr>
@@ -283,6 +292,24 @@
   margin: 0;
   white-space: pre-wrap;
   font-size: 0.8rem;
+}
+
+.delete-job-btn {
+  display: inline-block;
+  padding: 3px 8px;
+  background-color: #f8d7da;
+  color: #721c24 !important;
+  border-radius: 3px;
+  text-decoration: none;
+  font-size: 0.8rem;
+  border: 1px solid #f5c6cb;
+  transition: all 0.2s;
+}
+
+.delete-job-btn:hover {
+  background-color: #f1b0b7;
+  color: #721c24 !important;
+  border-color: #f1b0b7;
 }
 </style>
 
