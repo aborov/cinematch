@@ -8,7 +8,8 @@ module Api
         timestamp: Time.current,
         environment: Rails.env,
         job_runner: ENV['JOB_RUNNER_ONLY'] == 'true',
-        good_job_status: GoodJob::Job.count >= 0 ? 'connected' : 'error'
+        good_job_status: GoodJob::Job.count >= 0 ? 'connected' : 'error',
+        version: '1.1' # Add a version to track changes
       }
     end
     
@@ -16,17 +17,30 @@ module Api
       job_class = params[:job_class]
       args = params[:args] || {}
       
+      Rails.logger.info "[JobRunnerController] Received request to run job #{job_class} with args: #{args.inspect}"
+      
       # Validate job class
       unless valid_job_class?(job_class)
+        Rails.logger.error "[JobRunnerController] Invalid job class: #{job_class}"
         return render json: { error: "Invalid job class: #{job_class}" }, status: :bad_request
       end
       
       # Run the job
       begin
-        job = job_class.constantize.perform_later(args)
+        job_class_constant = job_class.constantize
+        Rails.logger.info "[JobRunnerController] Scheduling job #{job_class}"
+        
+        job = if args.present?
+          job_class_constant.perform_later(args)
+        else
+          job_class_constant.perform_later
+        end
+        
+        Rails.logger.info "[JobRunnerController] Successfully scheduled job #{job_class} with ID: #{job.job_id}"
         render json: { job_id: job.job_id, status: 'scheduled' }
       rescue => e
         Rails.logger.error "[JobRunnerController] Error scheduling job #{job_class}: #{e.message}"
+        Rails.logger.error e.backtrace.join("\n")
         render json: { error: e.message }, status: :internal_server_error
       end
     end
@@ -36,19 +50,25 @@ module Api
       method_name = params[:method_name]
       args = params[:args] || {}
       
+      Rails.logger.info "[JobRunnerController] Received request to run specific job #{job_class}##{method_name} with args: #{args.inspect}"
+      
       # Validate job class
       unless valid_job_class?(job_class)
+        Rails.logger.error "[JobRunnerController] Invalid job class: #{job_class}"
         return render json: { error: "Invalid job class: #{job_class}" }, status: :bad_request
       end
       
       # Validate method name
       unless valid_method_name?(method_name)
+        Rails.logger.error "[JobRunnerController] Invalid method name: #{method_name}"
         return render json: { error: "Invalid method name: #{method_name}" }, status: :bad_request
       end
       
       # Run the job with the specific method
       begin
         job_class_constant = job_class.constantize
+        Rails.logger.info "[JobRunnerController] Calling method #{method_name} on #{job_class}"
+        
         job = if method_name.present?
                 job_class_constant.send(method_name, args)
               else
@@ -56,9 +76,11 @@ module Api
               end
         
         job_id = job.respond_to?(:job_id) ? job.job_id : 'immediate'
+        Rails.logger.info "[JobRunnerController] Successfully called method #{method_name} on #{job_class}. Job ID: #{job_id}"
         render json: { job_id: job_id, status: 'scheduled' }
       rescue => e
         Rails.logger.error "[JobRunnerController] Error scheduling job #{job_class}##{method_name}: #{e.message}"
+        Rails.logger.error e.backtrace.join("\n")
         render json: { error: e.message }, status: :internal_server_error
       end
     end
@@ -67,12 +89,15 @@ module Api
       job_id = params[:job_id]
       
       unless job_id.present?
+        Rails.logger.error "[JobRunnerController] Missing job_id parameter"
         return render json: { error: "Missing job_id parameter" }, status: :bad_request
       end
       
+      Rails.logger.info "[JobRunnerController] Checking status for job ID: #{job_id}"
       job = GoodJob::Job.find_by(active_job_id: job_id)
       
       if job.nil?
+        Rails.logger.error "[JobRunnerController] Job not found with ID: #{job_id}"
         return render json: { error: "Job not found" }, status: :not_found
       end
       
@@ -86,6 +111,7 @@ module Api
                 'scheduled'
               end
       
+      Rails.logger.info "[JobRunnerController] Job #{job_id} status: #{status}"
       render json: {
         job_id: job.active_job_id,
         status: status,
@@ -123,10 +149,12 @@ module Api
       expected_secret = ENV['SECRET_KEY_BASE'].to_s[0..15]
       
       unless provided_secret.present? && provided_secret == expected_secret
+        Rails.logger.error "[JobRunnerController] Unauthorized request. Secret mismatch or missing."
         render json: { error: 'Unauthorized' }, status: :unauthorized
         return false
       end
       
+      Rails.logger.info "[JobRunnerController] Request authenticated successfully"
       true
     end
     
@@ -139,7 +167,9 @@ module Api
         'GenerateRecommendationsJob'
       ]
       
-      allowed_job_classes.include?(job_class)
+      is_valid = allowed_job_classes.include?(job_class)
+      Rails.logger.info "[JobRunnerController] Job class #{job_class} validation: #{is_valid ? 'valid' : 'invalid'}"
+      is_valid
     end
     
     def valid_method_name?(method_name)
@@ -156,7 +186,9 @@ module Api
         'generate_recommendations_for_user'
       ]
       
-      allowed_method_names.include?(method_name)
+      is_valid = allowed_method_names.include?(method_name)
+      Rails.logger.info "[JobRunnerController] Method name #{method_name} validation: #{is_valid ? 'valid' : 'invalid'}"
+      is_valid
     end
   end
 end 

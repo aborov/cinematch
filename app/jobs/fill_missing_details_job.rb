@@ -3,8 +3,8 @@ class FillMissingDetailsJob < ApplicationJob
 
   def perform
     # If we're not on the job runner instance, delegate the job to the job runner service
-    if ENV['JOB_RUNNER_ONLY'] != 'true'
-      Rails.logger.info "[FillMissingDetailsJob] Delegating to job runner service"
+    if ENV['JOB_RUNNER_ONLY'] != 'true' && Rails.env.production?
+      Rails.logger.info "[FillMissingDetailsJob] Running in production on main app, delegating to job runner service"
       
       # First wake up the job runner
       unless JobRunnerService.wake_up_job_runner
@@ -19,6 +19,8 @@ class FillMissingDetailsJob < ApplicationJob
           Rails.logger.warn "[FillMissingDetailsJob] Failed to delegate to job runner. Running locally instead."
         end
       end
+    else
+      Rails.logger.info "[FillMissingDetailsJob] Running on job runner or in development, executing locally"
     end
     
     require 'rake'
@@ -36,10 +38,17 @@ class FillMissingDetailsJob < ApplicationJob
   
   # Class method for direct invocation
   def self.fill_missing_details
-    if ENV['JOB_RUNNER_ONLY'] != 'true'
+    if ENV['JOB_RUNNER_ONLY'] != 'true' && Rails.env.production?
       Rails.logger.info "[FillMissingDetailsJob] Delegating fill_missing_details to job runner"
       JobRunnerService.wake_up_job_runner
-      JobRunnerService.run_specific_job('FillMissingDetailsJob', 'fill_missing_details')
+      job_id = JobRunnerService.run_specific_job('FillMissingDetailsJob', 'fill_missing_details')
+      
+      if job_id
+        Rails.logger.info "[FillMissingDetailsJob] Successfully delegated fill_missing_details to job runner. Job ID: #{job_id}"
+      else
+        Rails.logger.warn "[FillMissingDetailsJob] Failed to delegate to job runner. Running locally instead."
+        new.perform
+      end
     else
       Rails.logger.info "[FillMissingDetailsJob] Running fill_missing_details locally"
       new.perform
