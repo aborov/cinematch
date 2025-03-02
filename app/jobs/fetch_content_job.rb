@@ -54,11 +54,14 @@ class FetchContentJob < ApplicationJob
       # If we're on the job runner, we need to notify the main app to update recommendations
       Rails.logger.info "[FetchContentJob] Notifying main app to update recommendations"
       begin
+        # Use a dedicated shared secret for job runner authentication
+        shared_secret = ENV['JOB_RUNNER_SECRET'] || ENV['SECRET_KEY_BASE'].to_s[0..15]
+        
         response = HTTParty.post(
           "#{ENV['MAIN_APP_URL']}/api/job_runner/run_job",
           body: {
             job_class: 'UpdateAllRecommendationsJob',
-            secret: ENV['SECRET_KEY_BASE'].to_s[0..15]
+            secret: shared_secret
           }.to_json,
           headers: { 'Content-Type' => 'application/json' },
           timeout: 10
