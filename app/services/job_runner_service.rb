@@ -1,3 +1,5 @@
+require 'httparty'
+
 class JobRunnerService
   class << self
     def run_job(job_class, args = {})

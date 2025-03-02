@@ -1,3 +1,5 @@
+require 'httparty'
+
 class FetchContentJob < ApplicationJob
   queue_as :default
 

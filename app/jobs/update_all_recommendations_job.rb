@@ -1,3 +1,5 @@
+require 'httparty'
+
 class UpdateAllRecommendationsJob < ApplicationJob
   queue_as :default
 
