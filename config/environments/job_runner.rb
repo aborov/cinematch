@@ -7,7 +7,6 @@ Rails.application.configure do
   config.assets.compile = false
   config.assets.digest = false
   config.assets.debug = false
-  config.assets.enabled = false
   
   # Disable view rendering optimizations
   config.action_view.cache_template_loading = false
@@ -24,12 +23,19 @@ Rails.application.configure do
   # Optimize for background jobs
   config.active_job.queue_adapter = :good_job
   
-  # Increase connection pool for background jobs
-  config.active_record.database_pool = ENV.fetch("DB_POOL") { 10 }
+  # Set database pool size through database.yml instead
+  # Rails 7.1 handles this differently
   
   # Disable asset host
   config.action_controller.asset_host = nil
   
   # Disable public file server
   config.public_file_server.enabled = false
+  
+  # Enable stdout logging
+  if ENV["RAILS_LOG_TO_STDOUT"].present?
+    logger           = ActiveSupport::Logger.new(STDOUT)
+    logger.formatter = config.log_formatter
+    config.logger    = ActiveSupport::TaggedLogging.new(logger)
+  end
 end 
