@@ -5,25 +5,47 @@ Rails.application.routes.draw do
     mount GoodJob::Engine => 'good_job'
   end
 
-  root to: "pages#landing"
-
-  devise_for :users, controllers: {
-            passwords: 'users/passwords',
-            registrations: 'users/registrations',
-            sessions: 'users/sessions',
-            confirmations: 'users/confirmations',
-            unlocks: 'users/unlocks',
-            omniauth_callbacks: 'users/omniauth_callbacks'
-          }
-
-  resources :users, only: [:show, :edit, :update, :destroy] do
-    member do
-      get 'profile'
+  # Job runner specific routes
+  if Rails.env.job_runner?
+    # Health check endpoint
+    get 'health_check', to: 'job_runner#health_check'
+    
+    # API routes for job runner
+    namespace :api do
+      resources :job_runner, only: [] do
+        collection do
+          get 'health_check'
+          post 'run_job'
+          post 'run_specific_job'
+          get 'job_status/:job_id', action: :job_status, as: :status
+        end
+      end
     end
-  end
+    
+    # Catch all other routes and redirect to main app
+    root to: 'job_runner#index'
+    match '*path', to: 'job_runner#index', via: :all
+  else
+    # Regular application routes
+    root to: "pages#landing"
 
-  get 'restore_account', to: 'users#restore_account_form'
-  post 'restore_account', to: 'users#restore'
+    devise_for :users, controllers: {
+              passwords: 'users/passwords',
+              registrations: 'users/registrations',
+              sessions: 'users/sessions',
+              confirmations: 'users/confirmations',
+              unlocks: 'users/unlocks',
+              omniauth_callbacks: 'users/omniauth_callbacks'
+            }
+
+    resources :users, only: [:show, :edit, :update, :destroy] do
+      member do
+        get 'profile'
+      end
+    end
+
+    get 'restore_account', to: 'users#restore_account_form'
+    post 'restore_account', to: 'users#restore'
 
   resources :surveys, only: [:index, :create] do
     collection do
@@ -49,7 +71,6 @@ Rails.application.routes.draw do
   patch 'profile', to: 'users#update'
   
   get 'watchlist', to: 'watchlist_items#index'
-  
   resources :watchlist_items, path: 'watchlist', only: [:create, :destroy] do
     collection do
       get 'unwatched_count'
