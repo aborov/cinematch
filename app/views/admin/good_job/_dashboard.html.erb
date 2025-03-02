@@ -25,6 +25,64 @@
     </div>
   </div>
 
+  <div class="manual-jobs-panel">
+    <h3>Manual Job Actions</h3>
+    <div class="job-buttons">
+      <div class="job-button-container">
+        <h4>Fetch Content</h4>
+        <p>Next scheduled: <%= @next_fetch_job&.scheduled_at&.strftime('%Y-%m-%d %H:%M:%S') || 'None' %></p>
+        <% if policy(:page).run_fetch_content? %>
+          <%= link_to 'Run Now', admin_good_job_dashboard_run_fetch_content_path, 
+                      method: :post, 
+                      class: 'job-button',
+                      data: { confirm: 'Are you sure you want to start a content fetch job?' } %>
+          <div class="job-sub-buttons">
+            <% if policy(:page).run_fetch_new_content? %>
+              <%= link_to 'Fetch New Only', admin_good_job_dashboard_run_fetch_new_content_path, 
+                          method: :post, 
+                          class: 'job-sub-button',
+                          data: { confirm: 'Are you sure you want to fetch only new content?' } %>
+            <% end %>
+            <% if policy(:page).run_update_existing_content? %>
+              <%= link_to 'Update Existing', admin_good_job_dashboard_run_update_existing_content_path, 
+                          method: :post, 
+                          class: 'job-sub-button',
+                          data: { confirm: 'Are you sure you want to update existing content?' } %>
+            <% end %>
+            <% if policy(:page).run_fill_missing_content_details? %>
+              <%= link_to 'Fill Missing', admin_good_job_dashboard_run_fill_missing_content_details_path, 
+                          method: :post, 
+                          class: 'job-sub-button',
+                          data: { confirm: 'Are you sure you want to fill missing content details?' } %>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+      
+      <div class="job-button-container">
+        <h4>Update Recommendations</h4>
+        <p>Next scheduled: <%= @next_update_job&.scheduled_at&.strftime('%Y-%m-%d %H:%M:%S') || 'None' %></p>
+        <% if policy(:page).run_update_recommendations? %>
+          <%= link_to 'Run Now', admin_good_job_dashboard_run_update_recommendations_path, 
+                      method: :post, 
+                      class: 'job-button',
+                      data: { confirm: 'Are you sure you want to update recommendations for all users?' } %>
+        <% end %>
+      </div>
+      
+      <div class="job-button-container">
+        <h4>Fill Missing Details</h4>
+        <p>Next scheduled: <%= @next_fill_details_job&.scheduled_at&.strftime('%Y-%m-%d %H:%M:%S') || 'None' %></p>
+        <% if policy(:page).run_fill_missing_details? %>
+          <%= link_to 'Run Now', admin_good_job_dashboard_run_fill_missing_details_path, 
+                      method: :post, 
+                      class: 'job-button',
+                      data: { confirm: 'Are you sure you want to fill missing content details?' } %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
   <div class="recent-jobs-panel">
     <h3>Recent Jobs</h3>
     <table class="jobs-table">
@@ -112,5 +170,86 @@
 
 .error {
   background-color: #fff3f3;
+}
+
+.manual-jobs-panel {
+  margin-bottom: 2rem;
+}
+
+.job-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.job-button-container {
+  background: #f9f9f9;
+  padding: 1.5rem;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.job-button-container h4 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+.job-button-container p {
+  margin-bottom: 1rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.job-button {
+  display: inline-block;
+  padding: 0.7rem 1.4rem;
+  background-color: #2271b1;
+  color: white !important;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.2s;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.job-button:hover {
+  background-color: #135e96;
+  color: white !important;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+  transform: translateY(-1px);
+}
+
+.job-sub-buttons {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.job-sub-button {
+  display: inline-block;
+  padding: 0.5rem 0.9rem;
+  background-color: #f8f8f8;
+  color: #0366d6 !important;
+  border-radius: 4px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: 1px solid #ddd;
+  transition: all 0.2s;
+}
+
+.job-sub-button:hover {
+  background-color: #f0f0f0;
+  color: #0256b9 !important;
+  border-color: #bbb;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 </style>
