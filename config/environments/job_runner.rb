@@ -41,4 +41,13 @@ Rails.application.configure do
     logger.formatter = config.log_formatter
     config.logger    = ActiveSupport::TaggedLogging.new(logger)
   end
+  
+  # Disable asset pipeline for job runner
+  config.assets.enabled = false
+  
+  # Disable template rendering for views that require assets
+  config.action_controller.asset_host = nil
+  
+  # Set consider_all_requests_local to false to prevent detailed error pages
+  config.consider_all_requests_local = false
 end 

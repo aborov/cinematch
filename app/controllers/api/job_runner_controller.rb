@@ -1,7 +1,17 @@
 module Api
   class JobRunnerController < ApplicationController
     skip_before_action :verify_authenticity_token
-    before_action :authenticate_request
+    before_action :authenticate_request, except: [:health_check]
+    
+    def health_check
+      render json: { 
+        status: 'ok', 
+        timestamp: Time.current,
+        environment: Rails.env,
+        job_runner: ENV['JOB_RUNNER_ONLY'] == 'true',
+        good_job_status: GoodJob::Job.count >= 0 ? 'connected' : 'error'
+      }
+    end
     
     def run_job
       job_class = params[:job_class]
@@ -87,10 +97,6 @@ module Api
       }
     end
     
-    def health_check
-      render json: { status: 'ok', timestamp: Time.current }
-    end
-    
     private
     
     def authenticate_request
@@ -98,7 +104,23 @@ module Api
       return true if action_name == 'health_check'
       
       # Simple authentication using a shared secret
-      provided_secret = params[:secret] || (request.headers['Content-Type'] == 'application/json' ? JSON.parse(request.body.read)['secret'] : nil)
+      provided_secret = nil
+      
+      # Try to get the secret from various sources
+      if params[:secret].present?
+        provided_secret = params[:secret]
+      elsif request.headers['Authorization'].present?
+        provided_secret = request.headers['Authorization'].gsub(/^Bearer\s+/, '')
+      elsif request.headers['Content-Type'] == 'application/json'
+        begin
+          body_params = JSON.parse(request.body.read)
+          request.body.rewind
+          provided_secret = body_params['secret']
+        rescue JSON::ParserError
+          # Ignore JSON parsing errors
+        end
+      end
+      
       expected_secret = ENV['SECRET_KEY_BASE'].to_s[0..15]
       
       unless provided_secret.present? && provided_secret == expected_secret
