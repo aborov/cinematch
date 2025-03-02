@@ -28,5 +28,9 @@ module ActiveAdmin
     def run_fill_missing_details?
       user.admin?
     end
+    
+    def delete_job?
+      user.admin?
+    end
   end
 end
