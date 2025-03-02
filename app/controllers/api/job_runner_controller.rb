@@ -1,3 +1,5 @@
+require 'httparty'
+
 module Api
   class JobRunnerController < JobRunnerBaseController
     before_action :authenticate_request, except: [:health_check]
