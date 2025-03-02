@@ -32,5 +32,9 @@ module ActiveAdmin
     def delete_job?
       user.admin?
     end
+    
+    def admin?
+      user.admin?
+    end
   end
 end

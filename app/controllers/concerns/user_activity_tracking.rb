@@ -8,6 +8,9 @@ module UserActivityTracking
   private
 
   def track_user_activity
+    # Skip for ActiveAdmin controllers
+    return if self.class.name.start_with?('Admin::') || self.class.name.start_with?('ActiveAdmin::')
+    
     return unless current_user
     return if current_user.last_active_at&.> 5.minutes.ago
 

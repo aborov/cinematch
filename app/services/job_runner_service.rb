@@ -8,35 +8,65 @@ class JobRunnerService
       Rails.logger.info "[JobRunnerService] Delegating job #{job_class} to job runner service with args: #{args.inspect}"
       
       begin
-        # First ensure the job runner is awake
-        unless wake_up_job_runner
-          Rails.logger.error "[JobRunnerService] Job runner is not responding. Cannot delegate job #{job_class}"
+        # First ensure the job runner is awake with retries
+        unless wake_up_job_runner(max_retries: 3)
+          Rails.logger.error "[JobRunnerService] Job runner is not responding after retries. Cannot delegate job #{job_class}"
           return false
         end
         
         # Ensure args is a regular hash, not an ActionController::Parameters object
         args_hash = args.respond_to?(:to_unsafe_h) ? args.to_unsafe_h : args
         
-        response = HTTParty.post(
-          "#{job_runner_url}/api/job_runner/run_job",
-          body: {
-            job_class: job_class,
-            args: args_hash,
-            secret: job_runner_secret
-          }.to_json,
-          headers: { 'Content-Type' => 'application/json' },
-          timeout: 10 # Add a timeout to prevent hanging requests
-        )
+        # Add retry logic for the job submission
+        max_retries = 2
+        retry_count = 0
         
-        if response.success?
-          Rails.logger.info "[JobRunnerService] Successfully delegated job #{job_class} to job runner. Job ID: #{response['job_id']}"
-          return response['job_id']
-        else
-          Rails.logger.error "[JobRunnerService] Failed to delegate job #{job_class} to job runner. Status: #{response.code}, Error: #{response.body}"
-          return false
+        loop do
+          begin
+            response = HTTParty.post(
+              "#{job_runner_url}/api/job_runner/run_job",
+              body: {
+                job_class: job_class,
+                args: args_hash,
+                secret: job_runner_secret
+              }.to_json,
+              headers: { 'Content-Type' => 'application/json' },
+              timeout: 15 # Increased timeout for job submission
+            )
+            
+            if response.success?
+              Rails.logger.info "[JobRunnerService] Successfully delegated job #{job_class} to job runner. Job ID: #{response['job_id']}"
+              return response['job_id']
+            else
+              error_message = "[JobRunnerService] Failed to delegate job #{job_class} to job runner. Status: #{response.code}, Error: #{response.body}"
+              
+              if retry_count < max_retries && (response.code >= 500 || response.code == 0)
+                retry_count += 1
+                Rails.logger.warn "#{error_message}. Retrying (#{retry_count}/#{max_retries})..."
+                sleep(2 * retry_count) # Exponential backoff
+                next
+              end
+              
+              Rails.logger.error error_message
+              return false
+            end
+          rescue => e
+            error_message = "[JobRunnerService] Error delegating job #{job_class} to job runner: #{e.message}"
+            
+            if retry_count < max_retries
+              retry_count += 1
+              Rails.logger.warn "#{error_message}. Retrying (#{retry_count}/#{max_retries})..."
+              sleep(2 * retry_count) # Exponential backoff
+              next
+            end
+            
+            Rails.logger.error error_message
+            Rails.logger.error e.backtrace.join("\n")
+            return false
+          end
         end
       rescue => e
-        Rails.logger.error "[JobRunnerService] Error delegating job #{job_class} to job runner: #{e.message}"
+        Rails.logger.error "[JobRunnerService] Unexpected error delegating job #{job_class} to job runner: #{e.message}"
         Rails.logger.error e.backtrace.join("\n")
         return false
       end
@@ -48,36 +78,66 @@ class JobRunnerService
       Rails.logger.info "[JobRunnerService] Delegating specific job #{job_class}##{method_name} to job runner service with args: #{args.inspect}"
       
       begin
-        # First ensure the job runner is awake
-        unless wake_up_job_runner
-          Rails.logger.error "[JobRunnerService] Job runner is not responding. Cannot delegate job #{job_class}##{method_name}"
+        # First ensure the job runner is awake with retries
+        unless wake_up_job_runner(max_retries: 3)
+          Rails.logger.error "[JobRunnerService] Job runner is not responding after retries. Cannot delegate job #{job_class}##{method_name}"
           return false
         end
         
         # Ensure args is a regular hash, not an ActionController::Parameters object
         args_hash = args.respond_to?(:to_unsafe_h) ? args.to_unsafe_h : args
         
-        response = HTTParty.post(
-          "#{job_runner_url}/api/job_runner/run_specific_job",
-          body: {
-            job_class: job_class,
-            method_name: method_name,
-            args: args_hash,
-            secret: job_runner_secret
-          }.to_json,
-          headers: { 'Content-Type' => 'application/json' },
-          timeout: 10 # Add a timeout to prevent hanging requests
-        )
+        # Add retry logic for the job submission
+        max_retries = 2
+        retry_count = 0
         
-        if response.success?
-          Rails.logger.info "[JobRunnerService] Successfully delegated specific job #{job_class}##{method_name} to job runner. Job ID: #{response['job_id']}"
-          return response['job_id']
-        else
-          Rails.logger.error "[JobRunnerService] Failed to delegate specific job #{job_class}##{method_name} to job runner. Status: #{response.code}, Error: #{response.body}"
-          return false
+        loop do
+          begin
+            response = HTTParty.post(
+              "#{job_runner_url}/api/job_runner/run_specific_job",
+              body: {
+                job_class: job_class,
+                method_name: method_name,
+                args: args_hash,
+                secret: job_runner_secret
+              }.to_json,
+              headers: { 'Content-Type' => 'application/json' },
+              timeout: 15 # Increased timeout for job submission
+            )
+            
+            if response.success?
+              Rails.logger.info "[JobRunnerService] Successfully delegated specific job #{job_class}##{method_name} to job runner. Job ID: #{response['job_id']}"
+              return response['job_id']
+            else
+              error_message = "[JobRunnerService] Failed to delegate specific job #{job_class}##{method_name} to job runner. Status: #{response.code}, Error: #{response.body}"
+              
+              if retry_count < max_retries && (response.code >= 500 || response.code == 0)
+                retry_count += 1
+                Rails.logger.warn "#{error_message}. Retrying (#{retry_count}/#{max_retries})..."
+                sleep(2 * retry_count) # Exponential backoff
+                next
+              end
+              
+              Rails.logger.error error_message
+              return false
+            end
+          rescue => e
+            error_message = "[JobRunnerService] Error delegating specific job #{job_class}##{method_name} to job runner: #{e.message}"
+            
+            if retry_count < max_retries
+              retry_count += 1
+              Rails.logger.warn "#{error_message}. Retrying (#{retry_count}/#{max_retries})..."
+              sleep(2 * retry_count) # Exponential backoff
+              next
+            end
+            
+            Rails.logger.error error_message
+            Rails.logger.error e.backtrace.join("\n")
+            return false
+          end
         end
       rescue => e
-        Rails.logger.error "[JobRunnerService] Error delegating specific job #{job_class}##{method_name} to job runner: #{e.message}"
+        Rails.logger.error "[JobRunnerService] Unexpected error delegating specific job #{job_class}##{method_name} to job runner: #{e.message}"
         Rails.logger.error e.backtrace.join("\n")
         return false
       end
@@ -87,46 +147,108 @@ class JobRunnerService
       return nil unless job_runner_enabled?
       
       begin
-        response = HTTParty.get(
-          "#{job_runner_url}/api/job_runner/job_status/#{job_id}",
-          query: { secret: job_runner_secret },
-          headers: { 'Content-Type' => 'application/json' },
-          timeout: 5 # Add a timeout to prevent hanging requests
-        )
+        max_retries = 1
+        retry_count = 0
         
-        if response.success?
-          return response.parsed_response
-        else
-          Rails.logger.error "[JobRunnerService] Failed to check job status for job ID #{job_id}. Status: #{response.code}, Error: #{response.body}"
-          return nil
+        loop do
+          begin
+            response = HTTParty.get(
+              "#{job_runner_url}/api/job_runner/job_status/#{job_id}",
+              query: { secret: job_runner_secret },
+              headers: { 'Content-Type' => 'application/json' },
+              timeout: 8 # Increased timeout
+            )
+            
+            if response.success?
+              return response.parsed_response
+            else
+              error_message = "[JobRunnerService] Failed to check job status for job ID #{job_id}. Status: #{response.code}, Error: #{response.body}"
+              
+              if retry_count < max_retries && (response.code >= 500 || response.code == 0)
+                retry_count += 1
+                Rails.logger.warn "#{error_message}. Retrying (#{retry_count}/#{max_retries})..."
+                sleep(1) # Short delay before retry
+                next
+              end
+              
+              Rails.logger.error error_message
+              return nil
+            end
+          rescue => e
+            error_message = "[JobRunnerService] Error checking job status for job ID #{job_id}: #{e.message}"
+            
+            if retry_count < max_retries
+              retry_count += 1
+              Rails.logger.warn "#{error_message}. Retrying (#{retry_count}/#{max_retries})..."
+              sleep(1) # Short delay before retry
+              next
+            end
+            
+            Rails.logger.error error_message
+            return nil
+          end
         end
       rescue => e
-        Rails.logger.error "[JobRunnerService] Error checking job status for job ID #{job_id}: #{e.message}"
+        Rails.logger.error "[JobRunnerService] Unexpected error checking job status for job ID #{job_id}: #{e.message}"
         return nil
       end
     end
     
-    def wake_up_job_runner
+    def wake_up_job_runner(max_retries: 2)
       return true if Rails.env.development? || ENV['JOB_RUNNER_ONLY'] == 'true'
       
-      begin
-        Rails.logger.info "[JobRunnerService] Attempting to wake up job runner at #{job_runner_url}/health_check"
-        response = HTTParty.get(
-          "#{job_runner_url}/health_check",
-          timeout: 10 # Add a timeout to prevent hanging requests
-        )
-        
-        if response.success?
-          Rails.logger.info "[JobRunnerService] Job runner is awake and healthy: #{response.body}"
-          return true
-        else
-          Rails.logger.error "[JobRunnerService] Job runner health check failed. Status: #{response.code}, Error: #{response.body}"
+      retry_count = 0
+      
+      loop do
+        begin
+          Rails.logger.info "[JobRunnerService] Attempting to wake up job runner at #{job_runner_url}/health_check"
+          
+          response = HTTParty.get(
+            "#{job_runner_url}/health_check",
+            timeout: 12 # Increased timeout for health check
+          )
+          
+          if response.success?
+            Rails.logger.info "[JobRunnerService] Job runner is awake and healthy: #{response.body}"
+            return true
+          else
+            error_message = "[JobRunnerService] Job runner health check failed. Status: #{response.code}, Error: #{response.body}"
+            
+            if retry_count < max_retries
+              retry_count += 1
+              Rails.logger.warn "#{error_message}. Retrying (#{retry_count}/#{max_retries})..."
+              sleep(3 * retry_count) # Longer delay for health check retries
+              next
+            end
+            
+            Rails.logger.error error_message
+            return false
+          end
+        rescue => e
+          error_message = "[JobRunnerService] Error waking up job runner: #{e.message}"
+          
+          if retry_count < max_retries
+            retry_count += 1
+            Rails.logger.warn "#{error_message}. Retrying (#{retry_count}/#{max_retries})..."
+            sleep(3 * retry_count) # Longer delay for health check retries
+            next
+          end
+          
+          Rails.logger.error error_message
           return false
         end
-      rescue => e
-        Rails.logger.error "[JobRunnerService] Error waking up job runner: #{e.message}"
-        return false
       end
+    rescue => e
+      Rails.logger.error "[JobRunnerService] Unexpected error waking up job runner: #{e.message}"
+      return false
+    end
+    
+    # Check if the job runner is currently available
+    def job_runner_available?
+      return false if Rails.env.development? && ENV['USE_JOB_RUNNER'] != 'true'
+      return false if ENV['JOB_RUNNER_ONLY'] == 'true'
+      
+      wake_up_job_runner(max_retries: 1)
     end
     
     private

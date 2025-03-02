@@ -1,0 +1,210 @@
+<h2>Job Runner Status</h2>
+
+<div class="job-runner-status-panel">
+  <% if @job_runner_status[:is_job_runner] %>
+    <div class="status-box status-ok">
+      <h3>Job Runner Instance</h3>
+      <p>This is the job runner instance.</p>
+      
+      <div class="stats-grid">
+        <div class="stat-box">
+          <h4>Active Jobs</h4>
+          <p><%= @job_runner_status[:active_jobs] %></p>
+        </div>
+        <div class="stat-box">
+          <h4>Queued Jobs</h4>
+          <p><%= @job_runner_status[:queued_jobs] %></p>
+        </div>
+      </div>
+      
+      <% if @job_runner_status[:recent_errors].present? && @job_runner_status[:recent_errors].any? %>
+        <h4>Recent Errors</h4>
+        <table class="jobs-table">
+          <thead>
+            <tr>
+              <th>Job</th>
+              <th>Error</th>
+              <th>Created At</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @job_runner_status[:recent_errors].each do |job| %>
+              <tr>
+                <td><%= job.job_class %></td>
+                <td><%= truncate(job.error, length: 100) %></td>
+                <td><%= job.created_at.strftime('%Y-%m-%d %H:%M:%S') %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <p>No recent errors.</p>
+      <% end %>
+    </div>
+  <% else %>
+    <% if @job_runner_status[:is_available] %>
+      <div class="status-box status-ok">
+        <h3>Job Runner Status: Available</h3>
+        <p><%= @job_runner_status[:message] %></p>
+        
+        <% if @job_runner_status[:details].present? %>
+          <div class="stats-grid">
+            <div class="stat-box">
+              <h4>Environment</h4>
+              <p><%= @job_runner_status[:details]['environment'] %></p>
+            </div>
+            <div class="stat-box">
+              <h4>Timestamp</h4>
+              <p><%= @job_runner_status[:details]['timestamp'] %></p>
+            </div>
+            <div class="stat-box">
+              <h4>Good Job Status</h4>
+              <p><%= @job_runner_status[:details]['good_job_status'] %></p>
+            </div>
+            <% if @job_runner_status[:details]['active_jobs'].present? %>
+              <div class="stat-box">
+                <h4>Active Jobs</h4>
+                <p><%= @job_runner_status[:details]['active_jobs'] %></p>
+              </div>
+              <div class="stat-box">
+                <h4>Queued Jobs</h4>
+                <p><%= @job_runner_status[:details]['queued_jobs'] %></p>
+              </div>
+            <% end %>
+          </div>
+          
+          <% if @job_runner_status[:details]['recent_errors'].present? && @job_runner_status[:details]['recent_errors'].any? %>
+            <h4>Recent Errors</h4>
+            <table class="jobs-table">
+              <thead>
+                <tr>
+                  <th>Job</th>
+                  <th>Error</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @job_runner_status[:details]['recent_errors'].each do |error| %>
+                  <tr>
+                    <td><%= error['job_class'] %></td>
+                    <td><%= error['error'] %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          <% else %>
+            <p>No recent errors on job runner.</p>
+          <% end %>
+        <% elsif @job_runner_status[:details_error].present? %>
+          <div class="status-box status-warning">
+            <h4>Could not retrieve detailed status</h4>
+            <p><%= @job_runner_status[:details_error] %></p>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="status-box status-error">
+        <h3>Job Runner Status: Unavailable</h3>
+        <p><%= @job_runner_status[:message] %></p>
+        
+        <div class="actions">
+          <%= link_to 'Wake Up Job Runner', admin_good_job_dashboard_path(wake_job_runner: true), 
+                      method: :get, 
+                      class: 'job-button',
+                      data: { confirm: 'Are you sure you want to attempt to wake up the job runner?' } %>
+        </div>
+      </div>
+    <% end %>
+    
+    <div class="status-box">
+      <h3>Job Runner Actions</h3>
+      <div class="actions">
+        <%= link_to 'Refresh Status', admin_good_job_dashboard_check_job_runner_path, class: 'job-sub-button' %>
+        
+        <% if @job_runner_status[:is_available] %>
+          <%= link_to 'Run Fetch Content', admin_good_job_dashboard_run_fetch_content_path, 
+                      method: :post, 
+                      class: 'job-button',
+                      data: { confirm: 'Are you sure you want to start a content fetch job?' } %>
+          
+          <%= link_to 'Update Recommendations', admin_good_job_dashboard_run_update_recommendations_path, 
+                      method: :post, 
+                      class: 'job-button',
+                      data: { confirm: 'Are you sure you want to update recommendations for all users?' } %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+  
+  <div class="back-link">
+    <%= link_to 'Back to Dashboard', admin_good_job_dashboard_path, class: 'job-sub-button' %>
+  </div>
+</div>
+
+<style>
+.job-runner-status-panel {
+  margin: 20px 0;
+}
+
+.status-box {
+  background: #f9f9f9;
+  padding: 1.5rem;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 1.5rem;
+}
+
+.status-ok {
+  border-left: 5px solid #4caf50;
+}
+
+.status-warning {
+  border-left: 5px solid #ff9800;
+}
+
+.status-error {
+  border-left: 5px solid #f44336;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.stat-box {
+  background: #f5f5f5;
+  padding: 1rem;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.stat-box h4 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.actions {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.back-link {
+  margin-top: 2rem;
+}
+
+.jobs-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.jobs-table th, .jobs-table td {
+  padding: 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+</style> 
