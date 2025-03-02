@@ -5,6 +5,7 @@ Rails.application.configure do
   
   # Allow requests from the job runner domain
   config.hosts << "cinematch-job-runner.onrender.com"
+  config.hosts << "cinematch-ywet.onrender.com"
   
   # Disable asset compilation and related features
   config.assets.compile = false
