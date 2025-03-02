@@ -15,7 +15,7 @@ threads 1, threads_count
 
 # Set the port - Render expects this to be explicitly bound
 port_number = ENV.fetch("PORT") { 3000 }
-port port_number
+# Only use one binding method - using bind is more explicit
 bind "tcp://0.0.0.0:#{port_number}"
 
 # Preload the application
