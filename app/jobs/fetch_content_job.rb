@@ -4,6 +4,9 @@ class FetchContentJob < ApplicationJob
   queue_as :default
 
   def perform(options = {})
+    # Ensure options is a regular hash
+    options = options.to_h if options.respond_to?(:to_h)
+    
     # If we're not on the job runner instance, delegate the job to the job runner service
     if ENV['JOB_RUNNER_ONLY'] != 'true' && Rails.env.production?
       Rails.logger.info "[FetchContentJob] Running in production on main app, delegating to job runner service"
