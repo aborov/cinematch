@@ -33,3 +33,25 @@
     }
   }
 }
+
+// Custom button styling for action items
+.admin-job-button {
+  display: inline-block;
+  padding: 0.7rem 1.4rem;
+  background-color: #2271b1;
+  color: white !important;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.2s;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.admin-job-button:hover {
+  background-color: #135e96;
+  color: white !important;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+  transform: translateY(-1px);
+}
