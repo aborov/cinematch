@@ -14,11 +14,14 @@ class JobRunnerService
           return false
         end
         
+        # Ensure args is a regular hash, not an ActionController::Parameters object
+        args_hash = args.respond_to?(:to_unsafe_h) ? args.to_unsafe_h : args
+        
         response = HTTParty.post(
           "#{job_runner_url}/api/job_runner/run_job",
           body: {
             job_class: job_class,
-            args: args,
+            args: args_hash,
             secret: job_runner_secret
           }.to_json,
           headers: { 'Content-Type' => 'application/json' },
@@ -51,12 +54,15 @@ class JobRunnerService
           return false
         end
         
+        # Ensure args is a regular hash, not an ActionController::Parameters object
+        args_hash = args.respond_to?(:to_unsafe_h) ? args.to_unsafe_h : args
+        
         response = HTTParty.post(
           "#{job_runner_url}/api/job_runner/run_specific_job",
           body: {
             job_class: job_class,
             method_name: method_name,
-            args: args,
+            args: args_hash,
             secret: job_runner_secret
           }.to_json,
           headers: { 'Content-Type' => 'application/json' },

@@ -3,6 +3,9 @@ class GenerateRecommendationsJob < ApplicationJob
   retry_on StandardError, wait: 5.seconds, attempts: 3
 
   def perform(args = {})
+    # Ensure args is a regular hash
+    args = args.to_h if args.respond_to?(:to_h)
+    
     user_id = args[:user_id] || args
     
     # If we're not on the job runner instance, delegate the job to the job runner service
@@ -50,6 +53,9 @@ class GenerateRecommendationsJob < ApplicationJob
   
   # Class method for direct invocation
   def self.generate_recommendations_for_user(args = {})
+    # Ensure args is a regular hash
+    args = args.to_h if args.respond_to?(:to_h)
+    
     user_id = args[:user_id] || args
     
     if ENV['JOB_RUNNER_ONLY'] != 'true'

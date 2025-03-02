@@ -32,8 +32,11 @@ module Api
         job_class_constant = job_class.constantize
         Rails.logger.info "[JobRunnerController] Scheduling job #{job_class}"
         
-        job = if args.present?
-          job_class_constant.perform_later(args)
+        # Convert ActionController::Parameters to a regular hash
+        args_hash = args.is_a?(ActionController::Parameters) ? args.permit!.to_h : args
+        
+        job = if args_hash.present?
+          job_class_constant.perform_later(args_hash)
         else
           job_class_constant.perform_later
         end
@@ -71,10 +74,13 @@ module Api
         job_class_constant = job_class.constantize
         Rails.logger.info "[JobRunnerController] Calling method #{method_name} on #{job_class}"
         
+        # Convert ActionController::Parameters to a regular hash
+        args_hash = args.is_a?(ActionController::Parameters) ? args.permit!.to_h : args
+        
         job = if method_name.present?
-                job_class_constant.send(method_name, args)
+                job_class_constant.send(method_name, args_hash)
               else
-                job_class_constant.perform_later(args)
+                job_class_constant.perform_later(args_hash)
               end
         
         job_id = job.respond_to?(:job_id) ? job.job_id : 'immediate'
