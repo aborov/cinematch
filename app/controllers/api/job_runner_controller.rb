@@ -1,6 +1,5 @@
 module Api
-  class JobRunnerController < ApplicationController
-    skip_before_action :verify_authenticity_token
+  class JobRunnerController < JobRunnerBaseController
     before_action :authenticate_request, except: [:health_check]
     
     def health_check

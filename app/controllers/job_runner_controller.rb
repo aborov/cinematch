@@ -1,6 +1,4 @@
-class JobRunnerController < ApplicationController
-  skip_before_action :verify_authenticity_token
-  
+class JobRunnerController < JobRunnerBaseController
   # Redirect all web requests to the main application
   def index
     if Rails.env.job_runner? && ENV['MAIN_APP_URL'].present?
