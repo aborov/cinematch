@@ -35,8 +35,13 @@ class JobRunnerService
             )
             
             if response.success?
-              Rails.logger.info "[JobRunnerService] Successfully delegated job #{job_class} to job runner. Job ID: #{response['job_id']}"
-              return response['job_id']
+              job_id = response['job_id']
+              Rails.logger.info "[JobRunnerService] Successfully delegated job #{job_class} to job runner. Job ID: #{job_id}"
+              
+              # Start a keep-alive ping for the job runner
+              KeepAliveJobRunnerJob.perform_later(job_id)
+              
+              return job_id
             else
               error_message = "[JobRunnerService] Failed to delegate job #{job_class} to job runner. Status: #{response.code}, Error: #{response.body}"
               
@@ -205,7 +210,7 @@ class JobRunnerService
           
           response = HTTParty.get(
             "#{job_runner_url}/health_check",
-            timeout: 12 # Increased timeout for health check
+            timeout: 30 # Increased timeout for health check to 30 seconds
           )
           
           if response.success?
@@ -217,7 +222,8 @@ class JobRunnerService
             if retry_count < max_retries
               retry_count += 1
               Rails.logger.warn "#{error_message}. Retrying (#{retry_count}/#{max_retries})..."
-              sleep(3 * retry_count) # Longer delay for health check retries
+              # Longer delay for health check retries - up to 60 seconds for free-tier wake-up
+              sleep(20 * retry_count) 
               next
             end
             
@@ -230,7 +236,8 @@ class JobRunnerService
           if retry_count < max_retries
             retry_count += 1
             Rails.logger.warn "#{error_message}. Retrying (#{retry_count}/#{max_retries})..."
-            sleep(3 * retry_count) # Longer delay for health check retries
+            # Longer delay for health check retries - up to 60 seconds for free-tier wake-up
+            sleep(20 * retry_count)
             next
           end
           
@@ -249,6 +256,42 @@ class JobRunnerService
       return false if ENV['JOB_RUNNER_ONLY'] == 'true'
       
       wake_up_job_runner(max_retries: 1)
+    end
+    
+    # Ping the job runner to keep it alive
+    def keep_alive
+      return true if Rails.env.development? || ENV['JOB_RUNNER_ONLY'] == 'true'
+      
+      begin
+        Rails.logger.info "[JobRunnerService] Sending keep-alive ping to job runner"
+        
+        response = HTTParty.get(
+          "#{job_runner_url}/health_check",
+          timeout: 10
+        )
+        
+        if response.success?
+          Rails.logger.info "[JobRunnerService] Job runner keep-alive ping successful"
+          return true
+        else
+          Rails.logger.warn "[JobRunnerService] Job runner keep-alive ping failed. Status: #{response.code}"
+          return false
+        end
+      rescue => e
+        Rails.logger.warn "[JobRunnerService] Error sending keep-alive ping to job runner: #{e.message}"
+        return false
+      end
+    end
+    
+    # Check if a job is still running
+    def job_running?(job_id)
+      return false unless job_id
+      
+      status = check_job_status(job_id)
+      return false unless status
+      
+      # Consider the job running if it's not finished
+      !status['finished']
     end
     
     private
