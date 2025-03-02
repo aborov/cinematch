@@ -22,6 +22,16 @@
         <h4>Users with Recommendations</h4>
         <p><%= UserPreference.where.not(recommended_content_ids: []).count %></p>
       </div>
+      <div class="stat-box">
+        <h4>Job Runner Status</h4>
+        <% if defined?(@job_runner_available) && @job_runner_available %>
+          <p class="status-indicator available">Available</p>
+          <%= link_to 'Check Status', admin_good_job_dashboard_check_job_runner_path, class: 'status-link' %>
+        <% else %>
+          <p class="status-indicator unavailable">Unavailable</p>
+          <%= link_to 'Check Status', admin_good_job_dashboard_check_job_runner_path, class: 'status-link' %>
+        <% end %>
+      </div>
     </div>
   </div>
 
@@ -122,7 +132,7 @@
               <% end %>
             </td>
             <td>
-              <% if policy(:page).delete_job? %>
+              <% if can_delete_job? %>
                 <%= link_to 'Delete', admin_good_job_dashboard_delete_job_path(id: job.id), 
                             method: :delete, 
                             class: 'delete-job-btn',
@@ -310,6 +320,31 @@
   background-color: #f1b0b7;
   color: #721c24 !important;
   border-color: #f1b0b7;
+}
+
+.status-indicator {
+  font-weight: bold;
+  padding: 3px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 5px;
+}
+
+.status-indicator.available {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-indicator.unavailable {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.status-link {
+  display: block;
+  font-size: 0.9rem;
+  color: #0366d6;
+  text-decoration: underline;
 }
 </style>
 

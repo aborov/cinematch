@@ -36,6 +36,7 @@ class ApplicationController < ActionController::Base
   end
 
   def authenticate_admin_user!
+    # ActiveAdmin is configured to use current_user
     redirect_to root_path, alert: 'Not authorized.' unless current_user&.admin?
   end
 

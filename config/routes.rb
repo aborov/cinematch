@@ -15,6 +15,7 @@ Rails.application.routes.draw do
       resources :job_runner, only: [] do
         collection do
           get 'health_check'
+          get 'status'
           post 'run_job'
           post 'run_specific_job'
           get 'job_status/:job_id', action: :job_status, as: :status
@@ -28,6 +29,18 @@ Rails.application.routes.draw do
   else
     # Regular application routes
     root to: "pages#landing"
+
+    # API routes for job runner status
+    namespace :api do
+      resources :job_runner, only: [] do
+        collection do
+          get 'status'
+          post 'run_job'
+          post 'run_specific_job'
+          get 'job_status/:job_id', action: :job_status, as: :job_status
+        end
+      end
+    end
 
     devise_for :users, controllers: {
               passwords: 'users/passwords',
