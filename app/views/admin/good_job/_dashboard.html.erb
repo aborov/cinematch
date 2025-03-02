@@ -108,7 +108,10 @@
             <td><%= truncate(job.error, length: 50) if job.error.present? %></td>
             <td>
               <% if job.error.present? %>
-                <%= link_to "View Error", admin_good_job_path(job) %>
+                <button class="toggle-error-btn" data-job-id="<%= job.id %>">View Error</button>
+                <div id="error-<%= job.id %>" class="error-details" style="display: none;">
+                  <pre><%= job.error %></pre>
+                </div>
               <% end %>
               <% if job.serialized_params&.dig('arguments')&.first&.is_a?(Hash) %>
                 <% args = job.serialized_params['arguments'].first %>
@@ -252,4 +255,51 @@
   border-color: #bbb;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
+
+.toggle-error-btn {
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  padding: 3px 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.toggle-error-btn:hover {
+  background-color: #e0e0e0;
+}
+
+.error-details {
+  margin-top: 5px;
+  padding: 8px;
+  background-color: #f8f8f8;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.error-details pre {
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: 0.8rem;
+}
 </style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.toggle-error-btn').forEach(function(button) {
+      button.addEventListener('click', function() {
+        var jobId = this.getAttribute('data-job-id');
+        var errorDiv = document.getElementById('error-' + jobId);
+        if (errorDiv.style.display === 'none') {
+          errorDiv.style.display = 'block';
+          this.textContent = 'Hide Error';
+        } else {
+          errorDiv.style.display = 'none';
+          this.textContent = 'View Error';
+        }
+      });
+    });
+  });
+</script>
