@@ -49,6 +49,10 @@ services:
         value: true
       - key: DISABLE_SPRING
         value: true
+      - key: DB_POOL
+        value: 10
+      - key: RAILS_ENV
+        value: job_runner
     buildFilter:
       paths:
       - "**/*.rb"

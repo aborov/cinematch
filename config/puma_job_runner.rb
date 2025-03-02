@@ -13,8 +13,10 @@ workers ENV.fetch("WEB_CONCURRENCY") { 1 }
 threads_count = ENV.fetch("RAILS_MAX_THREADS") { 2 }
 threads 1, threads_count
 
-# Set the port
-port ENV.fetch("PORT") { 3000 }
+# Set the port - Render expects this to be explicitly bound
+port_number = ENV.fetch("PORT") { 3000 }
+port port_number
+bind "tcp://0.0.0.0:#{port_number}"
 
 # Preload the application
 preload_app!
@@ -22,8 +24,12 @@ preload_app!
 # Set the directory
 directory ENV.fetch("RAILS_ROOT") { "." }
 
-# Logging
-stdout_redirect "log/puma_job_runner.log", "log/puma_job_runner_error.log", true unless ENV["RAILS_LOG_TO_STDOUT"] == "true"
+# Logging - use stdout if configured
+if ENV["RAILS_LOG_TO_STDOUT"] == "true"
+  stdout_redirect
+else
+  stdout_redirect "log/puma_job_runner.log", "log/puma_job_runner_error.log", true
+end
 
 # Set up hooks
 on_worker_boot do
