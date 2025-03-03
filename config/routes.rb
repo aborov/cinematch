@@ -18,7 +18,7 @@ Rails.application.routes.draw do
           get 'status'
           post 'run_job'
           post 'run_specific_job'
-          get 'job_status/:job_id', action: :job_status, as: :status
+          get 'job_status/:job_id', action: :job_status, as: :job_status_runner
         end
       end
     end
