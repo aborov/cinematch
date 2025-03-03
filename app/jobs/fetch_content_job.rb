@@ -87,46 +87,51 @@ class FetchContentJob < ApplicationJob
         max_retries = 2
         retry_count = 0
         
-        begin
-          response = HTTParty.post(
-            "#{ENV['MAIN_APP_URL']}/api/job_runner/run_job",
-            body: {
-              job_class: 'UpdateAllRecommendationsJob',
-              secret: shared_secret
-            }.to_json,
-            headers: { 'Content-Type' => 'application/json' },
-            timeout: 15
-          )
-          
-          if response.success?
-            Rails.logger.info "[FetchContentJob] Successfully notified main app to update recommendations"
-          else
-            error_message = "[FetchContentJob] Failed to notify main app: #{response.code} - #{response.body}"
+        loop do
+          begin
+            response = HTTParty.post(
+              "#{ENV['MAIN_APP_URL']}/api/job_runner/run_job",
+              body: {
+                job_class: 'UpdateAllRecommendationsJob',
+                secret: shared_secret
+              }.to_json,
+              headers: { 'Content-Type' => 'application/json' },
+              timeout: 15
+            )
             
-            if retry_count < max_retries && (response.code >= 500 || response.code == 0)
+            if response.success?
+              Rails.logger.info "[FetchContentJob] Successfully notified main app to update recommendations"
+              break
+            else
+              error_message = "[FetchContentJob] Failed to notify main app: #{response.code} - #{response.body}"
+              
+              if retry_count < max_retries && (response.code >= 500 || response.code == 0)
+                retry_count += 1
+                Rails.logger.warn "#{error_message}. Retrying (#{retry_count}/#{max_retries})..."
+                sleep(2 * retry_count) # Exponential backoff
+                next
+              end
+              
+              Rails.logger.error error_message
+              # Fall back to running locally
+              UpdateAllRecommendationsJob.set(wait: 1.minute).perform_later
+              break
+            end
+          rescue => e
+            error_message = "[FetchContentJob] Failed to notify main app: #{e.message}"
+            
+            if retry_count < max_retries
               retry_count += 1
               Rails.logger.warn "#{error_message}. Retrying (#{retry_count}/#{max_retries})..."
               sleep(2 * retry_count) # Exponential backoff
-              retry
+              next
             end
             
             Rails.logger.error error_message
             # Fall back to running locally
             UpdateAllRecommendationsJob.set(wait: 1.minute).perform_later
+            break
           end
-        rescue => e
-          error_message = "[FetchContentJob] Failed to notify main app: #{e.message}"
-          
-          if retry_count < max_retries
-            retry_count += 1
-            Rails.logger.warn "#{error_message}. Retrying (#{retry_count}/#{max_retries})..."
-            sleep(2 * retry_count) # Exponential backoff
-            retry
-          end
-          
-          Rails.logger.error error_message
-          # Fall back to running locally
-          UpdateAllRecommendationsJob.set(wait: 1.minute).perform_later
         end
       rescue => e
         Rails.logger.error "[FetchContentJob] Unexpected error notifying main app: #{e.message}"
