@@ -247,7 +247,8 @@ module Api
         'FetchContentJob',
         'FillMissingDetailsJob',
         'UpdateAllRecommendationsJob',
-        'GenerateRecommendationsJob'
+        'GenerateRecommendationsJob',
+        'ProcessAllRecommendationsJob'
       ]
       
       is_valid = allowed_job_classes.include?(job_class)

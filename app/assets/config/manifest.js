@@ -6,3 +6,4 @@
 //= link_directory ../javascripts .js
 //= link_directory ../javascripts/admin .js
 //= link admin/good_job_dashboard.js
+//= link admin/good_job_dashboard.css

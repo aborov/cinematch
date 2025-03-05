@@ -10,9 +10,18 @@ function initGoodJobDashboard() {
   // Set up job filtering
   setupJobFiltering();
   
+  // Set up error toggling
+  setupErrorToggling();
+  
   // Update job runner status immediately and periodically
   updateJobRunnerStatus();
   setInterval(updateJobRunnerStatus, 30000);
+  
+  // Set up refresh button for job runner status
+  setupJobRunnerStatusRefresh();
+  
+  // Set up job deletion handling
+  setupJobDeletion();
 }
 
 // Function to update job runner status
@@ -125,4 +134,74 @@ function filterJobs() {
   });
   
   console.log(`Filtered jobs: ${visibleCount} visible out of ${rows.length} total`);
+}
+
+// Set up error toggling
+function setupErrorToggling() {
+  const toggleButtons = document.querySelectorAll('.toggle-error-btn');
+  
+  if (toggleButtons.length === 0) {
+    console.log('No error toggle buttons found');
+    return;
+  }
+  
+  console.log('Setting up error toggling for', toggleButtons.length, 'buttons');
+  
+  toggleButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const jobId = this.getAttribute('data-job-id');
+      const errorDetails = document.getElementById('error-' + jobId);
+      
+      if (errorDetails) {
+        // Toggle the hidden class
+        errorDetails.classList.toggle('hidden');
+        
+        // Update button text
+        if (errorDetails.classList.contains('hidden')) {
+          this.textContent = 'View Error';
+        } else {
+          this.textContent = 'Hide Error';
+        }
+      }
+    });
+  });
+}
+
+// Set up refresh button for job runner status
+function setupJobRunnerStatusRefresh() {
+  const refreshButton = document.getElementById('refresh-job-runner-status');
+  
+  if (!refreshButton) {
+    console.log('Refresh button for job runner status not found');
+    return;
+  }
+  
+  console.log('Setting up refresh button for job runner status');
+  
+  refreshButton.addEventListener('click', function() {
+    updateJobRunnerStatus();
+  });
+}
+
+// Set up job deletion handling
+function setupJobDeletion() {
+  const deleteButtons = document.querySelectorAll('.delete-job-btn, .delete-job');
+  
+  if (deleteButtons.length === 0) {
+    console.log('No job deletion buttons found');
+    return;
+  }
+  
+  console.log('Setting up job deletion for', deleteButtons.length, 'buttons');
+  
+  deleteButtons.forEach(button => {
+    button.addEventListener('click', function(event) {
+      // The default Rails UJS will handle the actual deletion
+      // This is just to ensure we reload the page after deletion
+      const originalHref = this.getAttribute('href');
+      
+      // Log the deletion attempt
+      console.log('Deleting job via:', originalHref);
+    });
+  });
 } 

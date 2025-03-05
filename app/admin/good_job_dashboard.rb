@@ -111,16 +111,18 @@ ActiveAdmin.register_page "Good Job Dashboard" do
   page_action :run_update_recommendations, method: :post do
     authorize :page, :run_update_recommendations?
     
+    batch_size = params[:batch_size].present? ? params[:batch_size].to_i : 50
+    
     # Use JobRunnerService directly instead of perform_later
     job_id = if Rails.env.production? && ENV['JOB_RUNNER_ONLY'] != 'true'
       JobRunnerService.wake_up_job_runner
-      JobRunnerService.run_job('UpdateAllRecommendationsJob')
+      JobRunnerService.run_job('UpdateAllRecommendationsJob', { batch_size: batch_size })
     else
-      job = UpdateAllRecommendationsJob.perform_later
+      job = UpdateAllRecommendationsJob.perform_later(batch_size: batch_size)
       job.job_id
     end
     
-    redirect_to admin_good_job_dashboard_path, notice: "Update recommendations job started (Job ID: #{job_id})"
+    redirect_to admin_good_job_dashboard_path, notice: "Update recommendations job started with batch size #{batch_size} (Job ID: #{job_id})"
   end
 
   page_action :run_fill_missing_details, method: :post do
@@ -142,12 +144,22 @@ ActiveAdmin.register_page "Good Job Dashboard" do
     authorize :page, :delete_job?
     
     job_id = params[:id]
+    # Use find_by_id to avoid exceptions if the job doesn't exist
     job = GoodJob::Job.find_by(id: job_id)
     
     if job
       job_class = job.job_class
-      job.destroy
-      redirect_to admin_good_job_dashboard_path, notice: "Job #{job_class} (ID: #{job_id}) has been deleted from history"
+      # Ensure the job is properly destroyed
+      if job.destroy
+        # Clear any potential caches
+        GoodJob::Job.uncached do
+          # Force a reload of the jobs collection
+          GoodJob::Job.connection.clear_query_cache
+          redirect_to admin_good_job_dashboard_path, notice: "Job #{job_class} (ID: #{job_id}) has been deleted from history"
+        end
+      else
+        redirect_to admin_good_job_dashboard_path, alert: "Failed to delete job #{job_class} (ID: #{job_id})"
+      end
     else
       redirect_to admin_good_job_dashboard_path, alert: "Job with ID #{job_id} not found"
     end
@@ -215,12 +227,16 @@ ActiveAdmin.register_page "Good Job Dashboard" do
     helper_method :job_status, :can_delete_job?
 
     def index
-      @jobs = GoodJob::Job.where('created_at > ?', 2.weeks.ago)
-      @queues = GoodJob::Job.distinct.pluck(:queue_name).compact.sort
-      @job_classes = GoodJob::Job.distinct.pluck(:job_class).compact.sort
-      @next_fetch_job = GoodJob::Job.where(job_class: 'FetchContentJob').scheduled.first
-      @next_update_job = GoodJob::Job.where(job_class: 'UpdateAllRecommendationsJob').scheduled.first
-      @next_fill_details_job = GoodJob::Job.where(job_class: 'FillMissingDetailsJob').scheduled.first
+      # Ensure we're getting fresh data
+      GoodJob::Job.uncached do
+        GoodJob::Job.connection.clear_query_cache
+        @jobs = GoodJob::Job.where('created_at > ?', 2.weeks.ago)
+        @queues = GoodJob::Job.distinct.pluck(:queue_name).compact.sort
+        @job_classes = GoodJob::Job.distinct.pluck(:job_class).compact.sort
+        @next_fetch_job = GoodJob::Job.where(job_class: 'FetchContentJob').scheduled.first
+        @next_update_job = GoodJob::Job.where(job_class: 'UpdateAllRecommendationsJob').scheduled.first
+        @next_fill_details_job = GoodJob::Job.where(job_class: 'FillMissingDetailsJob').scheduled.first
+      end
       
       # Initialize job runner status without waiting
       @job_runner_status = {
