@@ -4,15 +4,25 @@ class KeepAliveJobRunnerJob < ApplicationJob
   # How often to ping the job runner (in seconds)
   PING_INTERVAL = 4.minutes
   
-  # Maximum number of pings before giving up (approximately 2 hours)
-  MAX_PINGS = 30
+  # Default maximum number of pings (approximately 8 hours)
+  DEFAULT_MAX_PINGS = 120
   
-  def perform(job_id, ping_count = 0)
-    Rails.logger.info "[KeepAliveJobRunnerJob] Checking status of job #{job_id} (ping #{ping_count}/#{MAX_PINGS})"
+  # Job-specific maximum pings
+  JOB_SPECIFIC_MAX_PINGS = {
+    'FetchContentJob' => 150, # ~10 hours (to be safe)
+    'UpdateAllRecommendationsJob' => 60, # ~4 hours
+    'FillMissingDetailsJob' => 90 # ~6 hours
+  }
+  
+  def perform(job_id, ping_count = 0, job_class = nil)
+    # Get the maximum pings for this job type
+    max_pings = get_max_pings(job_class)
+    
+    Rails.logger.info "[KeepAliveJobRunnerJob] Checking status of job #{job_id} (ping #{ping_count}/#{max_pings})"
     
     # Stop pinging if we've reached the maximum number of pings
-    if ping_count >= MAX_PINGS
-      Rails.logger.info "[KeepAliveJobRunnerJob] Reached maximum number of pings (#{MAX_PINGS}) for job #{job_id}, stopping keep-alive"
+    if ping_count >= max_pings
+      Rails.logger.info "[KeepAliveJobRunnerJob] Reached maximum number of pings (#{max_pings}) for job #{job_id}, stopping keep-alive"
       return
     end
     
@@ -23,9 +33,16 @@ class KeepAliveJobRunnerJob < ApplicationJob
       
       # Schedule the next ping
       Rails.logger.info "[KeepAliveJobRunnerJob] Job #{job_id} is still running, scheduling next ping in #{PING_INTERVAL} seconds"
-      KeepAliveJobRunnerJob.set(wait: PING_INTERVAL).perform_later(job_id, ping_count + 1)
+      KeepAliveJobRunnerJob.set(wait: PING_INTERVAL).perform_later(job_id, ping_count + 1, job_class)
     else
       Rails.logger.info "[KeepAliveJobRunnerJob] Job #{job_id} is no longer running, stopping keep-alive"
     end
+  end
+  
+  private
+  
+  def get_max_pings(job_class)
+    return DEFAULT_MAX_PINGS unless job_class.present?
+    JOB_SPECIFIC_MAX_PINGS[job_class] || DEFAULT_MAX_PINGS
   end
 end 

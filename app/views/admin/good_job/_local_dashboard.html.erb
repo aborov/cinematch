@@ -1,0 +1,153 @@
+<%# Local job statistics %>
+<div class="stats-grid">
+  <div class="stat-box">
+    <h4>Running Jobs</h4>
+    <p><%= GoodJob::Job.running.count %></p>
+  </div>
+  <div class="stat-box">
+    <h4>Queued Jobs</h4>
+    <p><%= GoodJob::Job.queued.count %></p>
+  </div>
+  <div class="stat-box">
+    <h4>Failed Jobs</h4>
+    <p><%= GoodJob::Job.where.not(error: nil).count %></p>
+  </div>
+  <div class="stat-box">
+    <h4>Completed Jobs (2 weeks)</h4>
+    <p><%= GoodJob::Job.finished.where('finished_at > ?', 2.weeks.ago).count %></p>
+  </div>
+</div>
+
+<%# Job history table %>
+<h3>Job History (Last 2 Weeks)</h3>
+
+<div class="filter-controls">
+  <select id="job-filter" class="job-filter">
+    <option value="all">All Jobs</option>
+    <% @job_classes.each do |job_class| %>
+      <option value="<%= job_class %>"><%= job_class %></option>
+    <% end %>
+  </select>
+  
+  <select id="status-filter" class="status-filter">
+    <option value="all">All Statuses</option>
+    <option value="Running">Running</option>
+    <option value="Queued">Queued</option>
+    <option value="Finished">Finished</option>
+    <option value="Failed">Failed</option>
+  </select>
+</div>
+
+<table class="jobs-table">
+  <thead>
+    <tr>
+      <th>Job</th>
+      <th>Status</th>
+      <th>Created</th>
+      <th>Started</th>
+      <th>Finished</th>
+      <th>Duration</th>
+      <th>Error</th>
+      <% if can_delete_job? %>
+        <th>Actions</th>
+      <% end %>
+    </tr>
+  </thead>
+  <tbody>
+    <% @jobs.order(created_at: :desc).limit(100).each do |job| %>
+      <tr class="job-row" data-job-class="<%= job.job_class %>" data-status="<%= job_status(job) %>">
+        <td><%= job.job_class %></td>
+        <td><%= job_status(job) %></td>
+        <td><%= job.created_at&.strftime("%Y-%m-%d %H:%M:%S") %></td>
+        <td><%= job.performed_at&.strftime("%Y-%m-%d %H:%M:%S") %></td>
+        <td><%= job.finished_at&.strftime("%Y-%m-%d %H:%M:%S") %></td>
+        <td>
+          <% if job.performed_at && job.finished_at %>
+            <% duration_seconds = (job.finished_at - job.performed_at) %>
+            <% if duration_seconds < 60 %>
+              <%= duration_seconds.round(2) %>s
+            <% else %>
+              <%= (duration_seconds / 60).floor %>m <%= (duration_seconds % 60).round %>s
+            <% end %>
+          <% end %>
+        </td>
+        <td><%= job.error&.truncate(100) %></td>
+        <% if can_delete_job? %>
+          <td>
+            <%= link_to "Delete", admin_good_job_dashboard_delete_job_path(job), 
+                method: :delete, 
+                data: { confirm: "Are you sure you want to delete this job?" },
+                class: "delete-job" %>
+          </td>
+        <% end %>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<%# Next scheduled jobs %>
+<h3>Next Scheduled Jobs</h3>
+<table class="jobs-table">
+  <thead>
+    <tr>
+      <th>Job</th>
+      <th>Scheduled For</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% if @next_fetch_job %>
+      <tr>
+        <td>Fetch Content</td>
+        <td><%= @next_fetch_job.scheduled_at&.strftime("%Y-%m-%d %H:%M:%S") %></td>
+      </tr>
+    <% end %>
+    <% if @next_update_job %>
+      <tr>
+        <td>Update Recommendations</td>
+        <td><%= @next_update_job.scheduled_at&.strftime("%Y-%m-%d %H:%M:%S") %></td>
+      </tr>
+    <% end %>
+    <% if @next_fill_details_job %>
+      <tr>
+        <td>Fill Missing Details</td>
+        <td><%= @next_fill_details_job.scheduled_at&.strftime("%Y-%m-%d %H:%M:%S") %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<%# Inline JavaScript as fallback %>
+<script type="text/javascript">
+  // Set up filtering when the page loads
+  document.addEventListener('DOMContentLoaded', function() {
+    // Job filtering
+    const jobFilter = document.getElementById('job-filter');
+    const statusFilter = document.getElementById('status-filter');
+    
+    if (jobFilter && statusFilter) {
+      const filterJobs = function() {
+        const jobClass = jobFilter.value;
+        const status = statusFilter.value;
+        
+        const rows = document.querySelectorAll('.job-row');
+        
+        rows.forEach(row => {
+          const rowJobClass = row.getAttribute('data-job-class');
+          const rowStatus = row.getAttribute('data-status');
+          
+          const jobClassMatch = jobClass === 'all' || rowJobClass === jobClass;
+          const statusMatch = status === 'all' || rowStatus === status;
+          
+          if (jobClassMatch && statusMatch) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+      };
+      
+      jobFilter.addEventListener('change', filterJobs);
+      statusFilter.addEventListener('change', filterJobs);
+    }
+  });
+</script> 

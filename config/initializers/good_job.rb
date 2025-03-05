@@ -6,11 +6,11 @@ Rails.application.configure do
     shutdown_timeout: ENV.fetch("GOOD_JOB_SHUTDOWN_TIMEOUT", 25).to_i,
     queues: '*',
     max_cache: ENV.fetch("GOOD_JOB_MAX_CACHE", 10000).to_i,
-    preserve_job_records: ENV.fetch("GOOD_JOB_PRESERVE_JOB_RECORDS", true) == 'true',
+    preserve_job_records: true,
     retry_on_unhandled_error: ENV.fetch("GOOD_JOB_RETRY_ON_UNHANDLED_ERROR", false) == 'true',
     on_thread_error: -> (exception) { Rails.logger.error("GoodJob execution error: #{exception.inspect}") },
-    cleanup_preserved_jobs_before_seconds_ago: 1.day.to_i,
-    cleanup_interval_seconds: 1.hour.to_i,
+    cleanup_preserved_jobs_before_seconds_ago: 2.weeks.to_i,
+    cleanup_interval_seconds: 1.day.to_i,
     enable_cron: Rails.env.development? || Rails.env.job_runner? || ENV.fetch("JOB_RUNNER_ONLY", "false") == "true"
   }
 
