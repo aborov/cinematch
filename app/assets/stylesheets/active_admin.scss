@@ -10,6 +10,7 @@
 // Active Admin's got SASS!
 @import "active_admin/mixins";
 @import "active_admin/base";
+@import "admin/good_job_dashboard";
 
 // Overriding any non-variable Sass must be done after the fact.
 // For example, to change the default status-tag color:
@@ -17,45 +18,7 @@
 //   .status_tag { background: #6090DB; }
 
 .good-job-dashboard {
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    margin-bottom: 2rem;
-  }
-
-  .stat-box {
-    background: #f5f5f5;
-    padding: 1rem;
-    border-radius: 4px;
-    text-align: center;
-
-    h4 {
-      margin: 0;
-      color: #666;
-    }
-
-    p {
-      margin: 0.5rem 0 0;
-      font-size: 1.5rem;
-      font-weight: bold;
-    }
-  }
-
-  .jobs-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 1rem 0;
-
-    th, td {
-      padding: 0.5rem;
-      border: 1px solid #ddd;
-    }
-
-    tr.error {
-      background-color: #fff3f3;
-    }
-  }
+  // Styles are now in admin/good_job_dashboard.scss
 }
 
 .dashboard-stats {
@@ -66,6 +29,8 @@
 }
 
 .stat-box {
+  // Some styles are now in admin/good_job_dashboard.scss
+  // Keep only the ones specific to the dashboard stats
   background: #fff;
   padding: 1rem;
   border-radius: 4px;
@@ -94,6 +59,8 @@
 }
 
 .actions {
+  // Some styles are now in admin/good_job_dashboard.scss
+  // Keep only the ones specific to the dashboard actions
   margin-top: 1rem;
   text-align: right;
 }

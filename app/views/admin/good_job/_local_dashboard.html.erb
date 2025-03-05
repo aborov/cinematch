@@ -36,6 +36,8 @@
     <option value="Finished">Finished</option>
     <option value="Failed">Failed</option>
   </select>
+  
+  <a href="<%= admin_good_job_dashboard_path %>" class="refresh-button">Refresh Job List</a>
 </div>
 
 <table class="jobs-table">
@@ -74,7 +76,7 @@
         <td><%= job.error&.truncate(100) %></td>
         <% if can_delete_job? %>
           <td>
-            <%= link_to "Delete", admin_good_job_dashboard_delete_job_path(job), 
+            <%= link_to "Delete", admin_good_job_dashboard_delete_job_path(id: job.id), 
                 method: :delete, 
                 data: { confirm: "Are you sure you want to delete this job?" },
                 class: "delete-job" %>
@@ -114,40 +116,4 @@
       </tr>
     <% end %>
   </tbody>
-</table>
-
-<%# Inline JavaScript as fallback %>
-<script type="text/javascript">
-  // Set up filtering when the page loads
-  document.addEventListener('DOMContentLoaded', function() {
-    // Job filtering
-    const jobFilter = document.getElementById('job-filter');
-    const statusFilter = document.getElementById('status-filter');
-    
-    if (jobFilter && statusFilter) {
-      const filterJobs = function() {
-        const jobClass = jobFilter.value;
-        const status = statusFilter.value;
-        
-        const rows = document.querySelectorAll('.job-row');
-        
-        rows.forEach(row => {
-          const rowJobClass = row.getAttribute('data-job-class');
-          const rowStatus = row.getAttribute('data-status');
-          
-          const jobClassMatch = jobClass === 'all' || rowJobClass === jobClass;
-          const statusMatch = status === 'all' || rowStatus === status;
-          
-          if (jobClassMatch && statusMatch) {
-            row.style.display = '';
-          } else {
-            row.style.display = 'none';
-          }
-        });
-      };
-      
-      jobFilter.addEventListener('change', filterJobs);
-      statusFilter.addEventListener('change', filterJobs);
-    }
-  });
-</script> 
+</table> 

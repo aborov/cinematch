@@ -1,3 +1,4 @@
+<%# Good Job Dashboard - Styles are in app/assets/stylesheets/admin/good_job_dashboard.scss %>
 <div class="good-job-dashboard">
   <div class="stats-panel">
     <h3>Job Statistics</h3>
@@ -73,10 +74,15 @@
         <h4>Update Recommendations</h4>
         <p>Next scheduled: <%= @next_update_job&.scheduled_at&.strftime('%Y-%m-%d %H:%M:%S') || 'None' %></p>
         <% if policy(:page).run_update_recommendations? %>
-          <%= link_to 'Run Now', admin_good_job_dashboard_run_update_recommendations_path, 
-                      method: :post, 
-                      class: 'job-button',
-                      data: { confirm: 'Are you sure you want to update recommendations for all users?' } %>
+          <%= form_tag admin_good_job_dashboard_run_update_recommendations_path, method: :post, class: 'job-form' do %>
+            <div class="form-group">
+              <%= label_tag :batch_size, 'Batch Size:' %>
+              <%= number_field_tag :batch_size, 50, min: 10, max: 200, class: 'form-control' %>
+            </div>
+            <%= submit_tag 'Run Now', 
+                        class: 'job-button',
+                        data: { confirm: 'Are you sure you want to update recommendations for all users?' } %>
+          <% end %>
         <% end %>
       </div>
       
@@ -95,6 +101,9 @@
 
   <div class="recent-jobs-panel">
     <h3>Recent Jobs</h3>
+    <div class="refresh-controls">
+      <a href="<%= admin_good_job_dashboard_path %>" class="refresh-button">Refresh Job List</a>
+    </div>
     <table class="jobs-table">
       <thead>
         <tr>
@@ -120,7 +129,7 @@
             <td>
               <% if job.error.present? %>
                 <button class="toggle-error-btn" data-job-id="<%= job.id %>">View Error</button>
-                <div id="error-<%= job.id %>" class="error-details" style="display: none;">
+                <div id="error-<%= job.id %>" class="error-details hidden">
                   <pre><%= job.error %></pre>
                 </div>
               <% end %>
@@ -163,205 +172,3 @@
     </div>
   </div>
 </div>
-
-<style>
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.stat-box {
-  background: #f5f5f5;
-  padding: 1rem;
-  border-radius: 4px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.jobs-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.jobs-table th, .jobs-table td {
-  padding: 0.5rem;
-  text-align: left;
-  border-bottom: 1px solid #eee;
-}
-
-.error {
-  background-color: #fff3f3;
-}
-
-.manual-jobs-panel {
-  margin-bottom: 2rem;
-}
-
-.job-buttons {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-  margin-top: 1rem;
-}
-
-.job-button-container {
-  background: #f9f9f9;
-  padding: 1.5rem;
-  border-radius: 6px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  text-align: center;
-}
-
-.job-button-container h4 {
-  margin-top: 0;
-  margin-bottom: 0.5rem;
-  color: #333;
-  font-size: 1.2rem;
-}
-
-.job-button-container p {
-  margin-bottom: 1rem;
-  color: #666;
-  font-size: 0.9rem;
-}
-
-.job-button {
-  display: inline-block;
-  padding: 0.7rem 1.4rem;
-  background-color: #2271b1;
-  color: white !important;
-  border-radius: 4px;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 1rem;
-  transition: all 0.2s;
-  border: none;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.job-button:hover {
-  background-color: #135e96;
-  color: white !important;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
-  transform: translateY(-1px);
-}
-
-.job-sub-buttons {
-  margin-top: 1rem;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.job-sub-button {
-  display: inline-block;
-  padding: 0.5rem 0.9rem;
-  background-color: #f8f8f8;
-  color: #0366d6 !important;
-  border-radius: 4px;
-  text-decoration: none;
-  font-size: 0.9rem;
-  font-weight: 500;
-  border: 1px solid #ddd;
-  transition: all 0.2s;
-}
-
-.job-sub-button:hover {
-  background-color: #f0f0f0;
-  color: #0256b9 !important;
-  border-color: #bbb;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.toggle-error-btn {
-  background-color: #f0f0f0;
-  border: 1px solid #ddd;
-  border-radius: 3px;
-  padding: 3px 8px;
-  font-size: 0.8rem;
-  cursor: pointer;
-}
-
-.toggle-error-btn:hover {
-  background-color: #e0e0e0;
-}
-
-.error-details {
-  margin-top: 5px;
-  padding: 8px;
-  background-color: #f8f8f8;
-  border: 1px solid #ddd;
-  border-radius: 3px;
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.error-details pre {
-  margin: 0;
-  white-space: pre-wrap;
-  font-size: 0.8rem;
-}
-
-.delete-job-btn {
-  display: inline-block;
-  padding: 3px 8px;
-  background-color: #f8d7da;
-  color: #721c24 !important;
-  border-radius: 3px;
-  text-decoration: none;
-  font-size: 0.8rem;
-  border: 1px solid #f5c6cb;
-  transition: all 0.2s;
-}
-
-.delete-job-btn:hover {
-  background-color: #f1b0b7;
-  color: #721c24 !important;
-  border-color: #f1b0b7;
-}
-
-.status-indicator {
-  font-weight: bold;
-  padding: 3px 8px;
-  border-radius: 4px;
-  display: inline-block;
-  margin-bottom: 5px;
-}
-
-.status-indicator.available {
-  background-color: #e8f5e9;
-  color: #2e7d32;
-}
-
-.status-indicator.unavailable {
-  background-color: #ffebee;
-  color: #c62828;
-}
-
-.status-link {
-  display: block;
-  font-size: 0.9rem;
-  color: #0366d6;
-  text-decoration: underline;
-}
-</style>
-
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.toggle-error-btn').forEach(function(button) {
-      button.addEventListener('click', function() {
-        var jobId = this.getAttribute('data-job-id');
-        var errorDiv = document.getElementById('error-' + jobId);
-        if (errorDiv.style.display === 'none') {
-          errorDiv.style.display = 'block';
-          this.textContent = 'Hide Error';
-        } else {
-          errorDiv.style.display = 'none';
-          this.textContent = 'View Error';
-        }
-      });
-    });
-  });
-</script>

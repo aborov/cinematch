@@ -20,7 +20,8 @@ Rails.application.configure do
       # Update all recommendations daily at 2 AM
       update_all_recommendations: {
         cron: "0 2 * * *",
-        class: "UpdateAllRecommendationsJob"
+        class: "UpdateAllRecommendationsJob",
+        args: { batch_size: 50 }
       },
       # Fetch new content daily at 1 AM
       fetch_content: {
