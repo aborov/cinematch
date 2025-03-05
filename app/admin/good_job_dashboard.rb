@@ -220,7 +220,13 @@ ActiveAdmin.register_page "Good Job Dashboard" do
       end
     end
     
-    render partial: 'admin/good_job/job_runner_status', layout: false
+    # For AJAX requests, render the partial without layout
+    if request.xhr?
+      render partial: 'admin/good_job/job_runner_status', layout: false
+    else
+      # For non-AJAX requests, redirect to the dashboard
+      redirect_to admin_good_job_dashboard_path
+    end
   end
 
   controller do

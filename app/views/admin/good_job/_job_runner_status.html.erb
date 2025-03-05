@@ -1,5 +1,5 @@
 <%# Job runner status display %>
-<div class="status-box status-<%= @job_runner_status[:status] %>">
+<div class="status-box status-<%= @job_runner_status[:status] %>" data-last-updated="<%= Time.now.to_i %>">
   <p><%= @job_runner_status[:message] %></p>
   
   <% if @job_runner_status[:is_job_runner] %>

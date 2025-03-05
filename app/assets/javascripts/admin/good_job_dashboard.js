@@ -15,7 +15,45 @@ function initGoodJobDashboard() {
   
   // Update job runner status immediately and periodically
   updateJobRunnerStatus();
-  setInterval(updateJobRunnerStatus, 30000);
+  
+  // Set up periodic updates with fallback mechanism
+  let failedUpdates = 0;
+  const maxFailedUpdates = 3;
+  
+  const statusUpdateInterval = setInterval(() => {
+    // Check if the status box has been updated recently
+    const container = document.getElementById('job-runner-status-container');
+    if (container) {
+      const statusBox = container.querySelector('.status-box');
+      if (statusBox) {
+        const lastUpdated = parseInt(statusBox.getAttribute('data-last-updated') || '0', 10);
+        const now = Math.floor(Date.now() / 1000);
+        const timeSinceUpdate = now - lastUpdated;
+        
+        // If it's been more than 2 minutes since the last update, try a page reload
+        if (lastUpdated > 0 && timeSinceUpdate > 120) {
+          console.log('Status box has not been updated for', timeSinceUpdate, 'seconds. Reloading page.');
+          window.location.reload();
+          return;
+        }
+      }
+    }
+    
+    // Try to update the status
+    try {
+      updateJobRunnerStatus();
+    } catch (error) {
+      console.error('Error in periodic status update:', error);
+      failedUpdates++;
+      
+      // If we've failed too many times, reload the page
+      if (failedUpdates >= maxFailedUpdates) {
+        console.log('Too many failed updates. Reloading page.');
+        window.location.reload();
+        clearInterval(statusUpdateInterval);
+      }
+    }
+  }, 30000);
   
   // Set up refresh button for job runner status
   setupJobRunnerStatusRefresh();
@@ -44,13 +82,45 @@ function updateJobRunnerStatus() {
     statusBox.className = 'status-box status-checking';
   }
   
+  // Get CSRF token from meta tag
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+  console.log('Using CSRF token:', csrfToken ? 'Found token' : 'No token found');
+  
+  console.log('Fetching job runner status from /admin/good_job_dashboard/check_job_runner');
   fetch('/admin/good_job_dashboard/check_job_runner', {
+    method: 'GET',
     headers: {
-      'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
-    }
+      'X-CSRF-Token': csrfToken,
+      'Accept': 'text/html, application/xhtml+xml',
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    credentials: 'same-origin'
   })
-  .then(response => response.text())
+  .then(response => {
+    console.log('Response received:', response.status, response.statusText);
+    console.log('Response type:', response.type);
+    console.log('Redirected:', response.redirected);
+    if (response.redirected) {
+      console.log('Redirected to:', response.url);
+      
+      if (statusBox) {
+        statusBox.innerHTML = '<p>Error: Authentication required. Please refresh the page.</p>';
+        statusBox.className = 'status-box status-error';
+      }
+      // Reload the page after a short delay to re-authenticate
+      setTimeout(() => { window.location.reload(); }, 3000);
+      return null;
+    }
+    return response.text();
+  })
   .then(html => {
+    if (!html) {
+      console.log('No HTML content received');
+      return; // Handle the redirect case
+    }
+    
+    console.log('HTML content received, length:', html.length);
+    
     // Parse the HTML response
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = html;
@@ -59,6 +129,8 @@ function updateJobRunnerStatus() {
     const newStatusBox = tempDiv.querySelector('.status-box');
     
     if (newStatusBox) {
+      console.log('Status box found in response:', newStatusBox.className);
+      
       // If we already have a status box, replace it
       if (statusBox) {
         statusBox.replaceWith(newStatusBox);
@@ -66,9 +138,11 @@ function updateJobRunnerStatus() {
         // Otherwise, insert it at the beginning of the container
         container.insertBefore(newStatusBox, container.firstChild);
       }
-      console.log('Job runner status updated');
+      console.log('Job runner status updated successfully');
     } else {
       console.error('No status box found in response');
+      console.log('Response HTML:', html.substring(0, 200) + '...');
+      
       if (statusBox) {
         statusBox.innerHTML = '<p>Error updating job runner status: Invalid response</p>';
         statusBox.className = 'status-box status-error';
