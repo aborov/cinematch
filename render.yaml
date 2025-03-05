@@ -1,4 +1,6 @@
 services:
+
+  # Web service for the main application
   - type: web
     name: Cinematch 
     env: ruby 
@@ -24,6 +26,7 @@ services:
       - "config/**/*"
       - "bin/**/*"
 
+  # Web service for memory-intensive background jobs
   - type: web
     name: cinematch-job-runner
     env: ruby
@@ -62,6 +65,14 @@ services:
       - "Gemfile*"
       - "config/**/*"
       - "bin/**/*"
+
+  # Redis service (Key Value in Render terminology)
+  - type: keyvalue
+    name: cinematch-redis
+    plan: free
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: everywhere
 
 databases: 
   - name: db
