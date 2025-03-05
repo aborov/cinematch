@@ -132,7 +132,13 @@ class User < ApplicationRecord
   private
 
   def create_user_preference
-    create_user_preference!
+    begin
+      create_user_preference!
+    rescue ActiveRecord::RecordInvalid => e
+      # If creation fails, build a new one without saving
+      Rails.logger.warn "Failed to create user preference for user #{id}: #{e.message}"
+      build_user_preference
+    end
   end
 
   def password_required?
