@@ -3,8 +3,23 @@ ActiveAdmin.register_page "Good Job Dashboard" do
 
   content title: "Good Job Dashboard" do
     div class: "good-job-dashboard" do
-      render partial: 'admin/good_job/dashboard'
+      # Local job status section
+      div class: "local-job-status" do
+        h2 "Local Job Status"
+        render partial: 'admin/good_job/local_dashboard'
+      end
+
+      # Job runner status section with dynamic updates
+      div class: "job-runner-status" do
+        h2 "Job Runner Status"
+        div id: "job-runner-status-container" do
+          render partial: 'admin/good_job/job_runner_status'
+        end
+      end
     end
+
+    # Include JavaScript for dynamic updates
+    script src: asset_path('admin/good_job_dashboard.js'), type: 'text/javascript'
   end
 
   action_item :fetch_content do
@@ -193,21 +208,26 @@ ActiveAdmin.register_page "Good Job Dashboard" do
       end
     end
     
-    render 'admin/good_job/job_runner_status'
+    render partial: 'admin/good_job/job_runner_status', layout: false
   end
 
   controller do
     helper_method :job_status, :can_delete_job?
 
     def index
-      @jobs = GoodJob::Job.all
+      @jobs = GoodJob::Job.where('created_at > ?', 2.weeks.ago)
       @queues = GoodJob::Job.distinct.pluck(:queue_name).compact.sort
+      @job_classes = GoodJob::Job.distinct.pluck(:job_class).compact.sort
       @next_fetch_job = GoodJob::Job.where(job_class: 'FetchContentJob').scheduled.first
       @next_update_job = GoodJob::Job.where(job_class: 'UpdateAllRecommendationsJob').scheduled.first
       @next_fill_details_job = GoodJob::Job.where(job_class: 'FillMissingDetailsJob').scheduled.first
       
-      # Check job runner status
-      @job_runner_available = JobRunnerService.job_runner_available? rescue false
+      # Initialize job runner status without waiting
+      @job_runner_status = {
+        status: 'checking',
+        message: 'Checking job runner status...',
+        is_available: false
+      }
     end
 
     private

@@ -353,5 +353,5 @@ ActiveAdmin.setup do |config|
   # config.use_webpacker = true
 
   config.download_links = [:csv, :xml, :json, :pdf]
-  config.register_stylesheet 'good_job_custom.css'
+  config.register_stylesheet 'admin/good_job_custom.css'
 end

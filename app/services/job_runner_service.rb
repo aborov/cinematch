@@ -39,7 +39,7 @@ class JobRunnerService
               Rails.logger.info "[JobRunnerService] Successfully delegated job #{job_class} to job runner. Job ID: #{job_id}"
               
               # Start a keep-alive ping for the job runner
-              KeepAliveJobRunnerJob.perform_later(job_id)
+              KeepAliveJobRunnerJob.perform_later(job_id, 0, job_class)
               
               return job_id
             else
@@ -112,7 +112,12 @@ class JobRunnerService
             
             if response.success?
               Rails.logger.info "[JobRunnerService] Successfully delegated specific job #{job_class}##{method_name} to job runner. Job ID: #{response['job_id']}"
-              return response['job_id']
+              
+              # Start a keep-alive ping for the job runner
+              job_id = response['job_id']
+              KeepAliveJobRunnerJob.perform_later(job_id, 0, job_class)
+              
+              return job_id
             else
               error_message = "[JobRunnerService] Failed to delegate specific job #{job_class}##{method_name} to job runner. Status: #{response.code}, Error: #{response.body}"
               
@@ -262,24 +267,47 @@ class JobRunnerService
     def keep_alive
       return true if Rails.env.development? || ENV['JOB_RUNNER_ONLY'] == 'true'
       
-      begin
-        Rails.logger.info "[JobRunnerService] Sending keep-alive ping to job runner"
-        
-        response = HTTParty.get(
-          "#{job_runner_url}/health_check",
-          timeout: 10
-        )
-        
-        if response.success?
-          Rails.logger.info "[JobRunnerService] Job runner keep-alive ping successful"
-          return true
-        else
-          Rails.logger.warn "[JobRunnerService] Job runner keep-alive ping failed. Status: #{response.code}"
+      max_retries = 2
+      retry_count = 0
+      
+      loop do
+        begin
+          Rails.logger.info "[JobRunnerService] Sending keep-alive ping to job runner"
+          
+          response = HTTParty.get(
+            "#{job_runner_url}/health_check",
+            timeout: 15  # Increased timeout for reliability
+          )
+          
+          if response.success?
+            Rails.logger.info "[JobRunnerService] Job runner keep-alive ping successful"
+            return true
+          else
+            error_message = "[JobRunnerService] Job runner keep-alive ping failed. Status: #{response.code}"
+            
+            if retry_count < max_retries
+              retry_count += 1
+              Rails.logger.warn "#{error_message}. Retrying (#{retry_count}/#{max_retries})..."
+              sleep(2 * retry_count)  # Exponential backoff
+              next
+            end
+            
+            Rails.logger.warn error_message
+            return false
+          end
+        rescue => e
+          error_message = "[JobRunnerService] Error sending keep-alive ping to job runner: #{e.message}"
+          
+          if retry_count < max_retries
+            retry_count += 1
+            Rails.logger.warn "#{error_message}. Retrying (#{retry_count}/#{max_retries})..."
+            sleep(2 * retry_count)  # Exponential backoff
+            next
+          end
+          
+          Rails.logger.warn error_message
           return false
         end
-      rescue => e
-        Rails.logger.warn "[JobRunnerService] Error sending keep-alive ping to job runner: #{e.message}"
-        return false
       end
     end
     
@@ -287,11 +315,24 @@ class JobRunnerService
     def job_running?(job_id)
       return false unless job_id
       
-      status = check_job_status(job_id)
-      return false unless status
+      Rails.logger.info "[JobRunnerService] Checking if job #{job_id} is still running"
       
-      # Consider the job running if it's not finished
-      !status['finished']
+      status = check_job_status(job_id)
+      
+      if status.nil?
+        Rails.logger.warn "[JobRunnerService] Could not determine status for job #{job_id}, assuming it's not running"
+        return false
+      end
+      
+      is_running = !status['finished']
+      
+      if is_running
+        Rails.logger.info "[JobRunnerService] Job #{job_id} is still running (status: #{status['status']})"
+      else
+        Rails.logger.info "[JobRunnerService] Job #{job_id} is no longer running (status: #{status['status']})"
+      end
+      
+      is_running
     end
     
     private
