@@ -260,6 +260,13 @@ class JobRunnerService
       return false if Rails.env.development? && ENV['USE_JOB_RUNNER'] != 'true'
       return false if ENV['JOB_RUNNER_ONLY'] == 'true'
       
+      # Force a fresh check of the job runner
+      Rails.logger.info "[JobRunnerService] Checking if job runner is available"
+      
+      # Clear any cached results
+      @job_runner_available = nil
+      
+      # Actually check the job runner
       wake_up_job_runner(max_retries: 1)
     end
     
