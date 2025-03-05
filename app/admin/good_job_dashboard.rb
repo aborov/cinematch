@@ -1,6 +1,9 @@
 ActiveAdmin.register_page "Good Job Dashboard" do
   menu priority: 2, label: "Job Dashboard"
 
+  # Add a page_action route for the check_job_runner action
+  page_action :check_job_runner, method: :get
+
   content title: "Good Job Dashboard" do
     div class: "good-job-dashboard" do
       # Local job status section
@@ -165,72 +168,75 @@ ActiveAdmin.register_page "Good Job Dashboard" do
     end
   end
 
-  page_action :check_job_runner, method: :get do
-    authorize :page, :admin?
+  controller do
+    helper_method :job_status, :can_delete_job?
     
-    @job_runner_status = {}
+    # Skip authentication for AJAX requests to check_job_runner
+    skip_before_action :authenticate_active_admin_user, only: :check_job_runner, if: -> { request.xhr? }
     
-    if ENV['JOB_RUNNER_ONLY'] == 'true'
-      @job_runner_status = {
-        status: 'ok',
-        message: 'This is the job runner instance',
-        is_job_runner: true,
-        active_jobs: GoodJob::Job.where.not(performed_at: nil).where(finished_at: nil).count,
-        queued_jobs: GoodJob::Job.where(performed_at: nil).count,
-        recent_errors: GoodJob::Job.where.not(error: nil).order(created_at: :desc).limit(5)
-      }
-    else
-      begin
-        job_runner_available = JobRunnerService.job_runner_available?
-        
-        if job_runner_available
-          @job_runner_status = {
-            status: 'ok',
-            message: 'Job runner is available',
-            is_available: true
-          }
+    def check_job_runner
+      authorize :page, :admin?
+      
+      @job_runner_status = {}
+      
+      if ENV['JOB_RUNNER_ONLY'] == 'true'
+        @job_runner_status = {
+          status: 'ok',
+          message: 'This is the job runner instance',
+          is_job_runner: true,
+          active_jobs: GoodJob::Job.where.not(performed_at: nil).where(finished_at: nil).count,
+          queued_jobs: GoodJob::Job.where(performed_at: nil).count,
+          recent_errors: GoodJob::Job.where.not(error: nil).order(created_at: :desc).limit(5)
+        }
+      else
+        begin
+          job_runner_available = JobRunnerService.job_runner_available?
           
-          # Try to get more details
-          begin
-            response = HTTParty.get(
-              "#{JobRunnerService.send(:job_runner_url)}/api/job_runner/status",
-              timeout: 5
-            )
+          if job_runner_available
+            @job_runner_status = {
+              status: 'ok',
+              message: 'Job runner is available',
+              is_available: true
+            }
             
-            if response.success?
-              status_data = response.parsed_response
-              @job_runner_status[:details] = status_data
+            # Try to get more details
+            begin
+              response = HTTParty.get(
+                "#{JobRunnerService.send(:job_runner_url)}/api/job_runner/status",
+                timeout: 5
+              )
+              
+              if response.success?
+                status_data = response.parsed_response
+                @job_runner_status[:details] = status_data
+              end
+            rescue => e
+              @job_runner_status[:details_error] = "Error getting details: #{e.message}"
             end
-          rescue => e
-            @job_runner_status[:details_error] = "Error getting details: #{e.message}"
+          else
+            @job_runner_status = {
+              status: 'error',
+              message: 'Job runner is not available',
+              is_available: false
+            }
           end
-        else
+        rescue => e
           @job_runner_status = {
             status: 'error',
-            message: 'Job runner is not available',
+            message: "Error checking job runner: #{e.message}",
             is_available: false
           }
         end
-      rescue => e
-        @job_runner_status = {
-          status: 'error',
-          message: "Error checking job runner: #{e.message}",
-          is_available: false
-        }
+      end
+      
+      # For AJAX requests, render the partial without layout
+      if request.xhr?
+        render partial: 'admin/good_job/job_runner_status', layout: false
+      else
+        # For non-AJAX requests, redirect to the dashboard
+        redirect_to admin_good_job_dashboard_path
       end
     end
-    
-    # For AJAX requests, render the partial without layout
-    if request.xhr?
-      render partial: 'admin/good_job/job_runner_status', layout: false
-    else
-      # For non-AJAX requests, redirect to the dashboard
-      redirect_to admin_good_job_dashboard_path
-    end
-  end
-
-  controller do
-    helper_method :job_status, :can_delete_job?
 
     def index
       # Ensure we're getting fresh data
