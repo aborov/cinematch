@@ -5,6 +5,9 @@ ActiveAdmin.register_page "Good Job Dashboard" do
   page_action :check_job_runner, method: :get
 
   content title: "Good Job Dashboard" do
+    # Add meta tag with job runner URL
+    meta name: "job-runner-url", content: JobRunnerService.send(:job_runner_url)
+    
     div class: "good-job-dashboard" do
       # Local job status section
       div class: "local-job-status" do
@@ -190,6 +193,7 @@ ActiveAdmin.register_page "Good Job Dashboard" do
         }
       else
         begin
+          # Force a real check of the job runner status
           job_runner_available = JobRunnerService.job_runner_available?
           
           if job_runner_available

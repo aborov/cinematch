@@ -86,7 +86,190 @@ function updateJobRunnerStatus() {
   const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
   console.log('Using CSRF token:', csrfToken ? 'Found token' : 'No token found');
   
+  // First, try to get the job runner URL from the data attribute
+  const jobRunnerUrl = document.querySelector('meta[name="job-runner-url"]')?.content;
+  
+  if (jobRunnerUrl) {
+    console.log('Found job runner URL:', jobRunnerUrl);
+    
+    // Try to directly check the job runner health
+    checkJobRunnerDirectly(jobRunnerUrl, statusBox);
+  } else {
+    console.log('No job runner URL found, falling back to controller action');
+    
+    // Fall back to the controller action
+    checkJobRunnerViaController(statusBox, csrfToken);
+  }
+}
+
+// Function to directly check the job runner health
+function checkJobRunnerDirectly(jobRunnerUrl, statusBox) {
+  console.log('Directly checking job runner health at:', jobRunnerUrl);
+  
+  // Add a timestamp to prevent caching
+  const url = `${jobRunnerUrl}/health_check?t=${Date.now()}`;
+  
+  fetch(url, {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json, text/plain, */*'
+    },
+    mode: 'cors',
+    cache: 'no-store',
+    timeout: 5000
+  })
+  .then(response => {
+    console.log('Direct health check response:', response.status, response.statusText);
+    
+    if (response.ok) {
+      return response.text().then(text => {
+        console.log('Job runner health check successful:', text);
+        
+        // Now try to get more details
+        return fetch(`${jobRunnerUrl}/api/job_runner/status`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json'
+          },
+          mode: 'cors',
+          cache: 'no-store',
+          timeout: 5000
+        })
+        .then(detailsResponse => {
+          if (detailsResponse.ok) {
+            return detailsResponse.json();
+          } else {
+            console.log('Could not get job runner details, but health check passed');
+            return { status: 'ok', message: 'Job runner is available (limited details)' };
+          }
+        })
+        .catch(error => {
+          console.error('Error getting job runner details:', error);
+          return { status: 'ok', message: 'Job runner is available (no details)' };
+        });
+      });
+    } else {
+      throw new Error(`Health check failed with status: ${response.status}`);
+    }
+  })
+  .then(data => {
+    console.log('Job runner status data:', data);
+    
+    if (statusBox) {
+      // Update the status box with the job runner status
+      let statusClass = 'status-ok';
+      let statusMessage = 'Job runner is available';
+      
+      if (data.status === 'error') {
+        statusClass = 'status-error';
+        statusMessage = data.message || 'Job runner has errors';
+      } else if (data.status === 'warning') {
+        statusClass = 'status-warning';
+        statusMessage = data.message || 'Job runner has warnings';
+      }
+      
+      // Build the status box HTML
+      let html = `<p>${statusMessage}</p>`;
+      
+      // Add details if available
+      if (data.details) {
+        html += '<div class="stats-grid">';
+        
+        if (data.details.environment) {
+          html += `
+            <div class="stat-box">
+              <h4>Environment</h4>
+              <p>${data.details.environment}</p>
+            </div>
+          `;
+        }
+        
+        if (data.details.timestamp) {
+          const timestamp = new Date(data.details.timestamp).toLocaleString();
+          html += `
+            <div class="stat-box">
+              <h4>Timestamp</h4>
+              <p>${timestamp}</p>
+            </div>
+          `;
+        }
+        
+        if (data.details.good_job_status) {
+          html += `
+            <div class="stat-box">
+              <h4>Good Job Status</h4>
+              <p>${data.details.good_job_status}</p>
+            </div>
+          `;
+        }
+        
+        if (data.details.active_jobs !== undefined) {
+          html += `
+            <div class="stat-box">
+              <h4>Active Jobs</h4>
+              <p>${data.details.active_jobs}</p>
+            </div>
+          `;
+        }
+        
+        if (data.details.queued_jobs !== undefined) {
+          html += `
+            <div class="stat-box">
+              <h4>Queued Jobs</h4>
+              <p>${data.details.queued_jobs}</p>
+            </div>
+          `;
+        }
+        
+        html += '</div>';
+        
+        // Add recent errors if available
+        if (data.details.recent_errors && data.details.recent_errors.length > 0) {
+          html += '<h4>Recent Errors</h4>';
+          html += '<table class="jobs-table">';
+          html += '<thead><tr><th>Job</th><th>Error</th></tr></thead>';
+          html += '<tbody>';
+          
+          data.details.recent_errors.forEach(error => {
+            html += `<tr><td>${error.job_class}</td><td>${error.error}</td></tr>`;
+          });
+          
+          html += '</tbody></table>';
+        }
+      }
+      
+      statusBox.innerHTML = html;
+      statusBox.className = `status-box ${statusClass}`;
+      
+      // Update the last-updated attribute
+      const now = Math.floor(Date.now() / 1000);
+      statusBox.setAttribute('data-last-updated', now.toString());
+      
+      console.log('Job runner status updated successfully');
+    }
+  })
+  .catch(error => {
+    console.error('Error checking job runner directly:', error);
+    
+    if (statusBox) {
+      statusBox.innerHTML = '<p>Job runner is not available</p>';
+      statusBox.className = 'status-box status-error';
+      
+      // Update the last-updated attribute
+      const now = Math.floor(Date.now() / 1000);
+      statusBox.setAttribute('data-last-updated', now.toString());
+    }
+    
+    // Fall back to the controller action
+    console.log('Falling back to controller action');
+    checkJobRunnerViaController(statusBox, document.querySelector('meta[name="csrf-token"]')?.content || '');
+  });
+}
+
+// Function to check the job runner via the controller action
+function checkJobRunnerViaController(statusBox, csrfToken) {
   console.log('Fetching job runner status from /admin/good_job_dashboard/check_job_runner');
+  
   fetch('/admin/good_job_dashboard/check_job_runner', {
     method: 'GET',
     headers: {
@@ -95,7 +278,6 @@ function updateJobRunnerStatus() {
       'X-Requested-With': 'XMLHttpRequest'
     },
     credentials: 'same-origin',
-    // Add a cache-busting parameter to prevent caching
     cache: 'no-store'
   })
   .then(response => {
@@ -136,16 +318,25 @@ function updateJobRunnerStatus() {
         if (fullPageStatusBox) {
           console.log('Found status box in redirected page:', fullPageStatusBox.className);
           
-          // Update our status box with the content from the full page
-          if (statusBox) {
-            statusBox.innerHTML = fullPageStatusBox.innerHTML;
-            statusBox.className = fullPageStatusBox.className;
+          // Only update if the status is not "checking"
+          if (!fullPageStatusBox.className.includes('status-checking')) {
+            console.log('Status is not "checking", updating from redirected page');
             
-            // Update the last-updated attribute
-            const now = Math.floor(Date.now() / 1000);
-            statusBox.setAttribute('data-last-updated', now.toString());
-            
-            console.log('Job runner status updated from redirected page');
+            // Update our status box with the content from the full page
+            if (statusBox) {
+              statusBox.innerHTML = fullPageStatusBox.innerHTML;
+              statusBox.className = fullPageStatusBox.className;
+              
+              // Update the last-updated attribute
+              const now = Math.floor(Date.now() / 1000);
+              statusBox.setAttribute('data-last-updated', now.toString());
+              
+              console.log('Job runner status updated from redirected page');
+              return;
+            }
+          } else {
+            console.log('Status is still "checking", using fallback method');
+            updateJobRunnerStatusFallback();
             return;
           }
         }
@@ -163,14 +354,25 @@ function updateJobRunnerStatus() {
     if (newStatusBox) {
       console.log('Status box found in response:', newStatusBox.className);
       
-      // If we already have a status box, replace it
-      if (statusBox) {
-        statusBox.replaceWith(newStatusBox);
+      // Only update if the status is not "checking"
+      if (!newStatusBox.className.includes('status-checking')) {
+        console.log('Status is not "checking", updating from response');
+        
+        // If we already have a status box, replace it
+        if (statusBox) {
+          statusBox.replaceWith(newStatusBox);
+        } else {
+          // Otherwise, insert it at the beginning of the container
+          const container = document.getElementById('job-runner-status-container');
+          if (container) {
+            container.insertBefore(newStatusBox, container.firstChild);
+          }
+        }
+        console.log('Job runner status updated successfully');
       } else {
-        // Otherwise, insert it at the beginning of the container
-        container.insertBefore(newStatusBox, container.firstChild);
+        console.log('Status is still "checking", using fallback method');
+        updateJobRunnerStatusFallback();
       }
-      console.log('Job runner status updated successfully');
     } else {
       console.error('No status box found in response');
       console.log('Response HTML:', result.html.substring(0, 200) + '...');
@@ -216,74 +418,127 @@ function updateJobRunnerStatusFallback() {
     statusBox.className = 'status-box status-checking';
   }
   
-  // Create a hidden iframe to load the dashboard page
-  const iframe = document.createElement('iframe');
-  iframe.style.display = 'none';
-  document.body.appendChild(iframe);
+  // Try to get the job runner URL from the meta tag
+  const jobRunnerUrl = document.querySelector('meta[name="job-runner-url"]')?.content;
   
-  // Set a timeout to remove the iframe after 30 seconds
-  const timeoutId = setTimeout(() => {
-    console.log('Fallback method timed out');
-    document.body.removeChild(iframe);
+  if (jobRunnerUrl) {
+    console.log('Found job runner URL for fallback method:', jobRunnerUrl);
     
-    if (statusBox) {
-      statusBox.innerHTML = '<p>Error: Fallback method timed out</p>';
-      statusBox.className = 'status-box status-error';
-    }
-  }, 30000);
-  
-  // Handle iframe load event
-  iframe.onload = function() {
-    clearTimeout(timeoutId);
-    
-    try {
-      // Try to access the iframe content (may fail due to same-origin policy)
-      const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-      const iframeStatusContainer = iframeDoc.getElementById('job-runner-status-container');
+    // Make a direct request to the job runner health check endpoint
+    fetch(`${jobRunnerUrl}/health_check?t=${Date.now()}`, {
+      method: 'GET',
+      mode: 'no-cors', // Use no-cors mode to avoid CORS issues
+      cache: 'no-store',
+      timeout: 5000
+    })
+    .then(response => {
+      // With no-cors mode, we can't read the response, but we know the request succeeded
+      console.log('Job runner health check succeeded (fallback method)');
       
-      if (iframeStatusContainer) {
-        const iframeStatusBox = iframeStatusContainer.querySelector('.status-box');
+      if (statusBox) {
+        statusBox.innerHTML = '<p>Job runner is available</p>';
+        statusBox.className = 'status-box status-ok';
         
-        if (iframeStatusBox && statusBox) {
-          console.log('Found status box in iframe:', iframeStatusBox.className);
+        // Update the last-updated attribute
+        const now = Math.floor(Date.now() / 1000);
+        statusBox.setAttribute('data-last-updated', now.toString());
+      }
+    })
+    .catch(error => {
+      console.error('Job runner health check failed (fallback method):', error);
+      
+      if (statusBox) {
+        statusBox.innerHTML = '<p>Job runner is not available</p>';
+        statusBox.className = 'status-box status-error';
+        
+        // Update the last-updated attribute
+        const now = Math.floor(Date.now() / 1000);
+        statusBox.setAttribute('data-last-updated', now.toString());
+      }
+    });
+  } else {
+    console.log('No job runner URL found for fallback method, using iframe');
+    
+    // Create a hidden iframe to load the dashboard page
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+    
+    // Set a timeout to remove the iframe after 30 seconds
+    const timeoutId = setTimeout(() => {
+      console.log('Fallback method timed out');
+      document.body.removeChild(iframe);
+      
+      if (statusBox) {
+        statusBox.innerHTML = '<p>Error: Fallback method timed out</p>';
+        statusBox.className = 'status-box status-error';
+      }
+    }, 30000);
+    
+    // Handle iframe load event
+    iframe.onload = function() {
+      clearTimeout(timeoutId);
+      
+      try {
+        // Try to access the iframe content (may fail due to same-origin policy)
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        const iframeStatusContainer = iframeDoc.getElementById('job-runner-status-container');
+        
+        if (iframeStatusContainer) {
+          const iframeStatusBox = iframeStatusContainer.querySelector('.status-box');
           
-          // Update our status box with the content from the iframe
-          statusBox.innerHTML = iframeStatusBox.innerHTML;
-          statusBox.className = iframeStatusBox.className;
-          
-          // Update the last-updated attribute
-          const now = Math.floor(Date.now() / 1000);
-          statusBox.setAttribute('data-last-updated', now.toString());
-          
-          console.log('Job runner status updated from iframe');
+          if (iframeStatusBox && statusBox) {
+            console.log('Found status box in iframe:', iframeStatusBox.className);
+            
+            // Only update if the status is not "checking"
+            if (!iframeStatusBox.className.includes('status-checking')) {
+              // Update our status box with the content from the iframe
+              statusBox.innerHTML = iframeStatusBox.innerHTML;
+              statusBox.className = iframeStatusBox.className;
+              
+              // Update the last-updated attribute
+              const now = Math.floor(Date.now() / 1000);
+              statusBox.setAttribute('data-last-updated', now.toString());
+              
+              console.log('Job runner status updated from iframe');
+            } else {
+              console.log('Status in iframe is still "checking", setting error status');
+              statusBox.innerHTML = '<p>Could not determine job runner status</p>';
+              statusBox.className = 'status-box status-error';
+              
+              // Update the last-updated attribute
+              const now = Math.floor(Date.now() / 1000);
+              statusBox.setAttribute('data-last-updated', now.toString());
+            }
+          } else {
+            console.error('No status box found in iframe');
+            if (statusBox) {
+              statusBox.innerHTML = '<p>Error: Could not find status box in iframe</p>';
+              statusBox.className = 'status-box status-error';
+            }
+          }
         } else {
-          console.error('No status box found in iframe');
+          console.error('No status container found in iframe');
           if (statusBox) {
-            statusBox.innerHTML = '<p>Error: Could not find status box in iframe</p>';
+            statusBox.innerHTML = '<p>Error: Could not find status container in iframe</p>';
             statusBox.className = 'status-box status-error';
           }
         }
-      } else {
-        console.error('No status container found in iframe');
+      } catch (error) {
+        console.error('Error accessing iframe content:', error);
         if (statusBox) {
-          statusBox.innerHTML = '<p>Error: Could not find status container in iframe</p>';
+          statusBox.innerHTML = '<p>Error accessing iframe content: ' + error.message + '</p>';
           statusBox.className = 'status-box status-error';
         }
+      } finally {
+        // Always remove the iframe
+        document.body.removeChild(iframe);
       }
-    } catch (error) {
-      console.error('Error accessing iframe content:', error);
-      if (statusBox) {
-        statusBox.innerHTML = '<p>Error accessing iframe content: ' + error.message + '</p>';
-        statusBox.className = 'status-box status-error';
-      }
-    } finally {
-      // Always remove the iframe
-      document.body.removeChild(iframe);
-    }
-  };
-  
-  // Set the iframe source to the dashboard page
-  iframe.src = '/admin/good_job_dashboard';
+    };
+    
+    // Set the iframe source to the dashboard page
+    iframe.src = '/admin/good_job_dashboard';
+  }
 }
 
 // Set up job filtering
