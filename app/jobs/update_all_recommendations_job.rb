@@ -1,12 +1,28 @@
 require 'httparty'
 
 class UpdateAllRecommendationsJob < ApplicationJob
-  queue_as :default
+  queue_as :recommendations
+
+  # Constants for batch processing
+  BATCH_SIZE = 50
+  USER_BATCH_SIZE = 20
+  MAX_RETRIES = 3
 
   def perform(options = {})
+    # Handle both array and hash formats for options
+    if options.is_a?(Array) && options.length >= 2 && options.length.even?
+      # Convert array format [:key1, value1, :key2, value2] to hash {key1: value1, key2: value2}
+      options_hash = {}
+      options.each_slice(2) do |key, value|
+        options_hash[key.to_sym] = value if key.respond_to?(:to_sym)
+      end
+      options = options_hash
+    end
+    
     # Ensure options is a regular hash
     options = options.to_h if options.respond_to?(:to_h)
-    batch_size = options[:batch_size] || 50
+    batch_size = options[:batch_size] || BATCH_SIZE
+    user_batch_size = options[:user_batch_size] || USER_BATCH_SIZE
     
     # If we're not on the job runner instance, delegate the job to the job runner service
     if ENV['JOB_RUNNER_ONLY'] != 'true' && Rails.env.production?
@@ -16,7 +32,10 @@ class UpdateAllRecommendationsJob < ApplicationJob
       unless JobRunnerService.wake_up_job_runner
         Rails.logger.warn "[UpdateAllRecommendationsJob] Failed to wake up job runner. Running locally instead."
       else
-        job_id = JobRunnerService.run_job('UpdateAllRecommendationsJob', { batch_size: batch_size })
+        job_id = JobRunnerService.run_job('UpdateAllRecommendationsJob', { 
+          batch_size: batch_size,
+          user_batch_size: user_batch_size
+        })
         
         if job_id
           Rails.logger.info "[UpdateAllRecommendationsJob] Successfully delegated to job runner. Job ID: #{job_id}"
@@ -46,7 +65,10 @@ class UpdateAllRecommendationsJob < ApplicationJob
           "#{ENV['MAIN_APP_URL']}/api/job_runner/run_job",
           body: {
             job_class: 'ProcessAllRecommendationsJob',
-            args: { batch_size: batch_size },
+            args: { 
+              batch_size: batch_size,
+              user_batch_size: user_batch_size
+            },
             secret: shared_secret
           }.to_json,
           headers: { 'Content-Type' => 'application/json' },
@@ -56,98 +78,65 @@ class UpdateAllRecommendationsJob < ApplicationJob
         if response.success?
           Rails.logger.info "[UpdateAllRecommendationsJob] Successfully delegated recommendations generation to main app"
         else
-          Rails.logger.error "[UpdateAllRecommendationsJob] Failed to delegate to main app: #{response.code} - #{response.body}"
+          Rails.logger.error "[UpdateAllRecommendationsJob] Failed to delegate recommendations generation to main app: #{response.code} - #{response.body}"
           # Fall back to running locally
-          process_locally(batch_size)
+          process_recommendations_locally(batch_size, user_batch_size)
         end
       rescue => e
-        Rails.logger.error "[UpdateAllRecommendationsJob] Failed to delegate to main app: #{e.message}"
+        Rails.logger.error "[UpdateAllRecommendationsJob] Error delegating recommendations generation to main app: #{e.message}"
         # Fall back to running locally
-        process_locally(batch_size)
+        process_recommendations_locally(batch_size, user_batch_size)
       end
     else
-      # Otherwise, process locally
-      process_locally(batch_size)
+      # Process recommendations locally
+      process_recommendations_locally(batch_size, user_batch_size)
     end
     
     duration = Time.current - start_time
-    Rails.logger.info "[UpdateAllRecommendationsJob] Completed updating recommendations for all users in #{duration.round(2)}s"
+    Rails.logger.info "[UpdateAllRecommendationsJob] Completed in #{duration.round(2)}s"
   end
   
   private
   
-  def process_locally(batch_size)
-    Rails.logger.info "[UpdateAllRecommendationsJob] Processing all recommendations locally with batch size #{batch_size}"
+  def process_recommendations_locally(batch_size, user_batch_size)
+    Rails.logger.info "[UpdateAllRecommendationsJob] Processing recommendations locally with batch_size: #{batch_size}, user_batch_size: #{user_batch_size}"
     
-    # Force garbage collection before processing
-    GC.start
-    
+    # Use the RecommendationService to generate recommendations for all users
     begin
-      # Instead of using RecommendationService.generate_for_all_users which processes users sequentially,
-      # we'll process users in parallel batches for better performance
-      
-      # Get total number of users
+      # Count total users for progress tracking
       total_users = User.count
-      Rails.logger.info "[UpdateAllRecommendationsJob] Found #{total_users} users to process"
+      processed_users = 0
+      successful_batches = 0
+      failed_batches = 0
       
-      # Process users in batches, but create separate jobs for each batch
-      # to allow for parallel processing
-      successful_users = 0
-      failed_users = 0
-      
-      # Use a smaller batch size for better parallelization
-      actual_batch_size = [batch_size, 20].min
-      
-      User.find_in_batches(batch_size: actual_batch_size) do |users_batch|
+      # Process users in batches
+      User.find_in_batches(batch_size: batch_size) do |users_batch|
         batch_start_time = Time.current
-        batch_ids = users_batch.map(&:id)
+        batch_user_ids = users_batch.map(&:id)
         
-        Rails.logger.info "[UpdateAllRecommendationsJob] Scheduling batch of #{batch_ids.size} users"
-        
-        # Create a job for this batch
-        if Rails.env.production?
-          # In production, use a separate job for each batch
-          UpdateUserBatchRecommendationsJob.perform_later(batch_ids)
-        else
-          # In development, process synchronously for easier debugging
-          batch_result = process_user_batch(batch_ids)
-          successful_users += batch_result[:successful]
-          failed_users += batch_result[:failed]
+        begin
+          # Process this batch of users
+          UpdateUserBatchRecommendationsJob.perform_now(batch_user_ids, { batch_size: user_batch_size })
+          successful_batches += 1
+        rescue => e
+          failed_batches += 1
+          Rails.logger.error "[UpdateAllRecommendationsJob] Error processing batch: #{e.message}\n#{e.backtrace.join("\n")}"
+        ensure
+          processed_users += batch_user_ids.size
+          percent_complete = (processed_users.to_f / total_users * 100).round(1)
+          
+          batch_duration = Time.current - batch_start_time
+          Rails.logger.info "[UpdateAllRecommendationsJob] Processed batch of #{batch_user_ids.size} users in #{batch_duration.round(2)}s (#{percent_complete}% complete)"
+          
+          # Force garbage collection between batches to manage memory
+          GC.start
         end
-        
-        batch_duration = Time.current - batch_start_time
-        Rails.logger.info "[UpdateAllRecommendationsJob] Completed scheduling recommendations for #{batch_ids.size} users in #{batch_duration.round(2)}s"
       end
       
-      Rails.logger.info "[UpdateAllRecommendationsJob] Successfully scheduled recommendation updates for all users"
-      
-      if !Rails.env.production?
-        Rails.logger.info "[UpdateAllRecommendationsJob] Summary: #{successful_users} successful, #{failed_users} failed"
-      end
+      Rails.logger.info "[UpdateAllRecommendationsJob] Successfully processed #{successful_batches} batches (#{failed_batches} failed)"
     rescue => e
       Rails.logger.error "[UpdateAllRecommendationsJob] Error processing recommendations: #{e.message}\n#{e.backtrace.join("\n")}"
-    ensure
-      # Force garbage collection after processing
-      GC.start
     end
-  end
-  
-  # Process a batch of users
-  def process_user_batch(user_ids)
-    successful = 0
-    failed = 0
-    
-    User.where(id: user_ids).find_each do |user|
-      begin
-        RecommendationService.generate_for_user(user)
-        successful += 1
-      rescue => e
-        failed += 1
-        Rails.logger.error "[UpdateAllRecommendationsJob] Failed to generate recommendations for user #{user.id}: #{e.message}"
-      end
-    end
-    
-    { successful: successful, failed: failed }
   end
   
   # Class method for direct invocation

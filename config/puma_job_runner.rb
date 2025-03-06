@@ -42,4 +42,13 @@ plugin :tmp_restart
 # Reduce memory usage
 before_fork do
   GC.compact if defined?(GC) && GC.respond_to?(:compact)
-end 
+end
+
+# Low-level tweaks to reduce memory usage
+# These settings help reduce memory footprint
+nakayoshi_fork true if respond_to?(:nakayoshi_fork)
+fork_worker if respond_to?(:fork_worker)
+
+# Set lower backlog for reduced memory usage
+backlog_limit = ENV.fetch("PUMA_BACKLOG_LIMIT") { 16 }
+set_remote_address "proxy_protocol", backlog_limit 

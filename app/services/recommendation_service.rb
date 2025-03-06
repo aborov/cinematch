@@ -24,23 +24,55 @@ class RecommendationService
     
     # Generate recommendations for a user preference
     def generate_recommendations_for_preference(user_preference)
-      # Preload all genres to avoid N+1 queries
-      all_genres = Genre.all.index_by(&:tmdb_id)
+      # Check if we have cached genre data
+      begin
+        all_genres = Rails.cache.fetch("all_genres", expires_in: 24.hours) do
+          Genre.all.index_by(&:tmdb_id)
+        end
+      rescue => e
+        Rails.logger.error "[RecommendationService] Cache error fetching genres: #{e.message}"
+        all_genres = Genre.all.index_by(&:tmdb_id)
+      end
       
       # Get base content query
       base_content = Content.all
       base_content = base_content.where(adult: [false, nil]) if user_preference.disable_adult_content
       
-      # Preload genre_ids_array for all content to avoid N+1 queries
-      # Use select instead of pluck to keep the Content objects
-      content_with_genres = base_content.select(:id, :genre_ids)
+      # Use cache for content with genres to avoid repeated database queries
+      begin
+        content_with_genres = Rails.cache.fetch("content_with_genres", expires_in: 6.hours) do
+          base_content.select(:id, :genre_ids).map do |content|
+            {
+              id: content.id,
+              genre_ids: content.genre_ids_array
+            }
+          end
+        end
+      rescue => e
+        Rails.logger.error "[RecommendationService] Cache error fetching content: #{e.message}"
+        content_with_genres = base_content.select(:id, :genre_ids).map do |content|
+          {
+            id: content.id,
+            genre_ids: content.genre_ids_array
+          }
+        end
+      end
       
       # Calculate match scores in memory to reduce database load
-      content_with_scores = content_with_genres.map do |content|
-        {
-          id: content.id,
-          match_score: calculate_match_score(content.genre_ids_array, user_preference, all_genres)
-        }
+      content_with_scores = []
+      
+      # Process in smaller batches to reduce memory pressure
+      content_with_genres.each_slice(500) do |batch|
+        batch_scores = batch.map do |content|
+          {
+            id: content[:id],
+            match_score: calculate_match_score(content[:genre_ids], user_preference, all_genres)
+          }
+        end
+        content_with_scores.concat(batch_scores)
+        
+        # Allow GC to run between batches
+        GC.start if rand < 0.2 # Only run GC ~20% of the time
       end
       
       # Sort and get top recommendations
@@ -54,8 +86,12 @@ class RecommendationService
       )
       
       # Clear cache
-      Rails.cache.delete_matched("user_#{user_preference.user_id}_recommendations_*")
-      Rails.cache.delete("user_#{user_preference.user_id}_recommendations_page_1")
+      begin
+        Rails.cache.delete_matched("user_#{user_preference.user_id}_recommendations_*")
+        Rails.cache.delete("user_#{user_preference.user_id}_recommendations_page_1")
+      rescue => e
+        Rails.logger.error "[RecommendationService] Cache error clearing recommendations: #{e.message}"
+      end
       
       top_recommendations
     end
@@ -71,7 +107,17 @@ class RecommendationService
       failed_users = 0
       
       # Preload all genres to avoid N+1 queries
-      all_genres = Genre.all.index_by(&:tmdb_id)
+      begin
+        all_genres = Rails.cache.fetch("all_genres", expires_in: 24.hours) do
+          Genre.all.index_by(&:tmdb_id)
+        end
+      rescue => e
+        Rails.logger.error "[RecommendationService] Cache error fetching genres: #{e.message}"
+        all_genres = Genre.all.index_by(&:tmdb_id)
+      end
+      
+      # Cache content with genres for the duration of this job
+      content_with_genres = nil
       
       User.find_in_batches(batch_size: batch_size) do |users_batch|
         batch_start_time = Time.current
@@ -79,6 +125,28 @@ class RecommendationService
         # Preload user preferences for the batch
         user_ids = users_batch.map(&:id)
         user_preferences = UserPreference.where(user_id: user_ids).index_by(&:user_id)
+        
+        # Lazy load content with genres only when needed
+        if content_with_genres.nil?
+          begin
+            content_with_genres = Rails.cache.fetch("content_with_genres", expires_in: 6.hours) do
+              Content.select(:id, :genre_ids).map do |content|
+                {
+                  id: content.id,
+                  genre_ids: content.genre_ids_array
+                }
+              end
+            end
+          rescue => e
+            Rails.logger.error "[RecommendationService] Cache error fetching content: #{e.message}"
+            content_with_genres = Content.select(:id, :genre_ids).map do |content|
+              {
+                id: content.id,
+                genre_ids: content.genre_ids_array
+              }
+            end
+          end
+        end
         
         users_batch.each do |user|
           begin
@@ -93,7 +161,37 @@ class RecommendationService
             end
             
             # Generate recommendations
-            generate_recommendations_for_preference(user_preference)
+            content_with_scores = []
+            
+            # Process in smaller batches to reduce memory pressure
+            content_with_genres.each_slice(500) do |batch|
+              batch_scores = batch.map do |content|
+                {
+                  id: content[:id],
+                  match_score: calculate_match_score(content[:genre_ids], user_preference, all_genres)
+                }
+              end
+              content_with_scores.concat(batch_scores)
+            end
+            
+            # Sort and get top recommendations
+            sorted_recommendations = content_with_scores.sort_by { |r| -r[:match_score] }
+            top_recommendations = sorted_recommendations.first(100).map { |r| r[:id] }
+            
+            # Update user preference with new recommendations
+            user_preference.update(
+              recommended_content_ids: top_recommendations, 
+              recommendations_generated_at: Time.current
+            )
+            
+            # Clear cache
+            begin
+              Rails.cache.delete_matched("user_#{user_preference.user_id}_recommendations_*")
+              Rails.cache.delete("user_#{user_preference.user_id}_recommendations_page_1")
+            rescue => e
+              Rails.logger.error "[RecommendationService] Cache error clearing recommendations: #{e.message}"
+            end
+            
             successful_users += 1
           rescue => e
             failed_users += 1
@@ -147,19 +245,29 @@ class RecommendationService
     def calculate_big_five_score(genres, personality_profiles)
       score = 0
       UserPreference::GENRE_MAPPING.each do |trait, trait_genres|
-        match = (genres & trait_genres).size
-        score += personality_profiles[trait.to_s].to_f * match
+        # Skip if the user doesn't have this trait
+        next unless personality_profiles[trait].present?
+        
+        # Calculate the match for this trait
+        trait_score = personality_profiles[trait].to_f / 100
+        matching_genres = genres.count { |g| trait_genres.include?(g) }
+        
+        # Add to the total score
+        score += (matching_genres * trait_score)
       end
+      
       score
     end
     
     # Calculate favorite genres score
     def calculate_favorite_genres_score(genres, favorite_genres)
-      user_favorite_genres = favorite_genres.is_a?(String) ? favorite_genres.split(',').map(&:strip) : favorite_genres
-      return 0 if user_favorite_genres.empty?
+      return 0 if favorite_genres.blank?
       
-      matching_genres = genres & user_favorite_genres
-      matching_genres.size.to_f / user_favorite_genres.size
+      # Count how many of the content's genres match the user's favorites
+      matching_genres = genres.count { |g| favorite_genres.include?(g) }
+      
+      # Normalize by the number of genres in the content
+      genres.empty? ? 0 : (matching_genres.to_f / genres.size)
     end
   end
 end 
