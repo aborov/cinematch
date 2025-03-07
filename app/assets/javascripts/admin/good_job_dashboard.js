@@ -54,7 +54,7 @@ function initGoodJobDashboard() {
         failedUpdates = 0;
       }
     }
-  }, 15000); // Update every 15 seconds
+  }, 30000); // Update every 30 seconds
   
   // Set up refresh button for job runner status
   setupJobRunnerStatusRefresh();
