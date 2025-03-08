@@ -70,7 +70,10 @@ class Content < ApplicationRecord
       end
     when Array
       self[field]
+    when Integer, Float
+      [self[field]]
     else
+      Rails.logger.warn "[Content] Unexpected type for #{field}: #{self[field].class}"
       []
     end
   end
