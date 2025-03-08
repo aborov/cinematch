@@ -21,16 +21,26 @@ module Api
       
       if is_job_runner
         # If we are the job runner, return our status
-        render json: {
-          status: 'ok',
-          timestamp: Time.current,
-          environment: Rails.env,
-          job_runner: true,
-          good_job_status: GoodJob::Job.count >= 0 ? 'connected' : 'error',
-          active_jobs: GoodJob::Job.where.not(performed_at: nil).where(finished_at: nil).count,
-          queued_jobs: GoodJob::Job.where(performed_at: nil).count,
-          recent_errors: GoodJob::Job.where.not(error: nil).order(created_at: :desc).limit(5).map { |j| { id: j.id, job_class: j.job_class, error: j.error.to_s.truncate(100) } }
+        status_data = {
+          'status' => 'ok',
+          'timestamp' => Time.current,
+          'environment' => Rails.env,
+          'job_runner' => true,
+          'good_job_status' => GoodJob::Job.count >= 0 ? 'connected' : 'error',
+          'active_jobs' => GoodJob::Job.where.not(performed_at: nil).where(finished_at: nil).count,
+          'queued_jobs' => GoodJob::Job.where(performed_at: nil).count,
+          'recent_errors' => GoodJob::Job.where.not(error: nil).order(created_at: :desc).limit(5).map { |j| 
+            {
+              'id' => j.id,
+              'job_class' => j.job_class,
+              'error' => j.error.to_s.truncate(100),
+              'created_at' => j.created_at
+            }
+          }
         }
+        
+        Rails.logger.info "[JobRunnerController#status] Returning job runner status: #{status_data.except('recent_errors').inspect}"
+        render json: status_data
       else
         # If we're not the job runner, check if the job runner is available
         begin
@@ -40,46 +50,50 @@ module Api
             # If available, get more details from the job runner
             begin
               response = HTTParty.get(
-                "#{JobRunnerService.send(:job_runner_url)}/api/job_runner/health_check",
+                "#{JobRunnerService.send(:job_runner_url)}/api/job_runner/status",
                 timeout: 5
               )
               
               if response.success?
-                # Return the job runner's health check response
-                render json: response.parsed_response.merge(
-                  main_app_timestamp: Time.current,
-                  job_runner_available: true
+                # Return the job runner's status response
+                status_data = response.parsed_response.merge(
+                  'main_app_timestamp' => Time.current,
+                  'job_runner_available' => true
                 )
+                Rails.logger.info "[JobRunnerController#status] Returning job runner status from job runner: #{status_data.except('recent_errors').inspect}"
+                render json: status_data
               else
-                render json: {
-                  status: 'warning',
-                  timestamp: Time.current,
-                  job_runner_available: false,
-                  error: "Job runner returned status code: #{response.code}"
+                error_data = {
+                  'status' => 'warning',
+                  'timestamp' => Time.current,
+                  'job_runner_available' => false,
+                  'error' => "Job runner returned status code: #{response.code}"
                 }
+                Rails.logger.warn "[JobRunnerController#status] #{error_data['error']}"
+                render json: error_data
               end
             rescue => e
               render json: {
-                status: 'warning',
-                timestamp: Time.current,
-                job_runner_available: false,
-                error: "Error communicating with job runner: #{e.message}"
+                'status' => 'warning',
+                'timestamp' => Time.current,
+                'job_runner_available' => false,
+                'error' => "Error communicating with job runner: #{e.message}"
               }
             end
           else
             render json: {
-              status: 'warning',
-              timestamp: Time.current,
-              job_runner_available: false,
-              error: "Job runner is not responding"
+              'status' => 'warning',
+              'timestamp' => Time.current,
+              'job_runner_available' => false,
+              'error' => "Job runner is not responding"
             }
           end
         rescue => e
           render json: {
-            status: 'error',
-            timestamp: Time.current,
-            job_runner_available: false,
-            error: "Error checking job runner status: #{e.message}"
+            'status' => 'error',
+            'timestamp' => Time.current,
+            'job_runner_available' => false,
+            'error' => "Error checking job runner status: #{e.message}"
           }
         end
       end
