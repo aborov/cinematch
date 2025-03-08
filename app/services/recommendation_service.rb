@@ -64,10 +64,18 @@ class RecommendationService
       # Process in smaller batches to reduce memory pressure
       content_with_genres.each_slice(500) do |batch|
         batch_scores = batch.map do |content|
-          {
-            id: content[:id],
-            match_score: calculate_match_score(content[:genre_ids], user_preference, all_genres)
-          }
+          begin
+            {
+              id: content[:id],
+              match_score: calculate_match_score(content[:genre_ids], user_preference, all_genres)
+            }
+          rescue => e
+            Rails.logger.error "[RecommendationService] Error calculating match score for content #{content[:id]}: #{e.message}"
+            {
+              id: content[:id],
+              match_score: 0 # Default to zero match score on error
+            }
+          end
         end
         content_with_scores.concat(batch_scores)
         
@@ -230,6 +238,14 @@ class RecommendationService
     
     # Calculate match score for content based on genres
     def calculate_match_score(genre_ids, user_preference, all_genres)
+      # Log problematic genre_ids for debugging
+      if !genre_ids.is_a?(Array)
+        Rails.logger.warn "[RecommendationService] Non-array genre_ids detected: #{genre_ids.inspect} (#{genre_ids.class})"
+      end
+      
+      # Ensure genre_ids is an array
+      genre_ids = [genre_ids] unless genre_ids.is_a?(Array)
+      
       # Get genre names from preloaded genres
       genre_names = genre_ids.map { |id| all_genres[id]&.name }.compact
       
