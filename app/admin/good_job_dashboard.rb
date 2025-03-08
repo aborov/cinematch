@@ -29,10 +29,24 @@ ActiveAdmin.register_page "Good Job Dashboard" do
   end
 
   action_item :fetch_content do
-    link_to 'Fetch Content', admin_good_job_dashboard_run_fetch_content_path, 
+    link_to 'Fetch Content', admin_good_job_dashboard_run_fetch_new_content_path, 
             method: :post, 
             class: 'admin-job-button',
-            data: { confirm: 'Are you sure you want to start a content fetch job?' }
+            data: { confirm: 'Are you sure you want to fetch new content?' }
+  end
+
+  action_item :update_content do
+    link_to 'Update Content', admin_good_job_dashboard_run_update_existing_content_path, 
+            method: :post, 
+            class: 'admin-job-button',
+            data: { confirm: 'Are you sure you want to update existing content?' }
+  end
+
+  action_item :fill_missing_details do
+    link_to 'Fill Missing Details', admin_good_job_dashboard_run_fill_missing_content_details_path, 
+            method: :post, 
+            class: 'admin-job-button',
+            data: { confirm: 'Are you sure you want to fill missing content details?' }
   end
 
   action_item :update_recommendations do
@@ -40,13 +54,6 @@ ActiveAdmin.register_page "Good Job Dashboard" do
             method: :post, 
             class: 'admin-job-button',
             data: { confirm: 'Are you sure you want to update recommendations for all users?' }
-  end
-
-  action_item :fill_missing_details do
-    link_to 'Fill Missing Details', admin_good_job_dashboard_run_fill_missing_details_path, 
-            method: :post, 
-            class: 'admin-job-button',
-            data: { confirm: 'Are you sure you want to fill missing content details?' }
   end
 
   action_item :check_job_runner do
@@ -258,10 +265,10 @@ ActiveAdmin.register_page "Good Job Dashboard" do
       GoodJob::Job.uncached do
         GoodJob::Job.connection.clear_query_cache
         @jobs = GoodJob::Job.where('created_at > ?', 2.weeks.ago)
-        @queues = GoodJob::Job.distinct.pluck(:queue_name).compact.sort
+      @queues = GoodJob::Job.distinct.pluck(:queue_name).compact.sort
         @job_classes = GoodJob::Job.distinct.pluck(:job_class).compact.sort
-        @next_fetch_job = GoodJob::Job.where(job_class: 'FetchContentJob').scheduled.first
-        @next_update_job = GoodJob::Job.where(job_class: 'UpdateAllRecommendationsJob').scheduled.first
+      @next_fetch_job = GoodJob::Job.where(job_class: 'FetchContentJob').scheduled.first
+      @next_update_job = GoodJob::Job.where(job_class: 'UpdateAllRecommendationsJob').scheduled.first
         @next_fill_details_job = GoodJob::Job.where(job_class: 'FillMissingDetailsJob').scheduled.first
       end
       
