@@ -33,22 +33,28 @@ Rails.application.configure do
   # Enable cron jobs only in development or on the job runner instance
   if config.good_job[:enable_cron]
     config.good_job[:cron] = {
-      # Update all recommendations daily at 2 AM UTC (9 PM CDT)
-      update_all_recommendations: {
-        cron: "0 2 * * *",
-        class: "UpdateAllRecommendationsJob",
-        args: { batch_size: 25 }
-      },
       # Fetch new content daily at 1 AM UTC (8 PM CDT)
-      fetch_content: {
+      fetch_new_content: {
         cron: "0 1 * * *",
-        class: "FetchContentJob"
+        class: "FetchContentJob",
+        args: { fetch_new: true }
       },
-      # Fill missing details for movies and shows twice a day
+      
+      # Update existing content with significant changes three times a week
+      # Monday, Wednesday, Friday at 3 AM UTC (10 PM CDT)
+      update_content: {
+        cron: "0 3 * * 1,3,5",
+        class: "FetchContentJob",
+        args: { update_existing: true }
+      },
+      
+      # Fill missing details once a week on Sunday at 4 AM UTC (11 PM CDT)
       fill_missing_details: {
-        cron: "0 */12 * * *",
-        class: "FillMissingDetailsJob"
+        cron: "0 4 * * 0",
+        class: "FetchContentJob",
+        args: { fill_missing: true }
       },
+      
       # Run memory monitoring every hour
       memory_monitor: {
         cron: "0 * * * *",

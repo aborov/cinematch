@@ -13,148 +13,134 @@ class FetchContentJob < ApplicationJob
   BACKOFF_TIMES = [5, 15, 30, 60, 120] # seconds
 
   # Progress tracking attributes
-  attr_accessor :job_start_time, :current_operation, :current_category, :total_operations, :completed_operations
+  attr_accessor :job_start_time, :current_operation, :current_category, :current_genre, :current_decade, :current_keyword, :current_language, :total_operations, :completed_operations
 
   def perform(options = {})
     # Ensure options is a regular hash
     options = options.to_h if options.respond_to?(:to_h)
     @is_fallback_execution = options.delete(:is_fallback_execution) || false
     
-    # Initialize progress tracking
+    # Initialize job tracking variables
     @job_start_time = Time.current
     @current_operation = nil
     @current_category = nil
-    @total_operations = 0
-    @completed_operations = 0
+    @current_genre = nil
+    @current_decade = nil
+    @current_keyword = nil
+    @current_language = nil
     
-    # If we're not on the job runner instance, delegate the job to the job runner service
-    if ENV['JOB_RUNNER_ONLY'] != 'true' && Rails.env.production? && !@is_fallback_execution
-      Rails.logger.info "[FetchContentJob] Running in production on main app, delegating to job runner service"
-      
-      # First wake up the job runner with retries
-      unless JobRunnerService.wake_up_job_runner(max_retries: 3)
-        Rails.logger.warn "[FetchContentJob] Failed to wake up job runner after multiple attempts."
-        
-        # For long-running jobs like content fetching, we should reschedule rather than run locally
-        if should_reschedule_instead_of_fallback?(options)
-          reschedule_job(options)
-          return
-        else
-          Rails.logger.warn "[FetchContentJob] Running locally instead as fallback."
-        end
-      else
-        job_id = JobRunnerService.run_job('FetchContentJob', options)
-        
-        if job_id
-          Rails.logger.info "[FetchContentJob] Successfully delegated to job runner. Job ID: #{job_id}"
-          return
-        else
-          Rails.logger.warn "[FetchContentJob] Failed to delegate to job runner after multiple attempts."
-          
-          # For long-running jobs like content fetching, we should reschedule rather than run locally
-          if should_reschedule_instead_of_fallback?(options)
-            reschedule_job(options)
-            return
-          else
-            Rails.logger.warn "[FetchContentJob] Running locally instead as fallback."
-          end
-        end
-      end
-    else
-      if @is_fallback_execution
-        Rails.logger.info "[FetchContentJob] Running as fallback execution after job runner failure"
-      else
-        Rails.logger.info "[FetchContentJob] Running on job runner or in development, executing locally"
-      end
-    end
-    
-    require 'rake'
-    Rails.application.load_tasks
-    
-    Rails.logger.info "[FetchContentJob] Starting job with operations: #{options.keys.join(', ')}"
-    @start_time = Time.current
-    @progress = { total: 0, success: 0, error: 0 }
-    
-    # Calculate total operations for progress tracking
+    # Calculate total operations based on options
     @total_operations = 0
     @total_operations += 1 if options[:fetch_new] || options.empty?
     @total_operations += 1 if options[:update_existing] || options.empty?
     @total_operations += 1 if options[:fill_missing] || options.empty?
+    @completed_operations = 0
     
-    if options[:fetch_new] || options.empty?
-      @current_operation = "fetch_new"
-      Rails.logger.info "[FetchContentJob] Daily content fetch - Started at #{@start_time.strftime('%H:%M:%S')}"
-      fetch_new_content(options)
-      @completed_operations += 1
-      log_progress_with_eta
-    end
+    # Set up logging hooks to capture rake task output
+    setup_rake_task_logging_hooks
     
-    if options[:update_existing] || options.empty?
-      @current_operation = "update_existing"
-      Rails.logger.info "[FetchContentJob] Bi-weekly content update - Started at #{Time.current.strftime('%H:%M:%S')}"
-      update_existing_content(options)
-      @completed_operations += 1
-      log_progress_with_eta
-    end
+    Rails.logger.info "[FetchContentJob] Starting content fetch job with options: #{options.inspect}"
+    Rails.logger.info "[FetchContentJob] Will perform #{@total_operations} operations"
     
-    if options[:fill_missing] || options.empty?
-      @current_operation = "fill_missing"
-      Rails.logger.info "[FetchContentJob] Missing details fill - Started at #{Time.current.strftime('%H:%M:%S')}"
-      fill_missing_details(options)
-      @completed_operations += 1
-      log_progress_with_eta
-    end
+    # Track if any content was added or updated to determine if we need to update recommendations
+    content_changes = false
     
-    duration = Time.current - @start_time
-    Rails.logger.info "[FetchContentJob] Job completed in #{duration.round(2)}s. Total content items: #{Content.count}"
-    Rails.logger.info "[FetchContentJob] Summary: #{@progress[:success]} successful, #{@progress[:error]} errors, #{@progress[:total]} total"
-    
-    # Schedule the recommendations update job
-    if ENV['JOB_RUNNER_ONLY'] == 'true' && ENV['MAIN_APP_URL'].present?
-      # If we're on the job runner, we need to notify the main app to update recommendations
-      Rails.logger.info "[FetchContentJob] Notifying main app to update recommendations"
-      begin
-        # Use a dedicated shared secret for job runner authentication
-        shared_secret = ENV['JOB_RUNNER_SECRET'] || ENV['SECRET_KEY_BASE'].to_s[0..15]
+    begin
+      if options[:fetch_new] || options.empty?
+        @current_operation = "fetch_new"
+        @completed_operations += 1
         
-        max_retries = 2
-        retry_count = 0
+        log_progress_with_eta
+        Rails.logger.info "[FetchContentJob] Starting fetch_new_content operation (#{@completed_operations}/#{@total_operations})"
         
-        loop do
-          begin
-            response = HTTParty.post(
-              "#{ENV['MAIN_APP_URL']}/api/job_runner/update_recommendations",
-              headers: {
-                'Content-Type' => 'application/json',
-                'Authorization' => "Bearer #{shared_secret}"
-              },
-              body: {
-                job_id: job_id,
-                status: 'completed',
-                message: "Content fetch completed successfully. #{@progress[:success]} items processed."
-              }.to_json,
-              timeout: 10
-            )
-            
-            if response.success?
-              Rails.logger.info "[FetchContentJob] Successfully notified main app to update recommendations"
-              break
-            else
-              Rails.logger.warn "[FetchContentJob] Failed to notify main app: #{response.code} - #{response.body}"
-              retry_count += 1
-              break if retry_count >= max_retries
-              sleep(5)
-            end
-          rescue => e
-            Rails.logger.error "[FetchContentJob] Error notifying main app: #{e.message}"
-            retry_count += 1
-            break if retry_count >= max_retries
-            sleep(5)
-          end
-        end
-      rescue => e
-        Rails.logger.error "[FetchContentJob] Failed to notify main app: #{e.message}"
+        new_items_added = fetch_new_content(options)
+        # Initialize content_changes if it's nil and add a nil check for new_items_added
+        content_changes ||= false
+        content_changes = content_changes || (new_items_added.to_i > 0)
+        
+        Rails.logger.info "[FetchContentJob] Completed fetch_new_content operation. Added #{new_items_added || 0} new items."
       end
+      
+      if options[:update_existing] || options.empty?
+        @current_operation = "update_existing"
+        @completed_operations += 1
+        
+        log_progress_with_eta
+        Rails.logger.info "[FetchContentJob] Starting update_existing_content operation (#{@completed_operations}/#{@total_operations})"
+        
+        significant_updates = update_existing_content(options)
+        # Initialize content_changes if it's nil and add a nil check for significant_updates
+        content_changes ||= false
+        content_changes = content_changes || (significant_updates.to_i > 0)
+        
+        Rails.logger.info "[FetchContentJob] Completed update_existing_content operation. Updated #{significant_updates || 0} items with significant changes."
+      end
+      
+      if options[:fill_missing] || options.empty?
+        @current_operation = "fill_missing"
+        @completed_operations += 1
+        
+        log_progress_with_eta
+        Rails.logger.info "[FetchContentJob] Starting fill_missing_details operation (#{@completed_operations}/#{@total_operations})"
+        
+        filled_items = fill_missing_details(options)
+        # Initialize content_changes if it's nil and add a nil check for filled_items
+        content_changes ||= false
+        content_changes = content_changes || (filled_items.to_i > 0)
+        
+        Rails.logger.info "[FetchContentJob] Completed fill_missing_details operation. Filled details for #{filled_items || 0} items."
+      end
+      
+      # Only update recommendations if content has changed
+      if content_changes
+        Rails.logger.info "[FetchContentJob] Content changes detected. Scheduling recommendation updates."
+        
+        # Schedule recommendation updates
+        if ENV['JOB_RUNNER_ONLY'] == 'true'
+          # If we are the job runner, run the job directly
+          UpdateAllRecommendationsJob.perform_later(batch_size: 50)
+        else
+          # Otherwise, delegate to the job runner
+          JobRunnerService.run_job('UpdateAllRecommendationsJob', { batch_size: 50 })
+        end
+      else
+        Rails.logger.info "[FetchContentJob] No content changes detected. Skipping recommendation updates."
+      end
+      
+      # Notify the main app that the job is complete
+      if ENV['MAIN_APP_URL'].present? && ENV['JOB_RUNNER_ONLY'] == 'true'
+        begin
+          Rails.logger.info "[FetchContentJob] Notifying main app about job completion"
+          
+          response = HTTParty.post(
+            "#{ENV['MAIN_APP_URL']}/api/job_runner/update_recommendations",
+            body: {
+              job_id: job_id,
+              status: 'completed',
+              message: "Content fetch completed successfully. Content changes: #{content_changes}"
+            }.to_json,
+            headers: { 'Content-Type' => 'application/json' }
+          )
+          
+          if response.success?
+            Rails.logger.info "[FetchContentJob] Successfully notified main app"
+          else
+            Rails.logger.error "[FetchContentJob] Failed to notify main app. Status: #{response.code}, Error: #{response.body}"
+          end
+        rescue => e
+          Rails.logger.error "[FetchContentJob] Error notifying main app: #{e.message}"
+        end
+      end
+      
+      Rails.logger.info "[FetchContentJob] Content fetch job completed successfully"
+    rescue => e
+      Rails.logger.error "[FetchContentJob] Error in content fetch job: #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+      raise e
+    ensure
+      # Force garbage collection
+      GC.start
+      GC.compact if GC.respond_to?(:compact)
     end
   end
 
@@ -168,20 +154,22 @@ class FetchContentJob < ApplicationJob
         unless JobRunnerService.wake_up_job_runner(max_retries: 2)
           Rails.logger.warn "[FetchContentJob] Failed to wake up job runner for fetch_new_content. Rescheduling..."
           reschedule_specific_job('fetch_new_content', options)
-          return
+          return 0
         end
         
         job_id = JobRunnerService.run_specific_job('FetchContentJob', 'fetch_new_content', options)
         
         if job_id
           Rails.logger.info "[FetchContentJob] Successfully delegated fetch_new_content to job runner. Job ID: #{job_id}"
+          return 0
         else
           Rails.logger.warn "[FetchContentJob] Failed to delegate fetch_new_content to job runner. Rescheduling..."
           reschedule_specific_job('fetch_new_content', options)
+          return 0
         end
       else
         Rails.logger.info "[FetchContentJob] Running fetch_new_content locally"
-        run_fetch_new_content_locally(options)
+        return run_fetch_new_content_locally(options)
       end
     end
     
@@ -193,20 +181,22 @@ class FetchContentJob < ApplicationJob
         unless JobRunnerService.wake_up_job_runner(max_retries: 2)
           Rails.logger.warn "[FetchContentJob] Failed to wake up job runner for update_existing_content. Rescheduling..."
           reschedule_specific_job('update_existing_content', options)
-          return
+          return 0
         end
         
         job_id = JobRunnerService.run_specific_job('FetchContentJob', 'update_existing_content', options)
         
         if job_id
           Rails.logger.info "[FetchContentJob] Successfully delegated update_existing_content to job runner. Job ID: #{job_id}"
+          return 0
         else
           Rails.logger.warn "[FetchContentJob] Failed to delegate update_existing_content to job runner. Rescheduling..."
           reschedule_specific_job('update_existing_content', options)
+          return 0
         end
       else
         Rails.logger.info "[FetchContentJob] Running update_existing_content locally"
-        run_update_existing_content_locally(options)
+        return run_update_existing_content_locally(options)
       end
     end
     
@@ -218,20 +208,22 @@ class FetchContentJob < ApplicationJob
         unless JobRunnerService.wake_up_job_runner(max_retries: 2)
           Rails.logger.warn "[FetchContentJob] Failed to wake up job runner for fill_missing_details. Rescheduling..."
           reschedule_specific_job('fill_missing_details', options)
-          return
+          return 0
         end
         
         job_id = JobRunnerService.run_specific_job('FetchContentJob', 'fill_missing_details', options)
         
         if job_id
           Rails.logger.info "[FetchContentJob] Successfully delegated fill_missing_details to job runner. Job ID: #{job_id}"
+          return 0
         else
           Rails.logger.warn "[FetchContentJob] Failed to delegate fill_missing_details to job runner. Rescheduling..."
           reschedule_specific_job('fill_missing_details', options)
+          return 0
         end
       else
         Rails.logger.info "[FetchContentJob] Running fill_missing_details locally"
-        run_fill_missing_details_locally(options)
+        return run_fill_missing_details_locally(options)
       end
     end
     
@@ -259,37 +251,119 @@ class FetchContentJob < ApplicationJob
     end
     
     def run_fetch_new_content_locally(options = {})
-      require 'rake'
-      Rails.application.load_tasks
+      Rails.logger.info "[FetchContentJob][New Content] Starting fetch"
+      batch_size = options[:batch_size] || 50
+      max_items = options[:max_items] || 1000
+      Rails.logger.info "[FetchContentJob][New Content] Using batch_size: #{batch_size}, max_items: #{max_items}"
       
-      batch_size = options[:batch_size] || BATCH_SIZE
-      max_items = options[:max_items] || MAX_ITEMS_PER_RUN
+      start_time = Time.now
       
-      Rails.logger.info "[FetchContentJob] Running fetch_new_content with batch_size: #{batch_size}, max_items: #{max_items}"
-      
-      # Set environment variables for the Rake task
-      ENV['BATCH_SIZE'] = batch_size.to_s
-      ENV['MAX_ITEMS'] = max_items.to_s
-      
-      Rake::Task['tmdb:fetch_content'].invoke
-      Rake::Task['tmdb:fetch_content'].reenable
+      # Run the rake task
+      begin
+        # Ensure Rake is loaded
+        require 'rake'
+        
+        # Load Rails application tasks if they haven't been loaded
+        unless defined?(Rake::Task) && Rake::Task.task_defined?('tmdb:fetch_content')
+          Rails.logger.info "[FetchContentJob][New Content] Loading Rake tasks"
+          Rails.application.load_tasks
+        end
+        
+        # Capture the output to count new items
+        new_items_added = 0
+        
+        # Set up a hook to capture the "Total new items added" line
+        original_puts = Kernel.method(:puts)
+        Kernel.define_singleton_method(:puts) do |*args|
+          message = args.first.to_s
+          if message.include?("Total new items added:")
+            # Extract the number of new items added
+            match = message.match(/Total new items added: (\d+)/)
+            new_items_added = match[1].to_i if match
+          end
+          original_puts.call(*args)
+        end
+        
+        # Run the rake task
+        Rake::Task['tmdb:fetch_content'].invoke
+        Rake::Task['tmdb:fetch_content'].reenable
+        
+        # Restore original puts
+        Kernel.singleton_class.send(:remove_method, :puts)
+        Kernel.define_singleton_method(:puts, &original_puts)
+        
+        duration = Time.now - start_time
+        Rails.logger.info "[FetchContentJob][New Content] Completed in #{duration.round(2)} seconds. Added #{new_items_added} new items."
+        
+        new_items_added
+      rescue => e
+        Rails.logger.error "[FetchContentJob][New Content] Error: #{e.message}"
+        Rails.logger.error e.backtrace.join("\n")
+        
+        # Safely handle the error without trying to access nil objects
+        if e.message.include?("uninitialized constant Rake::Task")
+          Rails.logger.error "[FetchContentJob][New Content] Rake tasks not loaded. Try running 'Rails.application.load_tasks' first."
+        end
+        
+        # Return 0 instead of re-raising to allow the job to continue
+        0
+      end
     end
     
     def run_update_existing_content_locally(options = {})
-      require 'rake'
-      Rails.application.load_tasks
+      Rails.logger.info "[FetchContentJob][Update] Starting update of existing content"
+      start_time = Time.now
       
-      batch_size = options[:batch_size] || BATCH_SIZE
-      max_items = options[:max_items] || MAX_ITEMS_PER_RUN
-      
-      Rails.logger.info "[FetchContentJob] Running update_existing_content with batch_size: #{batch_size}, max_items: #{max_items}"
-      
-      # Set environment variables for the Rake task
-      ENV['BATCH_SIZE'] = batch_size.to_s
-      ENV['MAX_ITEMS'] = max_items.to_s
-      
-      Rake::Task['tmdb:update_content'].invoke
-      Rake::Task['tmdb:update_content'].reenable
+      # Run the rake task
+      begin
+        # Ensure Rake is loaded
+        require 'rake'
+        
+        # Load Rails application tasks if they haven't been loaded
+        unless defined?(Rake::Task) && Rake::Task.task_defined?('tmdb:update_content')
+          Rails.logger.info "[FetchContentJob][Update] Loading Rake tasks"
+          Rails.application.load_tasks
+        end
+        
+        # Capture the output to count significant changes
+        significant_changes = 0
+        
+        # Set up a hook to capture the "Items with significant changes" line
+        original_puts = Kernel.method(:puts)
+        Kernel.define_singleton_method(:puts) do |*args|
+          message = args.first.to_s
+          if message.include?("Items with significant changes:")
+            # Extract the number of items with significant changes
+            match = message.match(/Items with significant changes: (\d+)/)
+            significant_changes = match[1].to_i if match
+          end
+          original_puts.call(*args)
+        end
+        
+        # Run the rake task
+        Rake::Task['tmdb:update_content'].invoke
+        Rake::Task['tmdb:update_content'].reenable
+        
+        # Restore original puts
+        Kernel.singleton_class.send(:remove_method, :puts)
+        Kernel.define_singleton_method(:puts, &original_puts)
+        
+        duration = Time.now - start_time
+        Rails.logger.info "[FetchContentJob][Update] Completed in #{duration.round(2)} seconds. Updated #{significant_changes} items with significant changes."
+        
+        significant_changes
+      rescue => e
+        Rails.logger.error "[FetchContentJob][Update] Error: #{e.message}"
+        Rails.logger.error e.backtrace.join("\n")
+        
+        # Safely handle the error without trying to access nil objects
+        if e.message.include?("uninitialized constant Rake::Task")
+          Rails.logger.error "[FetchContentJob][Update] Rake tasks not loaded. Try running 'Rails.application.load_tasks' first."
+        end
+        
+        # Return 0 instead of re-raising to allow the job to continue
+        0
+      end
     end
     
     def run_fill_missing_details_locally(options = {})
@@ -307,6 +381,30 @@ class FetchContentJob < ApplicationJob
       
       Rake::Task['tmdb:fill_missing_details'].invoke
       Rake::Task['tmdb:fill_missing_details'].reenable
+      
+      # Capture the output to count updated items
+      updated_items = 0
+      
+      # Set up a hook to capture the "Total items updated" line
+      original_puts = Kernel.method(:puts)
+      Kernel.define_singleton_method(:puts) do |*args|
+        message = args.first.to_s
+        if message.include?("Total items updated:")
+          # Extract the number of updated items
+          match = message.match(/Total items updated: (\d+)/)
+          updated_items = match[1].to_i if match
+        end
+        original_puts.call(*args)
+      end
+      
+      # Restore original puts
+      Kernel.singleton_class.send(:remove_method, :puts)
+      Kernel.define_singleton_method(:puts, &original_puts)
+      
+      duration = Time.current - @job_start_time
+      Rails.logger.info "[FetchContentJob] Completed in #{duration.round(2)} seconds. Updated #{updated_items} items."
+      
+      updated_items
     end
   end
 
@@ -378,103 +476,74 @@ class FetchContentJob < ApplicationJob
     end
   end
 
-  def fetch_new_content(options = {})
-    Rails.logger.info "[FetchContentJob][New Content] Starting fetch"
-    batch_size = options[:batch_size] || BATCH_SIZE
-    max_items = options[:max_items] || MAX_ITEMS_PER_RUN
-    
-    Rails.logger.info "[FetchContentJob][New Content] Using batch_size: #{batch_size}, max_items: #{max_items}"
-    
-    # Set environment variables for the Rake task
-    ENV['BATCH_SIZE'] = batch_size.to_s
-    ENV['MAX_ITEMS'] = max_items.to_s
-    
-    # Track progress
-    start_count = Content.count
-    
-    # Set up logging hooks for the rake task
-    setup_rake_task_logging_hooks
-    
-    Rake::Task['tmdb:fetch_content'].invoke
-    Rake::Task['tmdb:fetch_content'].reenable
-    
-    # Update progress
-    end_count = Content.count
-    items_added = end_count - start_count
-    @progress[:total] += items_added
-    @progress[:success] += items_added
-    
-    Rails.logger.info "[FetchContentJob][New Content] Added #{items_added} new content items"
-  rescue => e
-    @progress[:error] += 1
-    Rails.logger.error "[FetchContentJob][New Content] Error: #{e.message}\n#{e.backtrace.join("\n")}"
-    # Continue with other tasks instead of failing the entire job
-  end
-
   def update_existing_content(options = {})
-    Rails.logger.info "[FetchContentJob][Update] Starting update of existing content"
-    batch_size = options[:batch_size] || BATCH_SIZE
-    max_items = options[:max_items] || MAX_ITEMS_PER_RUN
-    
-    Rails.logger.info "[FetchContentJob][Update] Using batch_size: #{batch_size}, max_items: #{max_items}"
-    
-    # Set environment variables for the Rake task
-    ENV['BATCH_SIZE'] = batch_size.to_s
-    ENV['MAX_ITEMS'] = max_items.to_s
-    
-    # Track progress
-    start_time = Time.current
-    
-    # Set up logging hooks for the rake task
-    setup_rake_task_logging_hooks
-    
-    Rake::Task['tmdb:update_content'].invoke
-    Rake::Task['tmdb:update_content'].reenable
-    
-    # Update progress
-    duration = Time.current - start_time
-    @progress[:total] += max_items
-    @progress[:success] += max_items
-    
-    Rails.logger.info "[FetchContentJob][Update] Updated content in #{duration.round(2)}s"
-  rescue => e
-    @progress[:error] += 1
-    Rails.logger.error "[FetchContentJob][Update] Error: #{e.message}\n#{e.backtrace.join("\n")}"
-    # Continue with other tasks instead of failing the entire job
+    if ENV['JOB_RUNNER_ONLY'] != 'true' && Rails.env.production? && !options[:is_fallback_execution]
+      Rails.logger.info "[FetchContentJob][Update] Starting update of existing content"
+      start_time = Time.now
+      
+      # Run the rake task
+      begin
+        # Ensure Rake is loaded
+        require 'rake'
+        
+        # Load Rails application tasks if they haven't been loaded
+        unless defined?(Rake::Task) && Rake::Task.task_defined?('tmdb:update_content')
+          Rails.logger.info "[FetchContentJob][Update] Loading Rake tasks"
+          Rails.application.load_tasks
+        end
+        
+        # Capture the output to count significant changes
+        significant_changes = 0
+        
+        # Set up a hook to capture the "Items with significant changes" line
+        original_puts = Kernel.method(:puts)
+        Kernel.define_singleton_method(:puts) do |*args|
+          message = args.first.to_s
+          if message.include?("Items with significant changes:")
+            # Extract the number of items with significant changes
+            match = message.match(/Items with significant changes: (\d+)/)
+            significant_changes = match[1].to_i if match
+          end
+          original_puts.call(*args)
+        end
+        
+        # Run the rake task
+        Rake::Task['tmdb:update_content'].invoke
+        Rake::Task['tmdb:update_content'].reenable
+        
+        # Restore original puts
+        Kernel.singleton_class.send(:remove_method, :puts)
+        Kernel.define_singleton_method(:puts, &original_puts)
+        
+        duration = Time.now - start_time
+        Rails.logger.info "[FetchContentJob][Update] Completed in #{duration.round(2)} seconds. Updated #{significant_changes} items with significant changes."
+        
+        significant_changes
+      rescue => e
+        Rails.logger.error "[FetchContentJob][Update] Error: #{e.message}"
+        Rails.logger.error e.backtrace.join("\n")
+        
+        # Safely handle the error without trying to access nil objects
+        if e.message.include?("uninitialized constant Rake::Task")
+          Rails.logger.error "[FetchContentJob][Update] Rake tasks not loaded. Try running 'Rails.application.load_tasks' first."
+        end
+        
+        # Re-raise the error to be handled by the job's error handling
+        raise e
+      end
+    end
   end
 
-  def fill_missing_details(options = {})
-    Rails.logger.info "[FetchContentJob][Fill Missing] Starting missing details fill"
-    batch_size = options[:batch_size] || BATCH_SIZE
-    max_items = options[:max_items] || MAX_ITEMS_PER_RUN
-    
-    Rails.logger.info "[FetchContentJob][Fill Missing] Using batch_size: #{batch_size}, max_items: #{max_items}"
-    
-    # Set environment variables for the Rake task
-    ENV['BATCH_SIZE'] = batch_size.to_s
-    ENV['MAX_ITEMS'] = max_items.to_s
-    
-    # Track progress
-    start_time = Time.current
-    
-    # Set up logging hooks for the rake task
-    setup_rake_task_logging_hooks
-    
-    Rake::Task['tmdb:fill_missing_details'].invoke
-    Rake::Task['tmdb:fill_missing_details'].reenable
-    
-    # Update progress
-    duration = Time.current - start_time
-    @progress[:total] += max_items
-    @progress[:success] += max_items
-    
-    Rails.logger.info "[FetchContentJob][Fill Missing] Filled missing details in #{duration.round(2)}s"
-  rescue => e
-    @progress[:error] += 1
-    Rails.logger.error "[FetchContentJob][Fill Missing] Error: #{e.message}\n#{e.backtrace.join("\n")}"
-    # Continue with other tasks instead of failing the entire job
+  # Add the instance method to call the class method
+  def fetch_new_content(options = {})
+    self.class.fetch_new_content(options)
   end
-  
+
+  # Add the instance method to call the class method
+  def fill_missing_details(options = {})
+    self.class.fill_missing_details(options)
+  end
+
   # Set up hooks to intercept and enhance logging from rake tasks
   def setup_rake_task_logging_hooks
     # Store original puts method
