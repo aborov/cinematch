@@ -9,6 +9,10 @@
       
       <div class="stats-grid">
         <div class="stat-box">
+          <h4>Environment</h4>
+          <p><%= Rails.env %></p>
+        </div>
+        <div class="stat-box">
           <h4>Active Jobs</h4>
           <p><%= @job_runner_status[:active_jobs] %></p>
         </div>
@@ -31,9 +35,24 @@
           <tbody>
             <% @job_runner_status[:recent_errors].each do |job| %>
               <tr>
-                <td><%= job.job_class %></td>
-                <td><%= truncate(job.error, length: 100) %></td>
-                <td><%= job.created_at.strftime('%Y-%m-%d %H:%M:%S') %></td>
+                <td><%= job.respond_to?(:job_class) ? job.job_class : (job['job_class'] || job[:job_class]) %></td>
+                <td><%= 
+                  if job.respond_to?(:error)
+                    truncate(job.error, length: 100)
+                  else
+                    truncate((job['error'] || job[:error]).to_s, length: 100)
+                  end
+                %></td>
+                <td><%= 
+                  if job.respond_to?(:created_at)
+                    job.created_at.strftime('%Y-%m-%d %H:%M:%S')
+                  elsif job['created_at'] || job[:created_at]
+                    time = job['created_at'] || job[:created_at]
+                    time.is_a?(String) ? (Time.parse(time).strftime('%Y-%m-%d %H:%M:%S') rescue time) : time.strftime('%Y-%m-%d %H:%M:%S')
+                  else
+                    'N/A'
+                  end
+                %></td>
               </tr>
             <% end %>
           </tbody>
@@ -52,29 +71,50 @@
           <div class="stats-grid">
             <div class="stat-box">
               <h4>Environment</h4>
-              <p><%= @job_runner_status[:details]['environment'] %></p>
+              <p><%= @job_runner_status[:details]['environment'] || @job_runner_status[:details][:environment] %></p>
             </div>
             <div class="stat-box">
               <h4>Timestamp</h4>
-              <p><%= @job_runner_status[:details]['timestamp'] %></p>
+              <% 
+                timestamp = @job_runner_status[:details]['timestamp'] || @job_runner_status[:details][:timestamp]
+                formatted_timestamp = if timestamp.is_a?(String)
+                  begin
+                    Time.parse(timestamp).strftime("%Y-%m-%d %H:%M:%S")
+                  rescue
+                    timestamp
+                  end
+                elsif timestamp.respond_to?(:strftime)
+                  timestamp.strftime("%Y-%m-%d %H:%M:%S")
+                else
+                  timestamp.to_s
+                end
+              %>
+              <p><%= formatted_timestamp %></p>
             </div>
             <div class="stat-box">
               <h4>Good Job Status</h4>
-              <p><%= @job_runner_status[:details]['good_job_status'] %></p>
+              <p><%= @job_runner_status[:details]['good_job_status'] || @job_runner_status[:details][:good_job_status] %></p>
             </div>
-            <% if @job_runner_status[:details]['active_jobs'].present? %>
+            <% 
+              active_jobs = @job_runner_status[:details]['active_jobs'] || @job_runner_status[:details][:active_jobs]
+              queued_jobs = @job_runner_status[:details]['queued_jobs'] || @job_runner_status[:details][:queued_jobs]
+            %>
+            <% if active_jobs.present? %>
               <div class="stat-box">
                 <h4>Active Jobs</h4>
-                <p><%= @job_runner_status[:details]['active_jobs'] %></p>
+                <p><%= active_jobs %></p>
               </div>
               <div class="stat-box">
                 <h4>Queued Jobs</h4>
-                <p><%= @job_runner_status[:details]['queued_jobs'] %></p>
+                <p><%= queued_jobs %></p>
               </div>
             <% end %>
           </div>
           
-          <% if @job_runner_status[:details]['recent_errors'].present? && @job_runner_status[:details]['recent_errors'].any? %>
+          <% 
+            recent_errors = @job_runner_status[:details]['recent_errors'] || @job_runner_status[:details][:recent_errors]
+          %>
+          <% if recent_errors.present? && recent_errors.any? %>
             <h4>Recent Errors</h4>
             <table class="jobs-table">
               <thead>
@@ -84,10 +124,10 @@
                 </tr>
               </thead>
               <tbody>
-                <% @job_runner_status[:details]['recent_errors'].each do |error| %>
+                <% recent_errors.each do |error| %>
                   <tr>
-                    <td><%= error['job_class'] %></td>
-                    <td><%= error['error'] %></td>
+                    <td><%= error['job_class'] || error[:job_class] %></td>
+                    <td><%= error['error'] || error[:error] %></td>
                   </tr>
                 <% end %>
               </tbody>
@@ -130,7 +170,7 @@
           <%= form_tag admin_good_job_dashboard_run_update_recommendations_path, method: :post, class: 'job-form' do %>
             <div class="form-group">
               <%= label_tag :batch_size, 'Batch Size:' %>
-              <%= number_field_tag :batch_size, 50, min: 10, max: 200, class: 'form-control' %>
+              <%= number_field_tag :batch_size, 25, min: 10, max: 100, class: 'form-control' %>
             </div>
             <%= submit_tag 'Update Recommendations', 
                         class: 'job-button',

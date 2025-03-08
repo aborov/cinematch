@@ -205,6 +205,8 @@ ActiveAdmin.register_page "Good Job Dashboard" do
             
             # Try to get more details
             begin
+              Rails.logger.info "[GoodJobDashboard] Fetching job runner details from #{JobRunnerService.send(:job_runner_url)}/api/job_runner/status"
+              
               response = HTTParty.get(
                 "#{JobRunnerService.send(:job_runner_url)}/api/job_runner/status",
                 timeout: 5
@@ -212,10 +214,19 @@ ActiveAdmin.register_page "Good Job Dashboard" do
               
               if response.success?
                 status_data = response.parsed_response
-                @job_runner_status[:details] = status_data
+                Rails.logger.info "[GoodJobDashboard] Successfully fetched job runner details: #{status_data.except('recent_errors').inspect}"
+                
+                # Convert string keys to symbols for consistency
+                @job_runner_status[:details] = status_data.deep_transform_keys(&:to_sym)
+              else
+                error_message = "Failed to get job runner details: HTTP #{response.code}"
+                Rails.logger.warn "[GoodJobDashboard] #{error_message}"
+                @job_runner_status[:details_error] = error_message
               end
             rescue => e
-              @job_runner_status[:details_error] = "Error getting details: #{e.message}"
+              error_message = "Error getting job runner details: #{e.message}"
+              Rails.logger.error "[GoodJobDashboard] #{error_message}"
+              @job_runner_status[:details_error] = error_message
             end
           else
             @job_runner_status = {

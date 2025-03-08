@@ -1,11 +1,11 @@
 Rails.application.configure do
   config.good_job = {
     execution_mode: :async,
-    max_threads: ENV.fetch("GOOD_JOB_MAX_THREADS", 10).to_i,
-    poll_interval: ENV.fetch("GOOD_JOB_POLL_INTERVAL", 15).to_i,
+    max_threads: ENV.fetch("GOOD_JOB_MAX_THREADS", 5).to_i,
+    poll_interval: ENV.fetch("GOOD_JOB_POLL_INTERVAL", 30).to_i,
     shutdown_timeout: ENV.fetch("GOOD_JOB_SHUTDOWN_TIMEOUT", 25).to_i,
     queues: ENV.fetch("GOOD_JOB_QUEUES", "*"),
-    max_cache: ENV.fetch("GOOD_JOB_MAX_CACHE", 10000).to_i,
+    max_cache: ENV.fetch("GOOD_JOB_MAX_CACHE", 5000).to_i,
     preserve_job_records: true,
     retry_on_unhandled_error: ENV.fetch("GOOD_JOB_RETRY_ON_UNHANDLED_ERROR", false) == 'true',
     on_thread_error: -> (exception) { 
@@ -19,7 +19,7 @@ Rails.application.configure do
     cleanup_preserved_jobs_before_seconds_ago: 2.weeks.to_i,
     cleanup_interval_seconds: 1.day.to_i,
     enable_cron: Rails.env.development? || Rails.env.job_runner? || ENV.fetch("JOB_RUNNER_ONLY", "false") == "true",
-    queue_select_limit: ENV.fetch("GOOD_JOB_QUEUE_SELECT_LIMIT", 100).to_i,
+    queue_select_limit: ENV.fetch("GOOD_JOB_QUEUE_SELECT_LIMIT", 50).to_i,
     # Configure queue priorities
     queue_priorities: {
       # Higher priority queues
@@ -37,7 +37,7 @@ Rails.application.configure do
       update_all_recommendations: {
         cron: "0 2 * * *",
         class: "UpdateAllRecommendationsJob",
-        args: { batch_size: 50 }
+        args: { batch_size: 25 }
       },
       # Fetch new content daily at 1 AM UTC (8 PM CDT)
       fetch_content: {
@@ -65,7 +65,7 @@ if defined?(GoodJob::Job)
   module MemoryMonitorCallback
     def self.after_perform(job)
       # Only run memory monitoring occasionally to reduce overhead
-      if rand < 0.1 # 10% chance
+      if rand < 0.05
         if defined?(Rake::Task) && Rake::Task.task_defined?('memory:monitor')
           Rake::Task['memory:monitor'].invoke
           Rake::Task['memory:monitor'].reenable
@@ -75,6 +75,12 @@ if defined?(GoodJob::Job)
       # Clear Active Record query cache after each job
       if defined?(ActiveRecord::Base)
         ActiveRecord::Base.connection.clear_query_cache
+      end
+      
+      # Force garbage collection more aggressively after heavy jobs
+      if ['FetchContentJob', 'UpdateAllRecommendationsJob', 'FillMissingDetailsJob'].include?(job.job_class)
+        GC.start
+        GC.compact if GC.respond_to?(:compact)
       end
     end
   end

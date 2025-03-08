@@ -30,29 +30,14 @@ pidfile ENV.fetch("PIDFILE") { "tmp/pids/server.pid" }
 # Workers do not work on JRuby or Windows (both of which do not support
 # processes).
 #
-workers ENV.fetch("WEB_CONCURRENCY") { 2 }
+workers ENV.fetch("WEB_CONCURRENCY") { 0 }
 
 # Use the `preload_app!` method when specifying a `workers` number.
 # This directive tells Puma to first boot the application and load code
 # before forking the application. This takes advantage of Copy On Write
 # process behavior so workers use less memory.
 #
-preload_app!
-
-# Reduce memory usage with garbage collection
-before_fork do
-  GC.compact if defined?(GC) && GC.respond_to?(:compact)
-end
-
-# Set up hooks for database connections
-on_worker_boot do
-  ActiveRecord::Base.establish_connection if defined?(ActiveRecord)
-end
-
-# Clean up database connections when worker is shutting down
-on_worker_shutdown do
-  ActiveRecord::Base.connection_pool.disconnect! if defined?(ActiveRecord)
-end
+# preload_app!
 
 # Allow puma to be restarted by `bin/rails restart` command.
 plugin :tmp_restart
