@@ -112,12 +112,16 @@ class FetchContentJob < ApplicationJob
         begin
           Rails.logger.info "[FetchContentJob] Notifying main app about job completion"
           
+          # Ensure we have the job_id
+          job_id = self.job_id || SecureRandom.uuid
+          
           response = HTTParty.post(
             "#{ENV['MAIN_APP_URL']}/api/job_runner/update_recommendations",
             body: {
               job_id: job_id,
               status: 'completed',
-              message: "Content fetch completed successfully. Content changes: #{content_changes}"
+              message: "Content fetch completed successfully. Content changes: #{content_changes}",
+              secret: ENV['JOB_RUNNER_SECRET'] # Add the secret for authentication
             }.to_json,
             headers: { 'Content-Type' => 'application/json' }
           )

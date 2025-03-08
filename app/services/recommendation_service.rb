@@ -241,10 +241,9 @@ class RecommendationService
       # Log problematic genre_ids for debugging
       if !genre_ids.is_a?(Array)
         Rails.logger.warn "[RecommendationService] Non-array genre_ids detected: #{genre_ids.inspect} (#{genre_ids.class})"
+        # Ensure genre_ids is an array before proceeding
+        genre_ids = genre_ids.nil? ? [] : [genre_ids]
       end
-      
-      # Ensure genre_ids is an array
-      genre_ids = [genre_ids] unless genre_ids.is_a?(Array)
       
       # Get genre names from preloaded genres
       genre_names = genre_ids.map { |id| all_genres[id]&.name }.compact

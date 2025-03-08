@@ -19,6 +19,7 @@ Rails.application.routes.draw do
           post 'run_job'
           post 'run_specific_job'
           get 'job_status/:job_id', action: :job_status, as: :job_status_runner
+          post 'update_recommendations'
         end
       end
     end
@@ -38,6 +39,7 @@ Rails.application.routes.draw do
           post 'run_job'
           post 'run_specific_job'
           get 'job_status/:job_id', action: :job_status, as: :job_status
+          post 'update_recommendations'
         end
       end
     end
