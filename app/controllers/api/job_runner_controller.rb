@@ -214,6 +214,55 @@ module Api
       }
     end
     
+    # Handle job completion notifications from the job runner
+    def update_recommendations
+      # Authenticate the request
+      unless authenticate_request
+        return render json: { error: 'Unauthorized' }, status: :unauthorized
+      end
+      
+      # Parse parameters from both params and request body
+      begin
+        if request.content_type == 'application/json'
+          body_params = JSON.parse(request.body.read) rescue {}
+          request.body.rewind
+        else
+          body_params = {}
+        end
+        
+        # Merge params and body_params, with params taking precedence
+        all_params = body_params.merge(params.permit!.to_h)
+        
+        # Log the notification
+        Rails.logger.info "[JobRunnerController] Received job completion notification: #{all_params.except('secret').inspect}"
+        
+        job_id = all_params['job_id']
+        status = all_params['status']
+        message = all_params['message']
+        
+        if job_id.blank? || status.blank?
+          return render json: { error: 'Missing required parameters' }, status: :bad_request
+        end
+        
+        # Find the job in the database if it exists
+        job = GoodJob::Job.find_by(active_job_id: job_id)
+        
+        # Update any relevant application state based on the job completion
+        # For example, you might want to trigger recommendation updates or notify users
+        
+        # Return success
+        render json: { 
+          status: 'ok',
+          message: 'Notification received',
+          job_id: job_id,
+          job_found: job.present?
+        }
+      rescue => e
+        Rails.logger.error "[JobRunnerController] Error processing update_recommendations: #{e.message}"
+        render json: { error: e.message }, status: :internal_server_error
+      end
+    end
+    
     private
     
     def authenticate_request

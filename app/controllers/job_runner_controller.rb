@@ -17,4 +17,11 @@ class JobRunnerController < JobRunnerBaseController
       job_runner: ENV['JOB_RUNNER_ONLY'] == 'true'
     }
   end
+
+  # Handle job completion notifications
+  def update_recommendations
+    # This is just a stub in the job runner environment
+    # The actual implementation is in the main app
+    render json: { status: 'ok', message: 'Notification received in job runner' }
+  end
 end 
