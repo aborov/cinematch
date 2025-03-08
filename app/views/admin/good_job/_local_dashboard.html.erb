@@ -58,7 +58,7 @@
   <tbody>
     <% @jobs.order(created_at: :desc).limit(100).each do |job| %>
       <tr class="job-row" data-job-class="<%= job.job_class %>" data-status="<%= job_status(job) %>">
-        <td><%= job.job_class %></td>
+        <td><%= job_display_name(job) %></td>
         <td><%= job_status(job) %></td>
         <td><%= job.created_at&.strftime("%Y-%m-%d %H:%M:%S") %></td>
         <td><%= job.performed_at&.strftime("%Y-%m-%d %H:%M:%S") %></td>

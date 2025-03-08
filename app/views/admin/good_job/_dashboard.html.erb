@@ -120,7 +120,7 @@
       <tbody>
         <% @jobs.order(created_at: :desc).limit(20).each do |job| %>
           <tr class="<%= job.error.present? ? 'error' : '' %>">
-            <td><%= job.job_class %></td>
+            <td><%= job_display_name(job) %></td>
             <td><%= job.queue_name %></td>
             <td><%= job_status(job) %></td>
             <td><%= job.performed_at&.strftime('%Y-%m-%d %H:%M:%S') %></td>
@@ -133,12 +133,26 @@
                   <pre><%= job.error %></pre>
                 </div>
               <% end %>
-              <% if job.serialized_params&.dig('arguments')&.first&.is_a?(Hash) %>
-                <% args = job.serialized_params['arguments'].first %>
-                <% args.except('_aj_symbol_keys').map do |key, value| %>
-                  <%= "#{key}: #{value}" if value == true %><br>
-                <% end %>
-              <% end %>
+              <% 
+                begin
+                  params_hash = if job.serialized_params.is_a?(Hash)
+                    job.serialized_params
+                  else
+                    JSON.parse(job.serialized_params || '{}')
+                  end
+                  
+                  if params_hash&.dig('arguments')&.first&.is_a?(Hash)
+                    args = params_hash['arguments'].first
+                    args.except('_aj_symbol_keys').map do |key, value|
+              %>
+                    <%= "#{key}: #{value}" if value == true %><br>
+              <%
+                    end
+                  end
+                rescue => e
+                  # Silently handle parsing errors
+                end
+              %>
             </td>
             <td>
               <% if can_delete_job? %>

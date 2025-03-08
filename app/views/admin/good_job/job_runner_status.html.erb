@@ -35,7 +35,34 @@
           <tbody>
             <% @job_runner_status[:recent_errors].each do |job| %>
               <tr>
-                <td><%= job.respond_to?(:job_class) ? job.job_class : (job['job_class'] || job[:job_class]) %></td>
+                <td><%= 
+                  if job.respond_to?(:job_class)
+                    job_display_name(job)
+                  else
+                    job_class = job['job_class'] || job[:job_class]
+                    # For non-ActiveRecord job objects, we can't use the full job_display_name method
+                    if job_class == 'FetchContentJob'
+                      # Try to extract operation type from arguments
+                      arguments = job['arguments'] || job[:arguments] || []
+                      options = arguments.first || {}
+                      
+                      # Determine which operation is being performed
+                      operation_type = if options['fetch_new']
+                        'Fetch New Content'
+                      elsif options['update_existing']
+                        'Update Existing Content'
+                      elsif options['fill_missing']
+                        'Fill Missing Details'
+                      else
+                        'Full Content Fetch'
+                      end
+                      
+                      "#{job_class} (#{operation_type})"
+                    else
+                      job_class
+                    end
+                  end
+                %></td>
                 <td><%= 
                   if job.respond_to?(:error)
                     truncate(job.error, length: 100)

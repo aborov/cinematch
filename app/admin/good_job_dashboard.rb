@@ -179,7 +179,7 @@ ActiveAdmin.register_page "Good Job Dashboard" do
   end
 
   controller do
-    helper_method :job_status, :can_delete_job?
+    helper_method :job_status, :can_delete_job?, :job_display_name
     
     # Skip authentication for AJAX requests to check_job_runner
     skip_before_action :authenticate_active_admin_user, only: :check_job_runner, if: -> { request.xhr? }
@@ -287,6 +287,41 @@ ActiveAdmin.register_page "Good Job Dashboard" do
       return 'Finished' if job.finished_at
       return 'Running' if job.performed_at
       'Queued'
+    end
+    
+    def job_display_name(job)
+      # Regular display for non-FetchContentJob jobs
+      return job.job_class unless job.job_class == 'FetchContentJob'
+      
+      # Parse the serialized_params to extract options
+      begin
+        params_hash = if job.serialized_params.is_a?(Hash)
+          job.serialized_params
+        else
+          JSON.parse(job.serialized_params || '{}')
+        end
+        
+        arguments = params_hash['arguments'] || []
+        options = arguments.first || {}
+        
+        # Determine which operation is being performed
+        operation_type = if options['fetch_new']
+          'Fetch New Content'
+        elsif options['update_existing']
+          'Update Existing Content'
+        elsif options['fill_missing']
+          'Fill Missing Details'
+        else
+          'Full Content Fetch'
+        end
+        
+        # Return job class with operation type
+        "#{job.job_class} (#{operation_type})"
+      rescue => e
+        # If there's any error parsing, just return the job class
+        Rails.logger.error "Error parsing job params: #{e.message}"
+        job.job_class
+      end
     end
     
     def can_delete_job?
