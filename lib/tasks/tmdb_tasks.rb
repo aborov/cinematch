@@ -123,17 +123,21 @@ module TmdbTasks
     trailer ? "https://www.youtube.com/watch?v=#{trailer['key']}" : nil
   end
 
-  def self.process_content_in_batches(items, batch_size: 20, processing_batch_size: 5)
+  def self.process_content_in_batches(items, batch_size: 20, processing_batch_size: 5, skip_existing: false, item_callback: nil)
     total_items = items.size
     processed_items = 0
+    processed_results = []
     
     # First, filter out items we already have that were recently updated
-    existing_content = Content.where(source_id: items.map { |i| i['id'] })
-                            .where('tmdb_last_update > ?', 1.week.ago)
-    recently_updated_ids = existing_content.pluck(:source_id)
-    
-    items_to_process = items.reject { |item| recently_updated_ids.include?(item['id']) }
-    puts "Processing #{items_to_process.size} out of #{total_items} items (#{recently_updated_ids.size} skipped)"
+    if skip_existing
+      existing_content = Content.where(source_id: items.map { |i| i['id'] })
+      recently_updated_ids = existing_content.pluck(:source_id)
+      
+      items_to_process = items.reject { |item| recently_updated_ids.include?(item['id']) }
+      puts "Processing #{items_to_process.size} out of #{total_items} items (#{recently_updated_ids.size} skipped)"
+    else
+      items_to_process = items
+    end
     
     items_to_process.each_slice(batch_size) do |batch|
       begin
@@ -141,14 +145,37 @@ module TmdbTasks
         
         updated_content = batch.each_slice(processing_batch_size).flat_map do |processing_batch|
           processing_batch.map do |item|
-            details = TmdbService.fetch_details(item['id'], item['type'] || (item['title'] ? 'movie' : 'tv'))
-          rescue => e
-            Rails.logger.error("Error fetching details for item #{item['id']}: #{e.message}")
-            nil
+            begin
+              type = item['type'] || (item['title'] ? 'movie' : 'tv')
+              details = TmdbService.fetch_details(item['id'], type)
+              
+              # If we have an item callback, use it to determine if we should process this item
+              if item_callback
+                # Find existing content for this item
+                existing = Content.find_by(source_id: item['id'], content_type: type)
+                
+                # Call the callback with the item and existing content
+                result = item_callback.call(details, existing)
+                
+                # If the callback returns false, skip this item
+                if result == false
+                  nil
+                else
+                  # If the callback returns something other than false, add it to results
+                  processed_results << result if result != true
+                  details
+                end
+              else
+                details
+              end
+            rescue => e
+              Rails.logger.error("Error fetching details for item #{item['id']}: #{e.message}")
+              nil
+            end
           end
         end.compact
         
-        update_content_batch(updated_content)
+        update_content_batch(updated_content) if updated_content.any?
         processed_items += batch.size
         
         # Only yield for custom progress handling
@@ -159,6 +186,9 @@ module TmdbTasks
         Rails.logger.error("Error processing batch: #{e.message}")
       end
     end
+    
+    # Return processed results if we have a callback, otherwise nil
+    item_callback ? processed_results : nil
   end
 
   def self.content_changed?(existing, new_attrs, type)
