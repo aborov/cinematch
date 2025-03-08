@@ -78,14 +78,28 @@ else
   # Only run this in production to avoid development issues
   if Rails.env.production?
     begin
-      # Set memory policy to LRU (Least Recently Used) for cache database
-      $redis_cache.call('CONFIG', 'SET', 'maxmemory-policy', 'allkeys-lru')
-      
-      # Set maximum memory usage (80% of available Redis memory)
-      # For the free tier with 25MB, we'll set it to 20MB
-      $redis_cache.call('CONFIG', 'SET', 'maxmemory', '20mb')
-      
-      Rails.logger.info "Redis memory policy configured successfully"
+      # Check if we have permission to set config
+      # Some managed Redis services (like Render's free tier) don't allow CONFIG commands
+      begin
+        # Try a simple CONFIG GET command first to test permissions
+        $redis_cache.call('CONFIG', 'GET', 'maxmemory-policy')
+        
+        # If we get here, we have permission to use CONFIG commands
+        # Set memory policy to LRU (Least Recently Used) for cache database
+        $redis_cache.call('CONFIG', 'SET', 'maxmemory-policy', 'allkeys-lru')
+        
+        # Set maximum memory usage (80% of available Redis memory)
+        # For the free tier with 25MB, we'll set it to 20MB
+        $redis_cache.call('CONFIG', 'SET', 'maxmemory', '20mb')
+        
+        Rails.logger.info "Redis memory policy configured successfully"
+      rescue Redis::CommandError => e
+        if e.message.include?('NOPERM') || e.message.include?('permission')
+          Rails.logger.info "Skipping Redis memory policy configuration: insufficient permissions (this is normal for managed Redis services)"
+        else
+          raise e
+        end
+      end
     rescue => e
       Rails.logger.error "Failed to configure Redis memory policy: #{e.message}"
     end

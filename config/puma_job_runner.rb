@@ -37,7 +37,7 @@ tag "cinematch-job-runner"
 
 # Set lower backlog for reduced memory usage
 backlog_limit = ENV.fetch("PUMA_BACKLOG_LIMIT") { 16 }
-set_remote_address "proxy_protocol", backlog_limit
+set_remote_address "proxy_protocol"
 
 # Allow puma to be restarted by `rails restart` command
 plugin :tmp_restart
@@ -45,8 +45,4 @@ plugin :tmp_restart
 # Low-level tweaks to reduce memory usage
 # These settings help reduce memory footprint
 nakayoshi_fork true if respond_to?(:nakayoshi_fork)
-fork_worker if respond_to?(:fork_worker)
-
-# Set lower backlog for reduced memory usage
-backlog_limit = ENV.fetch("PUMA_BACKLOG_LIMIT") { 16 }
-set_remote_address "proxy_protocol", backlog_limit 
+fork_worker if respond_to?(:fork_worker) 
