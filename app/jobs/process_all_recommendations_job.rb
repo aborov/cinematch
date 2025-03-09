@@ -4,7 +4,7 @@ class ProcessAllRecommendationsJob < ApplicationJob
   def perform(options = {})
     # Ensure options is a regular hash
     options = options.to_h if options.respond_to?(:to_h)
-    batch_size = options[:batch_size] || 50
+    batch_size = options[:batch_size] || options['batch_size'] || 50
     
     Rails.logger.info "[ProcessAllRecommendationsJob] Starting to process recommendations for all users"
     start_time = Time.current

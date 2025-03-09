@@ -267,12 +267,13 @@ class FetchContentJob < ApplicationJob
       options = options.to_h if options.respond_to?(:to_h)
       options = options.with_indifferent_access if options.respond_to?(:with_indifferent_access)
       
+      # Track start time locally to avoid nil reference
+      start_time = Time.now
+      
       Rails.logger.info "[FetchContentJob][New Content] Starting fetch"
       batch_size = options[:batch_size] || options['batch_size'] || 50
       max_items = options[:max_items] || options['max_items'] || 1000
       Rails.logger.info "[FetchContentJob][New Content] Using batch_size: #{batch_size}, max_items: #{max_items}"
-      
-      start_time = Time.now
       
       # Run the rake task
       begin
@@ -308,6 +309,7 @@ class FetchContentJob < ApplicationJob
         Kernel.singleton_class.send(:remove_method, :puts)
         Kernel.define_singleton_method(:puts, &original_puts)
         
+        # Use local start_time instead of @job_start_time to avoid nil reference
         duration = Time.now - start_time
         Rails.logger.info "[FetchContentJob][New Content] Completed in #{duration.round(2)} seconds. Added #{new_items_added} new items."
         
@@ -331,8 +333,10 @@ class FetchContentJob < ApplicationJob
       options = options.to_h if options.respond_to?(:to_h)
       options = options.with_indifferent_access if options.respond_to?(:with_indifferent_access)
       
-      Rails.logger.info "[FetchContentJob][Update] Starting update of existing content"
+      # Track start time locally to avoid nil reference
       start_time = Time.now
+      
+      Rails.logger.info "[FetchContentJob][Update] Starting update of existing content"
       
       # Run the rake task
       begin
@@ -368,6 +372,7 @@ class FetchContentJob < ApplicationJob
         Kernel.singleton_class.send(:remove_method, :puts)
         Kernel.define_singleton_method(:puts, &original_puts)
         
+        # Use local start_time instead of @job_start_time to avoid nil reference
         duration = Time.now - start_time
         Rails.logger.info "[FetchContentJob][Update] Completed in #{duration.round(2)} seconds. Updated #{significant_changes} items with significant changes."
         
@@ -381,8 +386,8 @@ class FetchContentJob < ApplicationJob
           Rails.logger.error "[FetchContentJob][Update] Rake tasks not loaded. Try running 'Rails.application.load_tasks' first."
         end
         
-        # Re-raise the error to be handled by the job's error handling
-        raise e
+        # Return 0 instead of re-raising to allow the job to continue
+        0
       end
     end
     
@@ -390,6 +395,9 @@ class FetchContentJob < ApplicationJob
       # Ensure options is a hash with indifferent access
       options = options.to_h if options.respond_to?(:to_h)
       options = options.with_indifferent_access if options.respond_to?(:with_indifferent_access)
+      
+      # Track start time locally to avoid nil reference
+      start_time = Time.current
       
       require 'rake'
       Rails.application.load_tasks
@@ -425,7 +433,8 @@ class FetchContentJob < ApplicationJob
       Kernel.singleton_class.send(:remove_method, :puts)
       Kernel.define_singleton_method(:puts, &original_puts)
       
-      duration = Time.current - @job_start_time
+      # Use local start_time instead of @job_start_time to avoid nil reference
+      duration = Time.current - start_time
       Rails.logger.info "[FetchContentJob] Completed in #{duration.round(2)} seconds. Updated #{updated_items} items."
       
       updated_items

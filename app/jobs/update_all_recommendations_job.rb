@@ -21,8 +21,8 @@ class UpdateAllRecommendationsJob < ApplicationJob
     
     # Ensure options is a regular hash
     options = options.to_h if options.respond_to?(:to_h)
-    batch_size = options[:batch_size] || BATCH_SIZE
-    user_batch_size = options[:user_batch_size] || USER_BATCH_SIZE
+    batch_size = options[:batch_size] || options['batch_size'] || BATCH_SIZE
+    user_batch_size = options[:user_batch_size] || options['user_batch_size'] || USER_BATCH_SIZE
     
     # If we're not on the job runner instance, delegate the job to the job runner service
     if ENV['JOB_RUNNER_ONLY'] != 'true' && Rails.env.production?
