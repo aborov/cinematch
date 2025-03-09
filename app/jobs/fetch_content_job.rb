@@ -16,9 +16,10 @@ class FetchContentJob < ApplicationJob
   attr_accessor :job_start_time, :current_operation, :current_category, :current_genre, :current_decade, :current_keyword, :current_language, :total_operations, :completed_operations
 
   def perform(options = {})
-    # Ensure options is a regular hash
+    # Ensure options is a regular hash with indifferent access
     options = options.to_h if options.respond_to?(:to_h)
-    @is_fallback_execution = options.delete(:is_fallback_execution) || false
+    options = options.with_indifferent_access if options.respond_to?(:with_indifferent_access)
+    @is_fallback_execution = options.delete(:is_fallback_execution) || options.delete('is_fallback_execution') || false
     
     # Initialize job tracking variables
     @job_start_time = Time.current
@@ -31,9 +32,9 @@ class FetchContentJob < ApplicationJob
     
     # Calculate total operations based on options
     @total_operations = 0
-    @total_operations += 1 if options[:fetch_new] || options.empty?
-    @total_operations += 1 if options[:update_existing] || options.empty?
-    @total_operations += 1 if options[:fill_missing] || options.empty?
+    @total_operations += 1 if options[:fetch_new] || options['fetch_new'] || options.empty?
+    @total_operations += 1 if options[:update_existing] || options['update_existing'] || options.empty?
+    @total_operations += 1 if options[:fill_missing] || options['fill_missing'] || options.empty?
     @completed_operations = 0
     
     # Set up logging hooks to capture rake task output
@@ -46,7 +47,7 @@ class FetchContentJob < ApplicationJob
     content_changes = false
     
     begin
-      if options[:fetch_new] || options.empty?
+      if options[:fetch_new] || options['fetch_new'] || options.empty?
         @current_operation = "fetch_new"
         @completed_operations += 1
         
@@ -61,7 +62,7 @@ class FetchContentJob < ApplicationJob
         Rails.logger.info "[FetchContentJob] Completed fetch_new_content operation. Added #{new_items_added || 0} new items."
       end
       
-      if options[:update_existing] || options.empty?
+      if options[:update_existing] || options['update_existing'] || options.empty?
         @current_operation = "update_existing"
         @completed_operations += 1
         
@@ -76,7 +77,7 @@ class FetchContentJob < ApplicationJob
         Rails.logger.info "[FetchContentJob] Completed update_existing_content operation. Updated #{significant_updates || 0} items with significant changes."
       end
       
-      if options[:fill_missing] || options.empty?
+      if options[:fill_missing] || options['fill_missing'] || options.empty?
         @current_operation = "fill_missing"
         @completed_operations += 1
         
@@ -256,6 +257,13 @@ class FetchContentJob < ApplicationJob
     
     def run_fetch_new_content_locally(options = {})
       Rails.logger.info "[FetchContentJob][New Content] Starting fetch"
+      
+      # Check if THEMOVIEDB_KEY is set
+      if ENV['THEMOVIEDB_KEY'].blank?
+        Rails.logger.error "[FetchContentJob][New Content] THEMOVIEDB_KEY environment variable is not set. Cannot fetch content from TMDB API."
+        return 0
+      end
+      
       batch_size = options[:batch_size] || 50
       max_items = options[:max_items] || 1000
       Rails.logger.info "[FetchContentJob][New Content] Using batch_size: #{batch_size}, max_items: #{max_items}"
