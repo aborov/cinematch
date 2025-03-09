@@ -12,7 +12,7 @@ class UpdateUserBatchRecommendationsJob < ApplicationJob
     options = options.to_h if options.respond_to?(:to_h)
     
     # Extract options with defaults
-    batch_size = options[:batch_size] || BATCH_SIZE
+    batch_size = options[:batch_size] || options['batch_size'] || BATCH_SIZE
     
     Rails.logger.info "[UpdateUserBatchRecommendationsJob] Starting to process recommendations for batch of #{user_ids.size} users"
     start_time = Time.current
@@ -37,7 +37,7 @@ class UpdateUserBatchRecommendationsJob < ApplicationJob
               # unless forced refresh is requested
               user_preference = user_preferences[user.id] || user.ensure_user_preference
               
-              if !options[:force] && 
+              if !options[:force] && !options['force'] && 
                  user_preference.recommendations_generated_at.present? && 
                  user_preference.recommendations_generated_at > 24.hours.ago
                 
