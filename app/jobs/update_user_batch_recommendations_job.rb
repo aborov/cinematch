@@ -9,6 +9,17 @@ class UpdateUserBatchRecommendationsJob < ApplicationJob
   discard_on ActiveRecord::RecordNotFound
 
   def perform(user_ids, options = {})
+    # Handle array format for options
+    if options.is_a?(Array) && options.length >= 2
+      # Convert array format to hash with string keys
+      options_hash = {}
+      options.each_slice(2) do |key, value|
+        key_str = key.to_s
+        options_hash[key_str] = value
+      end
+      options = options_hash
+    end
+    
     options = options.to_h if options.respond_to?(:to_h)
     
     # Extract options with defaults

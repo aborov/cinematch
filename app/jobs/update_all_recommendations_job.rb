@@ -10,11 +10,12 @@ class UpdateAllRecommendationsJob < ApplicationJob
 
   def perform(options = {})
     # Handle both array and hash formats for options
-    if options.is_a?(Array) && options.length >= 2 && options.length.even?
-      # Convert array format [:key1, value1, :key2, value2] to hash {key1: value1, key2: value2}
+    if options.is_a?(Array) && options.length >= 2
+      # Convert array format to hash with string keys
       options_hash = {}
       options.each_slice(2) do |key, value|
-        options_hash[key.to_sym] = value if key.respond_to?(:to_sym)
+        key_str = key.to_s
+        options_hash[key_str] = value
       end
       options = options_hash
     end
