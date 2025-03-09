@@ -135,47 +135,64 @@
               <% end %>
               <% 
                 begin
-                  params_hash = if job.serialized_params.is_a?(Hash)
-                    job.serialized_params
-                  else
-                    JSON.parse(job.serialized_params || '{}')
-                  end
-                  
-                  if params_hash&.dig('arguments')
-                    arguments = params_hash['arguments']
-                    
-                    # Handle different argument formats
-                    args = if arguments.is_a?(Array) && !arguments.empty?
-                      first_arg = arguments.first
-                      
-                      # Handle the case where the first argument is a string
-                      if first_arg.is_a?(String)
-                        # Try to parse it as JSON if it looks like a JSON string
-                        if first_arg.start_with?('{') && first_arg.end_with?('}')
-                          begin
-                            JSON.parse(first_arg)
-                          rescue
-                            # If parsing fails, create a simple hash with the string
-                            { 'argument' => first_arg }
-                          end
-                        else
-                          # Not JSON, create a simple hash
-                          { 'argument' => first_arg }
-                        end
+                  # Ensure we have valid serialized_params
+                  if job.serialized_params.present?
+                    # Handle different serialized_params formats
+                    params_hash = nil
+                    begin
+                      if job.serialized_params.is_a?(Hash)
+                        params_hash = job.serialized_params
+                      elsif job.serialized_params.is_a?(String)
+                        params_hash = JSON.parse(job.serialized_params)
                       else
-                        # Use the first argument as is
-                        first_arg || {}
+                        params_hash = JSON.parse(job.serialized_params.to_s)
                       end
-                    else
-                      # If arguments is not an array or is empty, use an empty hash
-                      {}
+                    rescue => e
+                      # Silently handle parsing errors
+                      next
                     end
                     
-                    if args.is_a?(Hash)
-                      args.except('_aj_symbol_keys').map do |key, value|
+                    # Ensure we have valid arguments
+                    if params_hash.is_a?(Hash) && params_hash['arguments'].present?
+                      arguments = params_hash['arguments']
+                      
+                      # Handle different argument formats
+                      args = {}
+                      
+                      begin
+                        if arguments.is_a?(Array) && !arguments.empty?
+                          first_arg = arguments.first
+                          
+                          # Handle the case where the first argument is a string
+                          if first_arg.is_a?(String)
+                            # Try to parse it as JSON if it looks like a JSON string
+                            if first_arg.start_with?('{') && first_arg.end_with?('}')
+                              begin
+                                args = JSON.parse(first_arg)
+                              rescue => e
+                                # If parsing fails, create a simple hash with the string
+                                args = { 'argument' => first_arg }
+                              end
+                            else
+                              # Not JSON, create a simple hash
+                              args = { 'argument' => first_arg }
+                            end
+                          elsif first_arg.is_a?(Hash)
+                            # Use the first argument as is
+                            args = first_arg
+                          end
+                        end
+                      rescue => e
+                        # Silently handle parsing errors
+                        next
+                      end
+                      
+                      if args.is_a?(Hash)
+                        args.except('_aj_symbol_keys').map do |key, value|
               %>
                     <%= "#{key}: #{value}" if value == true %><br>
               <%
+                        end
                       end
                     end
                   end
