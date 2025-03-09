@@ -17,15 +17,32 @@ class FetchContentJob < ApplicationJob
 
   def perform(options = {})
     # Handle different input formats
-    if options.is_a?(Array)
-      # Convert array format to hash
-      options_hash = {}
-      options.each_slice(2) do |key, value|
-        key_str = key.to_s
-        options_hash[key_str] = value
-      end
-      options = options_hash
-    end
+    options = case options
+              when Hash
+                options.dup # Create a copy to avoid modifying the original
+              when Array
+                # Convert array format to hash
+                options_hash = {}
+                options.each_slice(2) do |key, value|
+                  key_str = key.to_s
+                  options_hash[key_str] = value
+                end
+                options_hash
+              when String
+                # Try to parse as JSON if it's a string
+                begin
+                  JSON.parse(options)
+                rescue JSON::ParserError
+                  { 'input' => options } # Use as a simple string parameter
+                end
+              when TrueClass, FalseClass
+                { 'fetch_new' => options } # Default to fetch_new for boolean values
+              when Integer
+                { 'batch_size' => options } # Default to batch_size for integer values
+              else
+                # For any other type, convert to empty hash
+                {}
+              end
     
     # Ensure options is a regular hash with indifferent access
     options = options.to_h if options.respond_to?(:to_h)
