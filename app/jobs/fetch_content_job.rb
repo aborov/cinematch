@@ -152,7 +152,11 @@ class FetchContentJob < ApplicationJob
   # Class methods for direct invocation
   class << self
     def fetch_new_content(options = {})
-      if ENV['JOB_RUNNER_ONLY'] != 'true' && Rails.env.production? && !options[:is_fallback_execution]
+      # Ensure options is a hash with indifferent access
+      options = options.to_h if options.respond_to?(:to_h)
+      options = options.with_indifferent_access if options.respond_to?(:with_indifferent_access)
+      
+      if ENV['JOB_RUNNER_ONLY'] != 'true' && Rails.env.production? && !options[:is_fallback_execution] && !options['is_fallback_execution']
         Rails.logger.info "[FetchContentJob] Delegating fetch_new_content to job runner"
         
         # First wake up the job runner with retries
@@ -179,7 +183,11 @@ class FetchContentJob < ApplicationJob
     end
     
     def update_existing_content(options = {})
-      if ENV['JOB_RUNNER_ONLY'] != 'true' && Rails.env.production? && !options[:is_fallback_execution]
+      # Ensure options is a hash with indifferent access
+      options = options.to_h if options.respond_to?(:to_h)
+      options = options.with_indifferent_access if options.respond_to?(:with_indifferent_access)
+      
+      if ENV['JOB_RUNNER_ONLY'] != 'true' && Rails.env.production? && !options[:is_fallback_execution] && !options['is_fallback_execution']
         Rails.logger.info "[FetchContentJob] Delegating update_existing_content to job runner"
         
         # First wake up the job runner with retries
@@ -206,7 +214,11 @@ class FetchContentJob < ApplicationJob
     end
     
     def fill_missing_details(options = {})
-      if ENV['JOB_RUNNER_ONLY'] != 'true' && Rails.env.production? && !options[:is_fallback_execution]
+      # Ensure options is a hash with indifferent access
+      options = options.to_h if options.respond_to?(:to_h)
+      options = options.with_indifferent_access if options.respond_to?(:with_indifferent_access)
+      
+      if ENV['JOB_RUNNER_ONLY'] != 'true' && Rails.env.production? && !options[:is_fallback_execution] && !options['is_fallback_execution']
         Rails.logger.info "[FetchContentJob] Delegating fill_missing_details to job runner"
         
         # First wake up the job runner with retries
@@ -235,37 +247,29 @@ class FetchContentJob < ApplicationJob
     private
     
     def reschedule_specific_job(method_name, options = {})
+      # Ensure options is a hash with indifferent access
+      options = options.to_h if options.respond_to?(:to_h)
+      options = options.with_indifferent_access if options.respond_to?(:with_indifferent_access)
+      
       # Add a flag to indicate this is a fallback execution
       options = options.merge(is_fallback_execution: true)
       
-      # Reschedule the job with exponential backoff
-      retry_count = options[:retry_count].to_i
+      # Schedule the job to run again in the future
+      delay = 5.minutes
       
-      if retry_count < 5
-        delay = BACKOFF_TIMES[retry_count] # 5s, 15s, 30s, 1m, 2m
-        options[:retry_count] = retry_count + 1
-        
-        Rails.logger.info "[FetchContentJob] Rescheduling #{method_name} to run in #{delay} seconds (attempt #{retry_count + 1}/5)"
-        FetchContentJob.set(wait: delay.seconds).public_send(method_name, options)
-      else
-        # After 5 retries, run locally as fallback
-        Rails.logger.warn "[FetchContentJob] Maximum retries reached for #{method_name}. Running locally as fallback."
-        options[:is_fallback_execution] = true
-        FetchContentJob.public_send("run_#{method_name}_locally", options)
-      end
+      Rails.logger.info "[FetchContentJob] Rescheduling #{method_name} to run in #{delay / 60} minutes with options: #{options.inspect}"
+      
+      FetchContentJob.set(wait: delay).perform_later(options)
     end
     
     def run_fetch_new_content_locally(options = {})
+      # Ensure options is a hash with indifferent access
+      options = options.to_h if options.respond_to?(:to_h)
+      options = options.with_indifferent_access if options.respond_to?(:with_indifferent_access)
+      
       Rails.logger.info "[FetchContentJob][New Content] Starting fetch"
-      
-      # Check if THEMOVIEDB_KEY is set
-      if ENV['THEMOVIEDB_KEY'].blank?
-        Rails.logger.error "[FetchContentJob][New Content] THEMOVIEDB_KEY environment variable is not set. Cannot fetch content from TMDB API."
-        return 0
-      end
-      
-      batch_size = options[:batch_size] || 50
-      max_items = options[:max_items] || 1000
+      batch_size = options[:batch_size] || options['batch_size'] || 50
+      max_items = options[:max_items] || options['max_items'] || 1000
       Rails.logger.info "[FetchContentJob][New Content] Using batch_size: #{batch_size}, max_items: #{max_items}"
       
       start_time = Time.now
@@ -323,6 +327,10 @@ class FetchContentJob < ApplicationJob
     end
     
     def run_update_existing_content_locally(options = {})
+      # Ensure options is a hash with indifferent access
+      options = options.to_h if options.respond_to?(:to_h)
+      options = options.with_indifferent_access if options.respond_to?(:with_indifferent_access)
+      
       Rails.logger.info "[FetchContentJob][Update] Starting update of existing content"
       start_time = Time.now
       
@@ -373,17 +381,21 @@ class FetchContentJob < ApplicationJob
           Rails.logger.error "[FetchContentJob][Update] Rake tasks not loaded. Try running 'Rails.application.load_tasks' first."
         end
         
-        # Return 0 instead of re-raising to allow the job to continue
-        0
+        # Re-raise the error to be handled by the job's error handling
+        raise e
       end
     end
     
     def run_fill_missing_details_locally(options = {})
+      # Ensure options is a hash with indifferent access
+      options = options.to_h if options.respond_to?(:to_h)
+      options = options.with_indifferent_access if options.respond_to?(:with_indifferent_access)
+      
       require 'rake'
       Rails.application.load_tasks
       
-      batch_size = options[:batch_size] || BATCH_SIZE
-      max_items = options[:max_items] || MAX_ITEMS_PER_RUN
+      batch_size = options[:batch_size] || options['batch_size'] || BATCH_SIZE
+      max_items = options[:max_items] || options['max_items'] || MAX_ITEMS_PER_RUN
       
       Rails.logger.info "[FetchContentJob] Running fill_missing_details with batch_size: #{batch_size}, max_items: #{max_items}"
       
@@ -462,34 +474,37 @@ class FetchContentJob < ApplicationJob
   end
 
   def should_reschedule_instead_of_fallback?(options)
+    # Ensure options is a hash with indifferent access
+    options = options.to_h if options.respond_to?(:to_h)
+    options = options.with_indifferent_access if options.respond_to?(:with_indifferent_access)
+    
     # For full content fetches or updates, we should reschedule rather than run on main app
     # For smaller operations, we can run locally as fallback
-    options.empty? || options[:fetch_new] || options[:update_existing]
+    options.empty? || options[:fetch_new] || options['fetch_new'] || options[:update_existing] || options['update_existing']
   end
   
   def reschedule_job(options = {})
+    # Ensure options is a hash with indifferent access
+    options = options.to_h if options.respond_to?(:to_h)
+    options = options.with_indifferent_access if options.respond_to?(:with_indifferent_access)
+    
     # Add a flag to indicate this is a fallback execution
     options = options.merge(is_fallback_execution: true)
     
-    # Reschedule the job with exponential backoff
-    retry_count = options[:retry_count].to_i
+    # Schedule the job to run again in the future
+    delay = 5.minutes
     
-    if retry_count < 5
-      delay = BACKOFF_TIMES[retry_count] # 5s, 15s, 30s, 1m, 2m
-      options[:retry_count] = retry_count + 1
-      
-      Rails.logger.info "[FetchContentJob] Rescheduling to run in #{delay} seconds (attempt #{retry_count + 1}/5)"
-      FetchContentJob.set(wait: delay.seconds).perform_later(options)
-    else
-      # After 5 retries, run locally as fallback
-      Rails.logger.warn "[FetchContentJob] Maximum retries reached. Running locally as fallback."
-      @is_fallback_execution = true
-      perform(options.except(:retry_count))
-    end
+    Rails.logger.info "[FetchContentJob] Rescheduling job to run in #{delay / 60} minutes with options: #{options.inspect}"
+    
+    FetchContentJob.set(wait: delay).perform_later(options)
   end
 
   def update_existing_content(options = {})
-    if ENV['JOB_RUNNER_ONLY'] != 'true' && Rails.env.production? && !options[:is_fallback_execution]
+    # Ensure options is a hash with indifferent access
+    options = options.to_h if options.respond_to?(:to_h)
+    options = options.with_indifferent_access if options.respond_to?(:with_indifferent_access)
+    
+    if ENV['JOB_RUNNER_ONLY'] != 'true' && Rails.env.production? && !options[:is_fallback_execution] && !options['is_fallback_execution']
       Rails.logger.info "[FetchContentJob][Update] Starting update of existing content"
       start_time = Time.now
       
