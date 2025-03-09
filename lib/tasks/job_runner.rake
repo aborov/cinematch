@@ -127,7 +127,29 @@ namespace :job_runner do
         serialized_params = job.serialized_params
         
         # Extract arguments from serialized params
-        args = serialized_params['arguments'].first if serialized_params['arguments'].is_a?(Array)
+        args = nil
+        if serialized_params['arguments'].is_a?(Array) && !serialized_params['arguments'].empty?
+          first_arg = serialized_params['arguments'].first
+          
+          # Handle the case where the first argument is a string
+          if first_arg.is_a?(String)
+            # Try to parse it as JSON if it looks like a JSON string
+            if first_arg.start_with?('{') && first_arg.end_with?('}')
+              begin
+                args = JSON.parse(first_arg)
+              rescue
+                # If parsing fails, use the string as is
+                args = first_arg
+              end
+            else
+              # Not JSON, use the string as is
+              args = first_arg
+            end
+          else
+            # Use the first argument as is
+            args = first_arg
+          end
+        end
         
         if args.present?
           puts "Restarting job with arguments: #{args.inspect}"
