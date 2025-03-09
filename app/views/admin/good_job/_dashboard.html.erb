@@ -141,12 +141,42 @@
                     JSON.parse(job.serialized_params || '{}')
                   end
                   
-                  if params_hash&.dig('arguments')&.first&.is_a?(Hash)
-                    args = params_hash['arguments'].first
-                    args.except('_aj_symbol_keys').map do |key, value|
+                  if params_hash&.dig('arguments')
+                    arguments = params_hash['arguments']
+                    
+                    # Handle different argument formats
+                    args = if arguments.is_a?(Array) && !arguments.empty?
+                      first_arg = arguments.first
+                      
+                      # Handle the case where the first argument is a string
+                      if first_arg.is_a?(String)
+                        # Try to parse it as JSON if it looks like a JSON string
+                        if first_arg.start_with?('{') && first_arg.end_with?('}')
+                          begin
+                            JSON.parse(first_arg)
+                          rescue
+                            # If parsing fails, create a simple hash with the string
+                            { 'argument' => first_arg }
+                          end
+                        else
+                          # Not JSON, create a simple hash
+                          { 'argument' => first_arg }
+                        end
+                      else
+                        # Use the first argument as is
+                        first_arg || {}
+                      end
+                    else
+                      # If arguments is not an array or is empty, use an empty hash
+                      {}
+                    end
+                    
+                    if args.is_a?(Hash)
+                      args.except('_aj_symbol_keys').map do |key, value|
               %>
                     <%= "#{key}: #{value}" if value == true %><br>
               <%
+                      end
                     end
                   end
                 rescue => e

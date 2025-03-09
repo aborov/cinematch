@@ -302,14 +302,41 @@ ActiveAdmin.register_page "Good Job Dashboard" do
         end
         
         arguments = params_hash['arguments'] || []
-        options = arguments.first || {}
+        
+        # Handle different argument formats
+        options = if arguments.is_a?(Array) && !arguments.empty?
+          # If arguments is an array, get the first element
+          first_arg = arguments.first
+          
+          # Handle the case where the first argument is a string
+          if first_arg.is_a?(String)
+            # Try to parse it as JSON if it looks like a JSON string
+            if first_arg.start_with?('{') && first_arg.end_with?('}')
+              begin
+                JSON.parse(first_arg)
+              rescue
+                # If parsing fails, create a simple hash with the string
+                { 'argument' => first_arg }
+              end
+            else
+              # Not JSON, create a simple hash
+              { 'argument' => first_arg }
+            end
+          else
+            # Use the first argument as is
+            first_arg || {}
+          end
+        else
+          # If arguments is not an array or is empty, use an empty hash
+          {}
+        end
         
         # Determine which operation is being performed
-        operation_type = if options['fetch_new']
+        operation_type = if options['fetch_new'] || (options.is_a?(Hash) && options[:fetch_new])
           'Fetch New Content'
-        elsif options['update_existing']
+        elsif options['update_existing'] || (options.is_a?(Hash) && options[:update_existing])
           'Update Existing Content'
-        elsif options['fill_missing']
+        elsif options['fill_missing'] || (options.is_a?(Hash) && options[:fill_missing])
           'Fill Missing Details'
         else
           'Full Content Fetch'
