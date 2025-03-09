@@ -16,6 +16,17 @@ class FetchContentJob < ApplicationJob
   attr_accessor :job_start_time, :current_operation, :current_category, :current_genre, :current_decade, :current_keyword, :current_language, :total_operations, :completed_operations
 
   def perform(options = {})
+    # Handle different input formats
+    if options.is_a?(Array)
+      # Convert array format to hash
+      options_hash = {}
+      options.each_slice(2) do |key, value|
+        key_str = key.to_s
+        options_hash[key_str] = value
+      end
+      options = options_hash
+    end
+    
     # Ensure options is a regular hash with indifferent access
     options = options.to_h if options.respond_to?(:to_h)
     options = options.with_indifferent_access if options.respond_to?(:with_indifferent_access)

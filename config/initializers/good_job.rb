@@ -37,7 +37,7 @@ Rails.application.configure do
       fetch_new_content: {
         cron: "0 1 * * *",
         class: "FetchContentJob",
-        args: { fetch_new: true }
+        args: { "fetch_new" => true }
       },
       
       # Update existing content with significant changes three times a week
@@ -45,14 +45,14 @@ Rails.application.configure do
       update_content: {
         cron: "0 3 * * 1,3,5",
         class: "FetchContentJob",
-        args: { update_existing: true }
+        args: { "update_existing" => true }
       },
       
       # Fill missing details once a week on Sunday at 4 AM UTC (11 PM CDT)
       fill_missing_details: {
         cron: "0 4 * * 0",
         class: "FetchContentJob",
-        args: { fill_missing: true }
+        args: { "fill_missing" => true }
       },
       
       # Run memory monitoring every hour
