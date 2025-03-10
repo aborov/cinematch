@@ -246,6 +246,19 @@ class FetchContentJob < ApplicationJob
       options = options.to_h if options.respond_to?(:to_h)
       options = options.with_indifferent_access if options.respond_to?(:with_indifferent_access)
       
+      # First check if there are any items that need updating
+      # This prevents unnecessary job delegation and rescheduling
+      needs_update_count = Content.where(tmdb_last_update: nil)
+                                 .or(Content.where('tmdb_last_update < ?', 2.weeks.ago))
+                                 .count
+      
+      if needs_update_count == 0
+        Rails.logger.info "[FetchContentJob] No content items need details filled. Skipping job."
+        return 0
+      end
+      
+      Rails.logger.info "[FetchContentJob] Found #{needs_update_count} items that need details filled."
+      
       if ENV['JOB_RUNNER_ONLY'] != 'true' && Rails.env.production? && !options[:is_fallback_execution] && !options['is_fallback_execution']
         Rails.logger.info "[FetchContentJob] Delegating fill_missing_details to job runner"
         
@@ -255,6 +268,9 @@ class FetchContentJob < ApplicationJob
           reschedule_specific_job('fill_missing_details', options)
           return 0
         end
+        
+        # Add a flag to prevent infinite delegation loops
+        options[:delegated_at] = Time.current.to_i
         
         job_id = JobRunnerService.run_specific_job('FetchContentJob', 'fill_missing_details', options)
         
@@ -279,11 +295,36 @@ class FetchContentJob < ApplicationJob
       options = options.to_h if options.respond_to?(:to_h)
       options = options.with_indifferent_access if options.respond_to?(:with_indifferent_access)
       
+      # Check if there are any items that need updating before rescheduling
+      if method_name == 'fill_missing_details'
+        needs_update_count = Content.where(tmdb_last_update: nil)
+                                   .or(Content.where('tmdb_last_update < ?', 2.weeks.ago))
+                                   .count
+        
+        if needs_update_count == 0
+          Rails.logger.info "[FetchContentJob] No content items need details filled. Skipping rescheduling."
+          return
+        end
+      end
+      
+      # Track reschedule attempts to prevent infinite loops
+      reschedule_count = options[:reschedule_count].to_i || 0
+      
+      # Limit the number of reschedules to prevent infinite loops
+      if reschedule_count >= 3
+        Rails.logger.warn "[FetchContentJob] Job #{method_name} has been rescheduled #{reschedule_count} times. Stopping to prevent infinite loop."
+        return
+      end
+      
       # Add a flag to indicate this is a fallback execution
-      options = options.merge(is_fallback_execution: true)
+      options = options.merge(
+        is_fallback_execution: true,
+        reschedule_count: reschedule_count + 1
+      )
       
       # Schedule the job to run again in the future
-      delay = 5.minutes
+      # Increase delay based on reschedule count to implement exponential backoff
+      delay = (5 * (reschedule_count + 1)).minutes
       
       Rails.logger.info "[FetchContentJob] Rescheduling #{method_name} to run in #{delay / 60} minutes with options: #{options.inspect}"
       
@@ -435,12 +476,15 @@ class FetchContentJob < ApplicationJob
       
       Rails.logger.info "[FetchContentJob] Running fill_missing_details with batch_size: #{batch_size}, max_items: #{max_items}"
       
+      # Check if we've been delegated too many times (potential infinite loop)
+      if options[:delegated_at].present? && Time.current.to_i - options[:delegated_at].to_i > 3600
+        Rails.logger.error "[FetchContentJob] Detected potential delegation loop. Job has been delegated for over an hour. Aborting."
+        return 0
+      end
+      
       # Set environment variables for the Rake task
       ENV['BATCH_SIZE'] = batch_size.to_s
       ENV['MAX_ITEMS'] = max_items.to_s
-      
-      Rake::Task['tmdb:fill_missing_details'].invoke
-      Rake::Task['tmdb:fill_missing_details'].reenable
       
       # Capture the output to count updated items
       updated_items = 0
@@ -457,6 +501,14 @@ class FetchContentJob < ApplicationJob
         original_puts.call(*args)
       end
       
+      # Run the Rake task
+      begin
+        Rake::Task['tmdb:fill_missing_details'].invoke
+        Rake::Task['tmdb:fill_missing_details'].reenable
+      rescue => e
+        Rails.logger.error "[FetchContentJob] Error running fill_missing_details Rake task: #{e.message}\n#{e.backtrace.join("\n")}"
+      end
+      
       # Restore original puts
       Kernel.singleton_class.send(:remove_method, :puts)
       Kernel.define_singleton_method(:puts, &original_puts)
@@ -464,6 +516,14 @@ class FetchContentJob < ApplicationJob
       # Use local start_time instead of @job_start_time to avoid nil reference
       duration = Time.current - start_time
       Rails.logger.info "[FetchContentJob] Completed in #{duration.round(2)} seconds. Updated #{updated_items} items."
+      
+      # If we updated items, don't reschedule immediately
+      # This prevents continuous rescheduling when there are no more items to update
+      if updated_items > 0
+        Rails.logger.info "[FetchContentJob] Successfully updated #{updated_items} items. Next run will be scheduled by the system."
+      else
+        Rails.logger.info "[FetchContentJob] No items were updated. No need to reschedule."
+      end
       
       updated_items
     end
