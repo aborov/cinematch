@@ -184,25 +184,52 @@ ActiveAdmin.register_page "Good Job Dashboard" do
     # Skip authentication for AJAX requests to check_job_runner
     skip_before_action :authenticate_active_admin_user, only: :check_job_runner, if: -> { request.xhr? }
     
+    # Handle authorization errors gracefully
+    rescue_from Pundit::NotAuthorizedError do |exception|
+      Rails.logger.error "Authorization error in GoodJobDashboard: #{exception.message}"
+      if request.xhr?
+        render json: { error: 'Not authorized', status: 'error' }, status: :forbidden
+      else
+        flash[:error] = "You are not authorized to access this page."
+        redirect_to admin_good_job_dashboard_path
+      end
+    end
+    
+    skip_before_action :authorize_access!, only: :check_job_runner
+    
     def check_job_runner
+      # Add explicit admin check
+      unless current_user&.admin?
+        flash[:error] = "You are not authorized to perform this action."
+        redirect_to admin_good_job_dashboard_path and return
+      end
+      
       begin
-        authorize :page, :admin?
-        
         @job_runner_status = {}
         
         if ENV['JOB_RUNNER_ONLY'] == 'true'
+          # This instance is the job runner
           @job_runner_status = {
             status: 'ok',
             message: 'This is the job runner instance',
             is_job_runner: true,
+            is_available: true,
             active_jobs: GoodJob::Job.where.not(performed_at: nil).where(finished_at: nil).count,
             queued_jobs: GoodJob::Job.where(performed_at: nil).count,
             recent_errors: GoodJob::Job.where.not(error: nil).order(created_at: :desc).limit(5)
           }
+        elsif Rails.env.development? && ENV['USE_JOB_RUNNER'] != 'true'
+          # In development without job runner enabled
+          @job_runner_status = {
+            status: 'info',
+            message: 'Job runner is disabled in development. Set USE_JOB_RUNNER=true to enable.',
+            is_available: false,
+            is_development: true
+          }
         else
           begin
             # Force a real check of the job runner status
-            job_runner_available = JobRunnerService.job_runner_available?
+            job_runner_available = JobRunnerService.send(:wake_up_job_runner, max_retries: 1)
             
             if job_runner_available
               @job_runner_status = {
@@ -213,7 +240,7 @@ ActiveAdmin.register_page "Good Job Dashboard" do
               
               # Try to get more details
               begin
-                Rails.logger.info "[GoodJobDashboard] Fetching job runner details from #{JobRunnerService.send(:job_runner_url)}/api/job_runner/status"
+                Rails.logger.info "[GoodJobDashboard] Fetching job runner details"
                 
                 response = HTTParty.get(
                   "#{JobRunnerService.send(:job_runner_url)}/api/job_runner/status",
@@ -252,18 +279,24 @@ ActiveAdmin.register_page "Good Job Dashboard" do
           end
         end
         
-        if request.xhr?
-          render partial: 'admin/good_job/job_runner_status', layout: false
-        else
-          redirect_to admin_good_job_dashboard_path
+        respond_to do |format|
+          format.html do
+            if request.xhr?
+              render partial: 'admin/good_job/job_runner_status', layout: false
+            else
+              redirect_to admin_good_job_dashboard_path, notice: @job_runner_status[:message]
+            end
+          end
+          format.json { render json: @job_runner_status }
         end
       rescue => e
         Rails.logger.error "Error in check_job_runner: #{e.message}\n#{e.backtrace.join("\n")}"
-        if request.xhr?
-          render json: { error: e.message }, status: 500
-        else
-          flash[:error] = "An error occurred: #{e.message}"
-          redirect_to admin_dashboard_path
+        respond_to do |format|
+          format.html do
+            flash[:error] = "An error occurred: #{e.message}"
+            redirect_to admin_good_job_dashboard_path
+          end
+          format.json { render json: { error: e.message }, status: :internal_server_error }
         end
       end
     end
@@ -338,37 +371,33 @@ ActiveAdmin.register_page "Good Job Dashboard" do
         
         # Handle different argument formats
         options = {}
-        
         begin
-          if arguments.is_a?(Array) && !arguments.empty?
+          if arguments.is_a?(Array) && arguments.size > 0
             first_arg = arguments.first
             
-            # Handle the case where the first argument is a string
-            if first_arg.is_a?(String)
-              # Try to parse it as JSON if it looks like a JSON string
-              if first_arg.start_with?('{') && first_arg.end_with?('}')
-                begin
-                  options = JSON.parse(first_arg)
-                rescue => e
-                  Rails.logger.error "Error parsing JSON string argument: #{e.message}"
-                  # If parsing fails, create a simple hash with the string
-                  options = { 'argument' => first_arg }
-                end
-              else
-                # Not JSON, create a simple hash
-                options = { 'argument' => first_arg }
-              end
-            elsif first_arg.is_a?(Hash)
-              # Use the first argument as is
+            # Handle different types of first argument
+            if first_arg.is_a?(Hash)
               options = first_arg
+            elsif first_arg.is_a?(String) && first_arg.start_with?('{')
+              # Try to parse as JSON
+              options = JSON.parse(first_arg)
+            elsif first_arg.is_a?(String)
+              # Simple string parameter
+              options = { 'input' => first_arg }
+            elsif first_arg.is_a?(TrueClass) || first_arg.is_a?(FalseClass)
+              # Boolean parameter
+              options = { 'fetch_new' => first_arg }
+            elsif first_arg.is_a?(Integer)
+              # Integer parameter
+              options = { 'batch_size' => first_arg }
             end
           end
         rescue => e
           Rails.logger.error "Error parsing job arguments: #{e.message}"
-          return job.job_class
+          return "#{job.job_class} (Error: #{e.message})"
         end
         
-        # Determine which operation is being performed
+        # Determine operation type
         operation_type = if options['fetch_new'] || (options.is_a?(Hash) && options[:fetch_new])
           'Fetch New Content'
         elsif options['update_existing'] || (options.is_a?(Hash) && options[:update_existing])
@@ -376,15 +405,14 @@ ActiveAdmin.register_page "Good Job Dashboard" do
         elsif options['fill_missing'] || (options.is_a?(Hash) && options[:fill_missing])
           'Fill Missing Details'
         else
-          'Full Content Fetch'
+          'All Operations'
         end
         
-        # Return job class with operation type
-        "#{job.job_class} (#{operation_type})"
+        # Return formatted job name
+        "#{job.job_class}: #{operation_type}"
       rescue => e
-        # If there's any error parsing, just return the job class
-        Rails.logger.error "Error parsing job params: #{e.message}"
-        job.job_class
+        Rails.logger.error "Error in job_display_name: #{e.message}\n#{e.backtrace.join("\n")}"
+        "#{job.job_class} (Error)"
       end
     end
     
@@ -396,7 +424,7 @@ ActiveAdmin.register_page "Good Job Dashboard" do
     rescue_from StandardError do |e|
       Rails.logger.error "Error in GoodJobDashboard: #{e.message}\n#{e.backtrace.join("\n")}"
       flash[:error] = "An error occurred: #{e.message}"
-      redirect_to admin_dashboard_path
+      redirect_to admin_good_job_dashboard_path
     end
   end
 end

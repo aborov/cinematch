@@ -138,8 +138,8 @@
                   # Ensure we have valid serialized_params
                   if job.serialized_params.present?
                     # Handle different serialized_params formats
-                    params_hash = nil
                     begin
+                      params_hash = nil
                       if job.serialized_params.is_a?(Hash)
                         params_hash = job.serialized_params
                       elsif job.serialized_params.is_a?(String)
@@ -147,53 +147,80 @@
                       else
                         params_hash = JSON.parse(job.serialized_params.to_s)
                       end
-                    rescue => e
-                      # Silently handle parsing errors
-                      next
-                    end
-                    
-                    # Ensure we have valid arguments
-                    if params_hash.is_a?(Hash) && params_hash['arguments'].present?
-                      arguments = params_hash['arguments']
                       
-                      # Handle different argument formats
-                      args = {}
-                      
-                      begin
-                        if arguments.is_a?(Array) && !arguments.empty?
-                          first_arg = arguments.first
-                          
-                          # Handle the case where the first argument is a string
-                          if first_arg.is_a?(String)
-                            # Try to parse it as JSON if it looks like a JSON string
-                            if first_arg.start_with?('{') && first_arg.end_with?('}')
-                              begin
-                                args = JSON.parse(first_arg)
-                              rescue => e
-                                # If parsing fails, create a simple hash with the string
-                                args = { 'argument' => first_arg }
-                              end
-                            else
-                              # Not JSON, create a simple hash
-                              args = { 'argument' => first_arg }
+                      # Ensure we have valid arguments
+                      if params_hash.is_a?(Hash) && params_hash['arguments'].present?
+                        arguments = params_hash['arguments']
+                        
+                        # Handle different argument formats
+                        options = {}
+                        begin
+                          if arguments.is_a?(Array) && arguments.size > 0
+                            first_arg = arguments.first
+                            
+                            # Handle different types of first argument
+                            if first_arg.is_a?(Hash)
+                              options = first_arg
+                            elsif first_arg.is_a?(String) && first_arg.start_with?('{')
+                              # Try to parse as JSON
+                              options = JSON.parse(first_arg)
+                            elsif first_arg.is_a?(String)
+                              # Simple string parameter
+                              options = { 'input' => first_arg }
+                            elsif first_arg.is_a?(TrueClass) || first_arg.is_a?(FalseClass)
+                              # Boolean parameter
+                              options = { 'fetch_new' => first_arg }
+                            elsif first_arg.is_a?(Integer)
+                              # Integer parameter
+                              options = { 'batch_size' => first_arg }
                             end
-                          elsif first_arg.is_a?(Hash)
-                            # Use the first argument as is
-                            args = first_arg
                           end
+                        rescue => e
+                          # If there's an error parsing the arguments, just show the error
+                          %>
+                          <div class="job-details">
+                            <strong>Error parsing arguments:</strong> <%= e.message %>
+                          </div>
+                          <%
                         end
-                      rescue => e
-                        # Silently handle parsing errors
-                        next
-                      end
-                      
-                      if args.is_a?(Hash)
-                        args.except('_aj_symbol_keys').map do |key, value|
-              %>
-                    <%= "#{key}: #{value}" if value == true %><br>
-              <%
+                        
+                        # Only show details if we have options
+                        if options.present?
+                          # Show job details based on options
+                          %>
+                          <div class="job-details">
+                            <% if job.job_class == 'FetchContentJob' %>
+                              <% if options['fetch_new'] || (options.is_a?(Hash) && options[:fetch_new]) %>
+                                <strong>Operation:</strong> Fetch New Content<br>
+                              <% elsif options['update_existing'] || (options.is_a?(Hash) && options[:update_existing]) %>
+                                <strong>Operation:</strong> Update Existing Content<br>
+                              <% elsif options['fill_missing'] || (options.is_a?(Hash) && options[:fill_missing]) %>
+                                <strong>Operation:</strong> Fill Missing Details<br>
+                              <% else %>
+                                <strong>Operation:</strong> All Operations<br>
+                              <% end %>
+                              
+                              <% batch_size = options['batch_size'] || options[:batch_size] %>
+                              <% if batch_size.present? %>
+                                <strong>Batch Size:</strong> <%= batch_size %><br>
+                              <% end %>
+                              
+                              <% max_items = options['max_items'] || options[:max_items] %>
+                              <% if max_items.present? %>
+                                <strong>Max Items:</strong> <%= max_items %><br>
+                              <% end %>
+                            <% end %>
+                          </div>
+                          <%
                         end
                       end
+                    rescue => e
+                      # If there's an error parsing the serialized_params, just show the error
+                      %>
+                      <div class="job-details">
+                        <strong>Error parsing job parameters:</strong> <%= e.message %>
+                      </div>
+                      <%
                     end
                   end
                 rescue => e

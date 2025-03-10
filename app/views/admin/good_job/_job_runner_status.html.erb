@@ -53,6 +53,19 @@
       </table>
     <% end %>
     
+  <% elsif @job_runner_status[:is_development] %>
+    <%# Show development mode message %>
+    <div class="development-info">
+      <h4>Development Mode</h4>
+      <p>The job runner is disabled in development mode. To enable it:</p>
+      <ol>
+        <li>Set <code>USE_JOB_RUNNER=true</code> in your environment</li>
+        <li>Restart your Rails server</li>
+        <li>Check this status again</li>
+      </ol>
+      <p>Alternatively, you can run jobs locally without a separate job runner.</p>
+    </div>
+    
   <% elsif @job_runner_status[:is_available] %>
     <%# Show available job runner stats %>
     <% if @job_runner_status[:details].present? %>
@@ -126,38 +139,36 @@
                       arguments = nil
                     end
                     
-                    # Handle different argument formats safely
+                    # Handle different argument formats
                     options = {}
-                    
                     begin
-                      if arguments.is_a?(Array) && !arguments.empty?
+                      if arguments.is_a?(Array) && arguments.size > 0
                         first_arg = arguments.first
                         
-                        # Handle the case where the first argument is a string
-                        if first_arg.is_a?(String)
-                          # Try to parse it as JSON if it looks like a JSON string
-                          if first_arg.start_with?('{') && first_arg.end_with?('}')
-                            begin
-                              options = JSON.parse(first_arg)
-                            rescue => e
-                              # If parsing fails, create a simple hash with the string
-                              options = { 'argument' => first_arg }
-                            end
-                          else
-                            # Not JSON, create a simple hash
-                            options = { 'argument' => first_arg }
-                          end
-                        elsif first_arg.is_a?(Hash)
-                          # Use the first argument as is
+                        # Handle different types of first argument
+                        if first_arg.is_a?(Hash)
                           options = first_arg
+                        elsif first_arg.is_a?(String) && first_arg.start_with?('{')
+                          # Try to parse as JSON
+                          options = JSON.parse(first_arg)
+                        elsif first_arg.is_a?(String)
+                          # Simple string parameter
+                          options = { 'input' => first_arg }
+                        elsif first_arg.is_a?(TrueClass) || first_arg.is_a?(FalseClass)
+                          # Boolean parameter
+                          options = { 'fetch_new' => first_arg }
+                        elsif first_arg.is_a?(Integer)
+                          # Integer parameter
+                          options = { 'batch_size' => first_arg }
                         end
                       end
                     rescue => e
-                      # Silently handle parsing errors
+                      # If there's an error parsing the arguments, log it and use empty options
+                      Rails.logger.error "Error parsing job arguments: #{e.message}"
                       options = {}
                     end
                     
-                    # Determine which operation is being performed
+                    # Determine operation type
                     operation_type = if options['fetch_new'] || (options.is_a?(Hash) && options[:fetch_new])
                       'Fetch New Content'
                     elsif options['update_existing'] || (options.is_a?(Hash) && options[:update_existing])
@@ -165,7 +176,7 @@
                     elsif options['fill_missing'] || (options.is_a?(Hash) && options[:fill_missing])
                       'Fill Missing Details'
                     else
-                      'Full Content Fetch'
+                      'All Operations'
                     end
                     
                     "#{job_class} (#{operation_type})"
@@ -186,6 +197,17 @@
         <p><%= @job_runner_status[:details_error] %></p>
       </div>
     <% end %>
+  <% else %>
+    <%# Job runner is not available %>
+    <div class="error-details">
+      <p>The job runner is not available. This could be due to:</p>
+      <ul>
+        <li>The job runner service is not running</li>
+        <li>Network connectivity issues</li>
+        <li>Configuration issues with the job runner URL</li>
+      </ul>
+      <p>Current job runner URL: <code><%= JobRunnerService.send(:job_runner_url) %></code></p>
+    </div>
   <% end %>
 </div>
 
