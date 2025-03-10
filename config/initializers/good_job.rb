@@ -53,13 +53,6 @@ Rails.application.configure do
         cron: "0 4 * * 0",
         class: "FetchContentJob",
         args: { "fill_missing" => true }
-      },
-      
-      # Run memory monitoring every hour
-      memory_monitor: {
-        cron: "0 * * * *",
-        class: "GoodJob::ActiveJobJob",
-        args: { task_name: "memory:monitor" }
       }
     }
   end
@@ -70,23 +63,45 @@ end
 if defined?(GoodJob::Job)
   module MemoryMonitorCallback
     def self.after_perform(job)
-      # Only run memory monitoring occasionally to reduce overhead
-      if rand < 0.05
+      # Run memory monitoring more frequently for heavy jobs
+      # For regular jobs, only run occasionally to reduce overhead
+      should_monitor = if ['FetchContentJob', 'UpdateAllRecommendationsJob', 'FillMissingDetailsJob'].include?(job.job_class)
+        # Run for 50% of heavy jobs
+        rand < 0.5
+      else
+        # Run for 5% of regular jobs
+        rand < 0.05
+      end
+      
+      if should_monitor
         if defined?(Rake::Task) && Rake::Task.task_defined?('memory:monitor')
-          Rake::Task['memory:monitor'].invoke
-          Rake::Task['memory:monitor'].reenable
+          begin
+            Rake::Task['memory:monitor'].invoke
+            Rake::Task['memory:monitor'].reenable
+          rescue => e
+            Rails.logger.error "[MemoryMonitorCallback] Error running memory:monitor: #{e.message}"
+          end
         end
       end
       
       # Clear Active Record query cache after each job
       if defined?(ActiveRecord::Base)
-        ActiveRecord::Base.connection.clear_query_cache
+        begin
+          ActiveRecord::Base.connection.clear_query_cache
+        rescue => e
+          Rails.logger.error "[MemoryMonitorCallback] Error clearing query cache: #{e.message}"
+        end
       end
       
       # Force garbage collection more aggressively after heavy jobs
       if ['FetchContentJob', 'UpdateAllRecommendationsJob', 'FillMissingDetailsJob'].include?(job.job_class)
-        GC.start
-        GC.compact if GC.respond_to?(:compact)
+        begin
+          GC.start
+          GC.compact if GC.respond_to?(:compact)
+          Rails.logger.info "[MemoryMonitorCallback] Forced garbage collection after heavy job: #{job.job_class}"
+        rescue => e
+          Rails.logger.error "[MemoryMonitorCallback] Error during garbage collection: #{e.message}"
+        end
       end
     end
   end
