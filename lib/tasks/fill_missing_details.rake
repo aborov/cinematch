@@ -19,7 +19,7 @@ namespace :tmdb do
       return
     end
 
-    batch_size = 100 # Batch size for database queries
+    batch_size = (ENV['BATCH_SIZE'] || 100).to_i # Batch size for database queries
     processing_batch_size = 20 # Smaller batch size for API calls
     processed_count = 0
     updated_count = 0
@@ -86,9 +86,10 @@ namespace :tmdb do
         # Filter out nil values from the callback
         updated_items.compact!
         
-        # Update tmdb_last_update for processed items
-        if updated_items.any?
-          source_ids = updated_items.map { |item| item[:source_id] }
+        # Update tmdb_last_update for ALL processed items, not just updated ones
+        # This prevents the same items from being selected in the next run
+        if items.any?
+          source_ids = items.map { |item| item['id'] }
           Content.where(source_id: source_ids, content_type: content_type)
                  .update_all(tmdb_last_update: Time.current)
           
