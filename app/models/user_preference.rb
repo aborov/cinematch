@@ -46,16 +46,20 @@ class UserPreference < ApplicationRecord
   }
 
   def calculate_match_score(genre_ids)
-    # Ensure genre_ids is an array
+    # Ensure genre_ids is an array of integers
     genre_ids = if genre_ids.nil?
                   []
                 elsif !genre_ids.is_a?(Array)
-                  Rails.logger.warn "[UserPreference] Non-array genre_ids detected: #{genre_ids.inspect} (#{genre_ids.class})"
-                  [genre_ids]
+                  # Only log a warning for unexpected types, not for single integers
+                  unless genre_ids.is_a?(Integer) || genre_ids.is_a?(String)
+                    Rails.logger.warn "[UserPreference] Non-array genre_ids detected: #{genre_ids.inspect} (#{genre_ids.class})"
+                  end
+                  Array(genre_ids).map(&:to_i)
                 else
-                  genre_ids
+                  genre_ids.map(&:to_i)
                 end
                 
+    # Get genre names for the IDs
     genre_names = Genre.where(tmdb_id: genre_ids).pluck(:name)
     
     # Start with base scores
