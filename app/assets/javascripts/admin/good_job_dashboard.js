@@ -59,6 +59,9 @@ function initGoodJobDashboard() {
   // Set up refresh button for job runner status
   setupJobRunnerStatusRefresh();
   
+  // Set up refresh button for job list
+  setupJobListRefresh();
+  
   // Set up job deletion handling
   setupJobDeletion();
 }
@@ -635,5 +638,31 @@ function setupJobDeletion() {
       // Log the deletion attempt
       console.log('Deleting job via:', originalHref);
     });
+  });
+}
+
+// Set up refresh button for job list
+function setupJobListRefresh() {
+  const refreshButton = document.getElementById('refresh-job-list');
+  
+  if (!refreshButton) {
+    console.log('Refresh button for job list not found');
+    return;
+  }
+  
+  console.log('Setting up refresh button for job list');
+  
+  refreshButton.addEventListener('click', function(event) {
+    // Prevent the default onclick behavior
+    event.preventDefault();
+    
+    // Add a loading class to the button
+    refreshButton.classList.add('loading');
+    refreshButton.textContent = 'Refreshing...';
+    
+    // Redirect to the dashboard after a short delay to show the loading state
+    setTimeout(() => {
+      window.location.href = refreshButton.getAttribute('onclick').replace("window.location.href='", "").replace("'", "");
+    }, 300);
   });
 } 
