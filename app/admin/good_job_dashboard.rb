@@ -195,6 +195,7 @@ ActiveAdmin.register_page "Good Job Dashboard" do
       end
     end
     
+    # Skip ActiveAdmin's built-in authorization for check_job_runner
     skip_before_action :authorize_access!, only: :check_job_runner
     
     def check_job_runner
