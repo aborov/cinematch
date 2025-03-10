@@ -36,4 +36,12 @@ class PagePolicy < ApplicationPolicy
   def admin?
     user.admin?
   end
+
+  def check_job_runner?
+    user.admin?
+  end
+
+  def manage?
+    user.admin?
+  end
 end 

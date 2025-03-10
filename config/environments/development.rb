@@ -1,10 +1,15 @@
 require "active_support/core_ext/integer/time"
 
 Rails.application.configure do
-  # Allow server to be hosted on any URL
+  # Allow all hosts in development
   config.hosts.clear
+  # Add specific hosts if needed
   config.hosts << "cinematch.net"
+  config.hosts << "cinematch-job-runner.onrender.com"
+  config.hosts << "cinematch-ywet.onrender.com"
   config.hosts << "localhost:3000"
+  config.hosts << "0.0.0.0"
+  config.hosts << "127.0.0.1"
   # Allow better_errors to work in online IDE
   config.web_console.allowed_ips = "0.0.0.0/0.0.0.0"
   BetterErrors::Middleware.allow_ip! "0.0.0.0/0.0.0.0"

@@ -44,17 +44,35 @@
                     if job_class == 'FetchContentJob'
                       # Try to extract operation type from arguments
                       arguments = job['arguments'] || job[:arguments] || []
+                      
+                      # Handle different argument formats
                       options = arguments.first || {}
                       
-                      # Determine which operation is being performed
-                      operation_type = if options['fetch_new']
+                      # Parse options if it's a string
+                      if options.is_a?(String) && options.start_with?('{')
+                        begin
+                          options = JSON.parse(options)
+                        rescue => e
+                          Rails.logger.error "Error parsing options JSON: #{e.message}"
+                          options = { 'error' => e.message }
+                        end
+                      elsif options.is_a?(TrueClass) || options.is_a?(FalseClass)
+                        options = { 'fetch_new' => options }
+                      elsif options.is_a?(Integer)
+                        options = { 'batch_size' => options }
+                      elsif !options.is_a?(Hash)
+                        options = { 'input' => options.to_s }
+                      end
+                      
+                      # Determine operation type
+                      operation_type = if options['fetch_new'] || (options.is_a?(Hash) && options[:fetch_new])
                         'Fetch New Content'
-                      elsif options['update_existing']
+                      elsif options['update_existing'] || (options.is_a?(Hash) && options[:update_existing])
                         'Update Existing Content'
-                      elsif options['fill_missing']
+                      elsif options['fill_missing'] || (options.is_a?(Hash) && options[:fill_missing])
                         'Fill Missing Details'
                       else
-                        'Full Content Fetch'
+                        'All Operations'
                       end
                       
                       "#{job_class} (#{operation_type})"
