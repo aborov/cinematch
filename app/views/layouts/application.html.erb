@@ -8,6 +8,8 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
+    <%= yield(:head) if content_for?(:head) %>
+    
     <%= render "shared/cdn" %>
     <%= stylesheet_link_tag "application", media: "all" %>
     <%= javascript_include_tag "application", defer: true %>
@@ -18,6 +20,8 @@
         console.log('DOM loaded, survey.js initialized')
       })
     </script>
+    
+    <%= yield(:javascript) if content_for?(:javascript) %>
   </head>
 
   <body>

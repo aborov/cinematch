@@ -336,12 +336,6 @@ h6 {
 }
 
 /* Survey-specific styles */
-.survey-container {
-  background: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);
-  min-height: calc(100vh - 60px);
-  padding: 2rem;
-}
-
 .survey-card {
   max-width: 800px;
   width: 100%;
@@ -363,14 +357,17 @@ h6 {
 }
 
 .response-options {
-  margin-top: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
 }
 
 .response-button {
-  min-width: 100px;
-  text-align: center;
-  padding: 0.375rem 0.75rem;
-  font-size: 0.875rem;
+  flex: 1;
+  margin: 0 5px;
+  padding: 10px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
 }
 
 .flex-1 {

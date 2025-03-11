@@ -25,7 +25,14 @@ Rails.application.routes.draw do
   get 'restore_account', to: 'users#restore_account_form'
   post 'restore_account', to: 'users#restore'
 
-  resources :surveys, only: [:index, :create]
+  resources :surveys, only: [:index, :create] do
+    collection do
+      post :save_progress
+    end
+  end
+  
+  get 'survey_results', to: 'surveys#results', as: :survey_results
+
   resources :user_preferences, only: [:edit, :update]
   get 'recommendations/check_status', to: 'recommendations#check_status'
   resources :recommendations, only: [:index, :show]

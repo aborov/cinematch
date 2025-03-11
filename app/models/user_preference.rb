@@ -5,12 +5,17 @@
 # Table name: user_preferences
 #
 #  id                           :bigint           not null, primary key
+#  ai_model                     :string
 #  deleted_at                   :datetime
 #  disable_adult_content        :boolean
 #  favorite_genres              :json
 #  personality_profiles         :json
+#  processing                   :boolean          default(FALSE)
+#  recommendation_reasons       :jsonb
+#  recommendation_scores        :jsonb
 #  recommendations_generated_at :datetime
 #  recommended_content_ids      :integer          default([]), is an Array
+#  use_ai                       :boolean          default(FALSE)
 #  created_at                   :datetime         not null
 #  updated_at                   :datetime         not null
 #  user_id                      :bigint           not null
@@ -37,25 +42,58 @@ class UserPreference < ApplicationRecord
   }.freeze
 
   def generate_recommendations
-    return [] if personality_profiles.blank? || favorite_genres.blank?
-
-    base_content = Content.all
-    base_content = base_content.where(adult: [false, nil]) if disable_adult_content
-
-    content_with_scores = base_content.map do |content|
-      {
-        id: content.id,
-        match_score: calculate_match_score(content.genre_ids_array)
-      }
+    Rails.logger.info("Generating recommendations for user #{user_id}")
+    
+    if personality_profiles.blank?
+      Rails.logger.warn("No personality profiles found for user #{user_id}")
+      return []
     end
-
-    sorted_recommendations = content_with_scores.sort_by { |r| -r[:match_score] }
-    top_recommendations = sorted_recommendations.first(100).map { |r| r[:id] }
-
-    update(recommended_content_ids: top_recommendations, recommendations_generated_at: Time.current)
-    Rails.cache.delete_matched("user_#{user_id}_recommendations_*")
-    Rails.cache.delete("user_#{user_id}_recommendations_page_1")
-    top_recommendations
+    
+    if favorite_genres.blank?
+      Rails.logger.warn("No favorite genres found for user #{user_id}")
+      return []
+    end
+    
+    Rails.logger.info("Personality profiles: #{personality_profiles.inspect}")
+    Rails.logger.info("Favorite genres: #{favorite_genres.inspect}")
+    
+    # Mark as processing to prevent concurrent generation
+    update(processing: true)
+    
+    begin
+      base_content = Content.all
+      base_content = base_content.where(adult: [false, nil]) if disable_adult_content
+      
+      Rails.logger.info("Found #{base_content.count} content items to score")
+      
+      content_with_scores = base_content.map do |content|
+        {
+          id: content.id,
+          match_score: calculate_match_score(content.genre_ids_array)
+        }
+      end
+      
+      sorted_recommendations = content_with_scores.sort_by { |r| -r[:match_score] }
+      top_recommendations = sorted_recommendations.first(100).map { |r| r[:id] }
+      
+      Rails.logger.info("Generated #{top_recommendations.size} recommendations")
+      
+      update(
+        recommended_content_ids: top_recommendations, 
+        recommendations_generated_at: Time.current,
+        processing: false
+      )
+      
+      Rails.cache.delete_matched("user_#{user_id}_recommendations_*")
+      Rails.cache.delete("user_#{user_id}_recommendations_page_1")
+      
+      top_recommendations
+    rescue StandardError => e
+      Rails.logger.error("Error generating recommendations: #{e.message}")
+      Rails.logger.error(e.backtrace.join("\n"))
+      update(processing: false)
+      []
+    end
   end
 
   def calculate_match_score(genre_ids)
@@ -94,17 +132,43 @@ class UserPreference < ApplicationRecord
 
   def calculate_big_five_score(genres)
     score = 0
+    profiles = personality_profiles.is_a?(String) ? JSON.parse(personality_profiles) : personality_profiles
+    
+    Rails.logger.info("Calculating big five score with profiles: #{profiles.inspect}")
+    Rails.logger.info("Genres: #{genres.inspect}")
+    
     GENRE_MAPPING.each do |trait, trait_genres|
+      trait_str = trait.to_s
+      trait_score = profiles[trait_str].to_f
       match = (genres & trait_genres).size
-      score += personality_profiles[trait.to_s].to_f * match
+      
+      Rails.logger.info("Trait: #{trait_str}, Score: #{trait_score}, Matching genres: #{match}")
+      
+      score += trait_score * match
     end
+    
+    Rails.logger.info("Final big five score: #{score}")
     score
   end
 
   def calculate_favorite_genres_score(genres)
     user_favorite_genres = favorite_genres.is_a?(String) ? favorite_genres.split(',').map(&:strip) : favorite_genres
-
+    
+    Rails.logger.info("Calculating favorite genres score")
+    Rails.logger.info("User favorite genres: #{user_favorite_genres.inspect}")
+    Rails.logger.info("Content genres: #{genres.inspect}")
+    
+    if user_favorite_genres.empty?
+      Rails.logger.warn("User has no favorite genres")
+      return 0
+    end
+    
     matching_genres = genres & user_favorite_genres
-    matching_genres.size.to_f / user_favorite_genres.size
+    score = matching_genres.size.to_f / user_favorite_genres.size
+    
+    Rails.logger.info("Matching genres: #{matching_genres.inspect}")
+    Rails.logger.info("Score: #{score}")
+    
+    score
   end
 end

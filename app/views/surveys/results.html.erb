@@ -1,0 +1,298 @@
+<% content_for :title, "Survey Results" %>
+
+<div class="container-fluid p-0">
+  <div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="card shadow" style="max-width: 800px; width: 90%;">
+      <div class="card-header bg-engineering-orange text-mint-green">
+        <h2 class="h4 mb-0">
+          <%= @survey_type == 'basic' ? 'Basic' : 'Extended' %> Survey Results
+        </h2>
+      </div>
+
+      <div class="card-body bg-space-cadet text-mint-green">
+        <div class="text-center mb-4">
+          <i class="<%= @survey_type == 'basic' ? 'fas fa-check-circle text-jonquil' : 'fas fa-star text-jonquil' %> fa-3x mb-3"></i>
+          <h3 class="text-jonquil"><%= @survey_type == 'basic' ? 'Great Start!' : 'Excellent!' %></h3>
+          <p class="text-mint-green">
+            <%= @survey_type == 'basic' ? 
+                "We've analyzed your responses and generated initial recommendations." : 
+                "Thank you for completing the extended survey. We've analyzed your responses for highly personalized recommendations." %>
+          </p>
+        </div>
+
+        <div class="personality-insights mb-4">
+          <h4 class="mb-3 text-tufts-blue">Your Personality Profile</h4>
+          
+          <% if @personality_profile[:big_five].present? %>
+            <div class="mb-4">
+              <h5 class="text-jonquil">Big Five Personality Traits</h5>
+              <div class="row">
+                <div class="col-md-6">
+                  <% trait_descriptions = {
+                    openness: "Openness reflects curiosity, creativity, and preference for variety. High scorers tend to be imaginative and adventurous.",
+                    conscientiousness: "Conscientiousness indicates organization, dependability, and self-discipline. High scorers are typically careful and diligent.",
+                    extraversion: "Extraversion relates to sociability, assertiveness, and emotional expressiveness. High scorers tend to be outgoing and energetic.",
+                    agreeableness: "Agreeableness represents traits like trust, altruism, and cooperation. High scorers are typically friendly and compassionate.",
+                    neuroticism: "Neuroticism reflects emotional stability and anxiety levels. High scorers may experience more stress and emotional reactivity."
+                  } %>
+                  <% @personality_profile[:big_five].each do |trait, score| %>
+                    <div class="mb-3">
+                      <div class="trait-score">
+                        <div class="d-flex justify-content-between mb-1">
+                          <label class="text-mint-green">
+                            <span data-bs-toggle="tooltip" data-bs-placement="top" title="<%= trait_descriptions[trait.to_sym] %>">
+                              <%= trait.to_s.titleize %>
+                            </span>
+                          </label>
+                          <span class="text-mint-green"><%= score %>%</span>
+                        </div>
+                        <div class="progress bg-space-cadet-light">
+                          <div class="progress-bar bg-tufts-blue" 
+                               role="progressbar" 
+                               style="width: <%= score %>%"
+                               aria-valuenow="<%= score %>" 
+                               aria-valuemin="0" 
+                               aria-valuemax="100">
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+                <div class="col-md-6">
+                  <div style="height: 250px;">
+                    <canvas id="bigFiveChart"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% end %>
+
+          <% if @personality_profile[:emotional_intelligence].present? %>
+            <div class="mb-4 mt-5">
+              <h5 class="text-jonquil">Emotional Intelligence</h5>
+              <div class="row">
+                <div class="col-md-6">
+                  <% ei_descriptions = {
+                    emotional_recognition: "The ability to identify and name emotions in yourself and others. High scorers are adept at recognizing emotional cues.",
+                    emotional_management: "The ability to regulate emotions effectively. High scorers can manage strong emotions without being overwhelmed.",
+                    emotional_understanding: "The ability to understand complex emotions and how they evolve. High scorers comprehend emotional causes and consequences.",
+                    emotional_adaptation: "The ability to adapt emotions to different situations. High scorers can adjust their emotional responses appropriately."
+                  } %>
+                  <% @personality_profile[:emotional_intelligence].each do |trait, score| %>
+                    <div class="mb-3">
+                      <div class="trait-score">
+                        <div class="d-flex justify-content-between mb-1">
+                          <label class="text-mint-green">
+                            <span data-bs-toggle="tooltip" data-bs-placement="top" title="<%= ei_descriptions[trait.to_sym] %>">
+                              <%= trait.to_s.gsub('_', ' ').titleize %>
+                            </span>
+                          </label>
+                          <span class="text-mint-green"><%= score %>%</span>
+                        </div>
+                        <div class="progress bg-space-cadet-light">
+                          <div class="progress-bar bg-jonquil" 
+                               role="progressbar" 
+                               style="width: <%= score %>%"
+                               aria-valuenow="<%= score %>" 
+                               aria-valuemin="0" 
+                               aria-valuemax="100">
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+                <div class="col-md-6">
+                  <div style="height: 250px;">
+                    <canvas id="emotionalIntelligenceChart"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% end %>
+
+          <% if @survey_type == 'extended' && @personality_profile[:extended_traits].present? %>
+            <div class="mb-4 mt-5">
+              <h5 class="text-jonquil">Additional Personality Insights</h5>
+              <div class="row">
+                <% extended_descriptions = {
+                  hexaco_honesty: "Measures sincerity, fairness, and modesty. High scorers tend to be genuine and avoid manipulating others.",
+                  hexaco_emotionality: "Reflects anxiety, fear, and emotional dependence. High scorers may experience more emotional reactions.",
+                  cognitive_analytical: "Measures logical and analytical thinking abilities. High scorers excel at systematic problem-solving.",
+                  cognitive_creative: "Reflects innovative and imaginative thinking. High scorers tend to generate novel ideas and solutions.",
+                  moral_care: "Measures empathy and concern for others' wellbeing. High scorers prioritize caring for others.",
+                  moral_fairness: "Reflects commitment to justice and equality. High scorers value fair treatment for all.",
+                  narrative_preference: "Indicates preference for storytelling styles. High scores suggest preference for complex narratives.",
+                  psychological_needs: "Measures basic psychological needs for autonomy, competence, and relatedness."
+                } %>
+                <% @personality_profile[:extended_traits].each do |trait, score| %>
+                  <div class="col-md-6 mb-3">
+                    <div class="trait-score">
+                      <div class="d-flex justify-content-between mb-1">
+                        <label class="text-mint-green">
+                          <span data-bs-toggle="tooltip" data-bs-placement="top" title="<%= extended_descriptions[trait.to_sym] %>">
+                            <%= trait.to_s.gsub('_', ' ').titleize %>
+                          </span>
+                        </label>
+                        <span class="text-mint-green"><%= score %>%</span>
+                      </div>
+                      <div class="progress bg-space-cadet-light">
+                        <div class="progress-bar bg-engineering-orange" 
+                             role="progressbar" 
+                             style="width: <%= score %>%"
+                             aria-valuenow="<%= score %>" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <div class="text-center">
+          <% if @survey_type == 'basic' %>
+            <p class="text-tufts-blue mb-4">Want even more personalized recommendations?</p>
+            <div class="d-flex justify-content-center gap-3">
+              <a href="/surveys?type=extended" class="btn btn-engineering-orange text-mint-green">
+                Take Extended Survey
+              </a>
+              <a href="/recommendations" class="btn btn-jonquil text-space-cadet">
+                Skip to Recommendations
+              </a>
+            </div>
+          <% else %>
+            <p class="text-mint-green mb-4">Your recommendations are ready!</p>
+            <a href="/recommendations" class="btn btn-engineering-orange text-mint-green">
+              View My Recommendations
+            </a>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize tooltips
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl)
+  });
+
+  // Big Five Chart
+  const bigFiveCanvas = document.getElementById('bigFiveChart');
+  if (bigFiveCanvas) {
+    const bigFiveCtx = bigFiveCanvas.getContext('2d');
+    const bigFiveData = <%= raw @personality_profile[:big_five].to_json %>;
+
+    new Chart(bigFiveCtx, {
+      type: 'radar',
+      data: {
+        labels: Object.keys(bigFiveData).map(trait => trait.charAt(0).toUpperCase() + trait.slice(1)),
+        datasets: [{
+          label: 'Big Five Personality Traits',
+          data: Object.values(bigFiveData),
+          backgroundColor: 'rgba(64, 127, 191, 0.2)',
+          borderColor: 'rgb(64, 127, 191)',
+          pointBackgroundColor: 'rgb(64, 127, 191)',
+          pointBorderColor: '#fff',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: 'rgb(64, 127, 191)'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          r: {
+            angleLines: {
+              display: true
+            },
+            suggestedMin: 0,
+            suggestedMax: 100,
+            ticks: {
+              color: '#a3e4d7',
+              backdropColor: 'transparent'
+            },
+            grid: {
+              color: 'rgba(163, 228, 215, 0.3)'
+            },
+            pointLabels: {
+              color: '#a3e4d7'
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            display: false
+          }
+        }
+      }
+    });
+  }
+
+  // Emotional Intelligence Chart
+  const eiCanvas = document.getElementById('emotionalIntelligenceChart');
+  if (eiCanvas) {
+    const eiCtx = eiCanvas.getContext('2d');
+    const eiData = <%= raw @personality_profile[:emotional_intelligence].to_json %>;
+
+    new Chart(eiCtx, {
+      type: 'polarArea',
+      data: {
+        labels: Object.keys(eiData).map(trait => trait.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())),
+        datasets: [{
+          data: Object.values(eiData),
+          backgroundColor: [
+            'rgba(255, 206, 86, 0.5)',
+            'rgba(255, 159, 64, 0.5)',
+            'rgba(255, 99, 132, 0.5)',
+            'rgba(54, 162, 235, 0.5)'
+          ],
+          borderColor: [
+            'rgb(255, 206, 86)',
+            'rgb(255, 159, 64)',
+            'rgb(255, 99, 132)',
+            'rgb(54, 162, 235)'
+          ],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          r: {
+            ticks: {
+              color: '#a3e4d7',
+              backdropColor: 'transparent'
+            },
+            grid: {
+              color: 'rgba(163, 228, 215, 0.3)'
+            },
+            pointLabels: {
+              color: '#a3e4d7'
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              color: '#a3e4d7',
+              boxWidth: 10,
+              padding: 10
+            }
+          }
+        }
+      }
+    });
+  }
+});
+</script> 

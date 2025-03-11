@@ -1,4 +1,7 @@
 <% content_for :title, "Personalization Survey" %>
+<% content_for :head do %>
+  <meta name="survey-type" content="<%= @survey_type %>">
+<% end %>
 
 <div class="container-fluid p-0">
   <div class="d-flex justify-content-center align-items-center vh-100">
@@ -6,7 +9,9 @@
     
     <div class="card shadow" style="max-width: 650px; width: 90%;">
       <div class="card-header bg-warning text-dark">
-        <h2 class="h4 mb-0">Basic Personalization Survey</h2>
+        <h2 class="h4 mb-0">
+          <%= @survey_type == 'basic' ? 'Basic' : 'Extended' %> Personalization Survey
+        </h2>
       </div>
 
       <div class="card-body p-4">
@@ -25,11 +30,14 @@
                       local: false, 
                       html: { 
                         id: "survey-form",
-                        class: "survey-form"
+                        class: "survey-form",
+                        data: { survey_type: @survey_type }
                       } do |form| %>
           
-          <%= render 'question_section', form: form, questions: @questions %>
-          <%= render 'genre_selection', form: form, genres: @genres %>
+          <div class="survey-container">
+            <%= render 'question_section', form: form, questions: @questions %>
+            <%= render 'genre_selection', form: form, genres: @genres if @survey_type == 'basic' %>
+          </div>
           <%= render 'survey_navigation', survey_type: @survey_type %>
         <% end %>
       </div>
@@ -38,3 +46,5 @@
 </div>
 
 <%= render 'survey_completion_modal' %>
+<%= render 'save_progress_modal' if @survey_type == 'extended' %>
+<%= javascript_include_tag "survey", "data-turbo-track": "reload" %>

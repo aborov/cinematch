@@ -2,10 +2,18 @@
 
 class SurveyPolicy < ApplicationPolicy
   def index?
-    true
+    user.present?
   end
 
   def create?
+    user.present?
+  end
+
+  def save_progress?
+    user.present?
+  end
+
+  def results?
     user.present?
   end
 end

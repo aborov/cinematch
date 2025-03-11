@@ -1,24 +1,28 @@
 <div class="navigation-buttons d-flex justify-content-between mt-5">
   <button type="button" 
-          class="btn btn-secondary px-4" 
-          id="prev-button">
+          class="btn btn-outline-mint-green px-4" 
+          id="prev-button"
+          style="display: none;">
     <i class="fas fa-arrow-left me-2"></i>Previous
   </button>
   
   <button type="button" 
-          class="btn btn-primary px-4"
+          class="btn btn-engineering-orange text-mint-green px-4"
           id="next-button">
     Next<i class="fas fa-arrow-right ms-2"></i>
   </button>
   
-  <button type="submit" id="submit-button" class="btn btn-success" style="display: none;">
+  <button type="button" 
+          id="complete-survey" 
+          class="btn btn-jonquil text-space-cadet" 
+          style="display: none;">
     Complete Survey<i class="fas fa-check ms-2"></i>
   </button>
 </div>
 
 <% if survey_type == 'extended' %>
   <div class="text-center mt-3">
-    <button type="button" id="save-progress" class="btn btn-outline-secondary btn-sm">
+    <button type="button" id="save-progress" class="btn btn-outline-mint-green btn-sm">
       <i class="fas fa-save me-2"></i>Save Progress
     </button>
   </div>

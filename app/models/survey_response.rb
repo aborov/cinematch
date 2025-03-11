@@ -14,12 +14,16 @@
 #
 # Indexes
 #
-#  index_survey_responses_on_deleted_at  (deleted_at)
+#  index_survey_responses_on_deleted_at         (deleted_at)
+#  index_survey_responses_on_user_and_question  (user_id,survey_question_id) UNIQUE WHERE (deleted_at IS NULL)
 #
 class SurveyResponse < ApplicationRecord
   acts_as_paranoid
   belongs_to :user, required: true
   belongs_to :survey_question, required: true
+
+  validates :survey_question_id, uniqueness: { scope: :user_id, message: "has already been answered" }
+  validates :response, presence: true
 
   def self.ransackable_attributes(auth_object = nil)
     ["created_at", "id", "response", "survey_question_id", "updated_at", "user_id"]

@@ -1,4 +1,6 @@
-import "./survey"
+import "@hotwired/turbo-rails"
+import "controllers"
+import "survey"
 console.log('Survey module loaded');
 
 // import * as bootstrap from "bootstrap"

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_02_12_213449) do
+ActiveRecord::Schema[7.1].define(version: 2025_03_11_140858) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "pgcrypto"
@@ -66,7 +66,6 @@ ActiveRecord::Schema[7.1].define(version: 2025_02_12_213449) do
     t.index ["genre_ids"], name: "index_contents_on_genre_ids", opclass: :gin_trgm_ops, using: :gin
     t.index ["imdb_id"], name: "index_contents_on_imdb_id"
     t.index ["source_id", "content_type"], name: "index_contents_on_source_id_and_content_type", unique: true
-    t.index ["source_id"], name: "index_contents_on_source_id", unique: true
   end
 
   create_table "genres", force: :cascade do |t|
@@ -184,6 +183,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_02_12_213449) do
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
     t.index ["deleted_at"], name: "index_survey_responses_on_deleted_at"
+    t.index ["user_id", "survey_question_id"], name: "index_survey_responses_on_user_and_question", unique: true, where: "(deleted_at IS NULL)"
   end
 
   create_table "user_preferences", force: :cascade do |t|
@@ -196,6 +196,11 @@ ActiveRecord::Schema[7.1].define(version: 2025_02_12_213449) do
     t.boolean "disable_adult_content"
     t.integer "recommended_content_ids", default: [], array: true
     t.datetime "recommendations_generated_at"
+    t.boolean "use_ai", default: false
+    t.jsonb "recommendation_reasons", default: {}
+    t.string "ai_model"
+    t.jsonb "recommendation_scores", default: {}
+    t.boolean "processing", default: false
     t.index ["deleted_at"], name: "index_user_preferences_on_deleted_at"
     t.index ["user_id"], name: "index_user_preferences_on_user_id"
   end
