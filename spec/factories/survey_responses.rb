@@ -12,7 +12,8 @@
 #
 # Indexes
 #
-#  index_survey_responses_on_deleted_at  (deleted_at)
+#  index_survey_responses_on_deleted_at         (deleted_at)
+#  index_survey_responses_on_user_and_question  (user_id,survey_question_id) UNIQUE WHERE (deleted_at IS NULL)
 #
 FactoryBot.define do
   factory :survey_response do

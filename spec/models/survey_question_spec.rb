@@ -4,6 +4,7 @@
 #
 #  id             :bigint           not null, primary key
 #  correct_answer :string
+#  inverted       :boolean          default(FALSE)
 #  position       :integer
 #  question_text  :string
 #  question_type  :string
