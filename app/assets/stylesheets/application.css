@@ -1098,3 +1098,43 @@ h6 {
     margin-bottom: 0.5rem;
   }
 }
+
+#complete-survey {
+  background-color: var(--golden-glare);
+  border-color: var(--engineering-orange);
+  color: var(--space-cadet);
+  font-weight: bold;
+  padding: 0.5rem 1.5rem;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  border-width: 2px;
+}
+
+#complete-survey:hover {
+  background-color: var(--engineering-orange);
+  border-color: var(--golden-glare);
+  color: var(--mint-green);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25);
+}
+
+.bg-space-cadet-light {
+  background-color: rgba(43, 45, 66, 0.3);
+}
+
+.text-golden-glare {
+  color: var(--golden-glare) !important;
+}
+
+.btn-golden-glare {
+  background-color: var(--golden-glare);
+  border-color: var(--golden-glare);
+  color: var(--space-cadet);
+}
+
+.btn-golden-glare:hover {
+  background-color: #ffdf4d;
+  border-color: #ffdf4d;
+  color: var(--space-cadet);
+}

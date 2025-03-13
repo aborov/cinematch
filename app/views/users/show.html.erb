@@ -7,75 +7,125 @@
     </div>
     <div class="card-body p-0">
       <div class="accordion w-100" id="profileAccordion">
-        <div class="accordion-item">
-          <h2 class="accordion-header" id="settingsHeading">
-            <button class="accordion-button rounded-0" type="button" data-bs-toggle="collapse" data-bs-target="#settingsCollapse" aria-expanded="true" aria-controls="settingsCollapse">
-              User Settings
-            </button>
-          </h2>
-          <div id="settingsCollapse" class="accordion-collapse collapse show" aria-labelledby="settingsHeading" data-bs-parent="#profileAccordion">
-            <div class="accordion-body">
-              <h3 class="mt-4">Edit Personal Information</h3>
-              <%= render "users/edit" %>
-            </div>
-          </div>
-        </div>
 
         <div class="accordion-item">
           <h2 class="accordion-header" id="personalityProfileHeading">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#personalityProfileCollapse" aria-expanded="false" aria-controls="personalityProfileCollapse">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#personalityProfileCollapse" aria-expanded="true" aria-controls="personalityProfileCollapse">
               Personality Profile
             </button>
           </h2>
-          <div id="personalityProfileCollapse" class="accordion-collapse collapse" aria-labelledby="personalityProfileHeading" data-bs-parent="#profileAccordion">
+          <div id="personalityProfileCollapse" class="accordion-collapse collapse show" aria-labelledby="personalityProfileHeading" data-bs-parent="#profileAccordion">
             <div class="accordion-body">
               <% if @user.user_preference.present? %>
-                <% if @user.user_preference.personality_profiles.present? %>
-                  <% personality_profiles = @user.user_preference.personality_profiles %>
-                  <% if personality_profiles.is_a?(String) %>
-                    <% personality_profiles = eval(personality_profiles) %>
+                <% 
+                  # Determine survey completion status
+                  basic_questions_count = SurveyQuestion.where("question_type LIKE 'big5_%' OR question_type LIKE 'ei_%'").where.not(question_type: 'attention_check').count
+                  extended_questions_count = SurveyQuestion.where("question_type LIKE 'hexaco_%' OR question_type LIKE 'cognitive_%' OR question_type LIKE 'moral_%' OR question_type LIKE 'narrative_%' OR question_type LIKE 'psychological_%'").where.not(question_type: 'attention_check').count
+                  
+                  user_basic_responses_count = @user.survey_responses.joins(:survey_question).where("survey_questions.question_type LIKE 'big5_%' OR survey_questions.question_type LIKE 'ei_%'").where.not(survey_questions: { question_type: 'attention_check' }).count
+                  user_extended_responses_count = @user.survey_responses.joins(:survey_question).where("survey_questions.question_type LIKE 'hexaco_%' OR survey_questions.question_type LIKE 'cognitive_%' OR survey_questions.question_type LIKE 'moral_%' OR survey_questions.question_type LIKE 'narrative_%' OR survey_questions.question_type LIKE 'psychological_%'").where.not(survey_questions: { question_type: 'attention_check' }).count
+                  
+                  basic_survey_completed = user_basic_responses_count >= basic_questions_count * 0.9 # 90% completion threshold
+                  extended_survey_completed = user_extended_responses_count >= extended_questions_count * 0.9 # 90% completion threshold
+                  extended_survey_started = user_extended_responses_count > 0
+
+                  # Also check for HEXACO and Attachment Style questions
+                  hexaco_questions_count = SurveyQuestion.where("question_type LIKE 'hexaco_%'").where.not(question_type: 'attention_check').count
+                  user_hexaco_responses_count = @user.survey_responses.joins(:survey_question).where("survey_questions.question_type LIKE 'hexaco_%'").where.not(survey_questions: { question_type: 'attention_check' }).count
+                  hexaco_completed = user_hexaco_responses_count >= hexaco_questions_count * 0.9
+
+                  attachment_questions_count = SurveyQuestion.where("question_type LIKE 'attachment_%'").where.not(question_type: 'attention_check').count
+                  user_attachment_responses_count = @user.survey_responses.joins(:survey_question).where("survey_questions.question_type LIKE 'attachment_%'").where.not(survey_questions: { question_type: 'attention_check' }).count
+                  attachment_completed = user_attachment_responses_count >= attachment_questions_count * 0.9
+                %>
+                
+                <% if basic_survey_completed %>
+                  <% 
+                    # Generate full profile using the service
+                    full_profile = PersonalityProfileService.generate_profile(@user, true)
+                  %>
+                  
+                  <!-- Debug Section (only visible to admins) -->
+                  <% if @user.admin? %>
+                    <div class="alert alert-secondary">
+                      <h4>Debug Information (Admin Only)</h4>
+                      <p>Basic Survey Completed: <%= basic_survey_completed %></p>
+                      <p>Extended Survey Completed: <%= extended_survey_completed %></p>
+                      <p>HEXACO Completed: <%= hexaco_completed %></p>
+                      <p>Attachment Style Completed: <%= attachment_completed %></p>
+                      <p>Profile Structure:</p>
+                      <ul>
+                        <li>Big Five: <%= full_profile[:big_five].keys.join(', ') %></li>
+                        <li>Emotional Intelligence: <%= full_profile[:emotional_intelligence].keys.join(', ') %></li>
+                        <li>Extended Traits Present: <%= full_profile[:extended_traits].present? %></li>
+                        <% if full_profile[:extended_traits].present? %>
+                          <li>HEXACO Present: <%= full_profile[:extended_traits][:hexaco].present? %></li>
+                          <% if full_profile[:extended_traits][:hexaco].present? %>
+                            <li>HEXACO Honesty-Humility Present: <%= full_profile[:extended_traits][:hexaco][:honesty_humility].present? %></li>
+                          <% end %>
+                          <li>Attachment Style Present: <%= full_profile[:extended_traits][:attachment_style].present? %></li>
+                        <% end %>
+                      </ul>
+                    </div>
                   <% end %>
-                  <% if personality_profiles.present? %>
-                    <% 
-                      # Generate full profile using the service
-                      full_profile = PersonalityProfileService.generate_profile(@user)
-                      
-                      # Determine survey completion status
-                      basic_questions_count = SurveyQuestion.where("question_type LIKE 'big5_%' OR question_type LIKE 'ei_%'").where.not(question_type: 'attention_check').count
-                      extended_questions_count = SurveyQuestion.where("question_type LIKE 'hexaco_%' OR question_type LIKE 'cognitive_%' OR question_type LIKE 'moral_%' OR question_type LIKE 'narrative_%' OR question_type LIKE 'psychological_%'").where.not(question_type: 'attention_check').count
-                      
-                      user_basic_responses_count = @user.survey_responses.joins(:survey_question).where("survey_questions.question_type LIKE 'big5_%' OR survey_questions.question_type LIKE 'ei_%'").where.not(survey_questions: { question_type: 'attention_check' }).count
-                      user_extended_responses_count = @user.survey_responses.joins(:survey_question).where("survey_questions.question_type LIKE 'hexaco_%' OR survey_questions.question_type LIKE 'cognitive_%' OR survey_questions.question_type LIKE 'moral_%' OR survey_questions.question_type LIKE 'narrative_%' OR survey_questions.question_type LIKE 'psychological_%'").where.not(survey_questions: { question_type: 'attention_check' }).count
-                      
-                      basic_survey_completed = user_basic_responses_count >= basic_questions_count * 0.9 # 90% completion threshold
-                      extended_survey_completed = user_extended_responses_count >= extended_questions_count * 0.9 # 90% completion threshold
-                      extended_survey_started = user_extended_responses_count > 0
-                    %>
-                    
+                  
+                  <% if full_profile[:big_five].present? %>
                     <!-- Big Five Section -->
                     <div class="mb-5">
                       <h3 class="mb-3">Big Five Personality Traits</h3>
+                      <div class="alert alert-light border">
+                        <i class="fas fa-info-circle me-2"></i>
+                        The Big Five personality traits represent the most widely accepted model of personality in psychology. Your scores indicate your relative position on each dimension compared to the general population.
+                      </div>
                       <div class="row">
                         <div class="col-md-6">
                           <% trait_descriptions = {
-                            openness: "Openness reflects curiosity, creativity, and preference for variety. High scorers tend to be imaginative and adventurous.",
-                            conscientiousness: "Conscientiousness indicates organization, dependability, and self-discipline. High scorers are typically careful and diligent.",
-                            extraversion: "Extraversion relates to sociability, assertiveness, and emotional expressiveness. High scorers tend to be outgoing and energetic.",
-                            agreeableness: "Agreeableness represents traits like trust, altruism, and cooperation. High scorers are typically friendly and compassionate.",
-                            neuroticism: "Neuroticism reflects emotional stability and anxiety levels. High scorers may experience more stress and emotional reactivity."
+                            openness: "Openness reflects curiosity, creativity, and preference for variety. High scorers tend to be imaginative and adventurous, while low scorers may prefer routine and the familiar.",
+                            conscientiousness: "Conscientiousness indicates organization, dependability, and self-discipline. High scorers are typically careful and diligent, while low scorers may be more spontaneous and less structured.",
+                            extraversion: "Extraversion relates to sociability, assertiveness, and emotional expressiveness. High scorers tend to be outgoing and energetic, while low scorers (introverts) may be more reserved and reflective.",
+                            agreeableness: "Agreeableness represents traits like trust, altruism, and cooperation. High scorers are typically friendly and compassionate, while low scorers may be more competitive and skeptical.",
+                            neuroticism: "Neuroticism reflects emotional stability and anxiety levels. High scorers may experience more stress and emotional reactivity, while low scorers tend to be more emotionally stable and resilient."
                           } %>
-                          <% full_profile[:big_five].each do |trait, score| %>
-                            <div class="mb-3">
+                          <% trait_implications = {
+                            openness: {
+                              high: "You likely enjoy films with complex narratives, abstract themes, and artistic elements.",
+                              medium: "You appreciate a balance between familiar genres and occasional novel experiences in media.",
+                              low: "You may prefer straightforward storytelling and familiar genres in your entertainment choices."
+                            },
+                            conscientiousness: {
+                              high: "You might enjoy well-crafted plots with attention to detail and logical progression.",
+                              medium: "You can appreciate both structured narratives and more free-flowing storytelling.",
+                              low: "You may enjoy spontaneous, unpredictable narratives and improvisational elements."
+                            },
+                            extraversion: {
+                              high: "You likely enjoy high-energy films with social themes and dynamic character interactions.",
+                              medium: "You appreciate both socially-driven narratives and more introspective stories.",
+                              low: "You might prefer thoughtful, introspective films that explore inner experiences."
+                            },
+                            agreeableness: {
+                              high: "You may be drawn to uplifting stories about cooperation, empathy, and human connection.",
+                              medium: "You can appreciate both harmonious narratives and stories with conflict and competition.",
+                              low: "You might enjoy stories featuring strategic thinking, competition, or moral complexity."
+                            },
+                            neuroticism: {
+                              high: "You may connect with emotional narratives that explore psychological complexity.",
+                              medium: "You can engage with both emotionally intense and more serene storytelling.",
+                              low: "You might prefer stories with emotional balance and resilient characters."
+                            }
+                          } %>
+                          <% full_profile[:big_five].except(:personality_type).each do |trait, score| %>
+                            <div class="mb-4">
                               <div class="trait-score">
                                 <div class="d-flex justify-content-between mb-1">
                                   <label>
                                     <span data-bs-toggle="tooltip" data-bs-placement="top" title="<%= trait_descriptions[trait.to_sym] %>">
                                       <strong><%= trait.to_s.titleize %></strong>
-                                    </span>
+                                      <i class="fas fa-info-circle text-muted ms-1"></i>
+                              </span>
                                   </label>
                                   <span><%= score %>%</span>
                                 </div>
-                                <div class="progress">
+                                <div class="progress mb-2">
                                   <div class="progress-bar bg-primary" 
                                        role="progressbar" 
                                        style="width: <%= score %>%"
@@ -84,7 +134,32 @@
                                        aria-valuemax="100">
                                   </div>
                                 </div>
+                                <% 
+                                  level = if score >= 70
+                                    "high"
+                                  elsif score <= 30
+                                    "low"
+                                  else
+                                    "medium"
+                                  end
+                                %>
+                                <small class="text-muted"><%= trait_implications[trait.to_sym][level.to_sym] %></small>
                               </div>
+                            </div>
+                          <% end %>
+                          
+                          <% if full_profile[:big_five][:personality_type].present? %>
+                            <div class="mt-4">
+                              <h5>Your Dominant Traits</h5>
+                              <% if full_profile[:big_five][:personality_type][:dominant].any? %>
+                                <ul>
+                                  <% full_profile[:big_five][:personality_type][:dominant].each do |trait| %>
+                                    <li><strong><%= trait.to_s.titleize %></strong></li>
+                          <% end %>
+                        </ul>
+                              <% else %>
+                                <p>You have a balanced personality profile without strongly dominant traits.</p>
+                              <% end %>
                             </div>
                           <% end %>
                         </div>
@@ -92,83 +167,66 @@
                           <div style="height: 250px;">
                             <canvas id="bigFiveChart"></canvas>
                           </div>
+                          <div class="mt-3 text-center">
+                            <small class="text-muted">Your Big Five personality profile visualized as a radar chart. The further a point is from the center, the stronger that trait is in your personality.</small>
+                          </div>
                         </div>
                       </div>
                     </div>
-                    
+                  <% end %>
+                  
+                  <% if full_profile[:emotional_intelligence].present? %>
                     <!-- Emotional Intelligence Section -->
-                    <% if full_profile[:emotional_intelligence].present? %>
-                      <div class="mb-5">
-                        <h3 class="mb-3">Emotional Intelligence</h3>
-                        <div class="row">
-                          <div class="col-md-6">
-                            <% ei_descriptions = {
-                              recognition: "The ability to identify and name emotions in yourself and others. High scorers are adept at recognizing emotional cues.",
-                              management: "The ability to regulate emotions effectively. High scorers can manage strong emotions without being overwhelmed.",
-                              understanding: "The ability to understand complex emotions and how they evolve. High scorers comprehend emotional causes and consequences.",
-                              adaptation: "The ability to adapt emotions to different situations. High scorers can adjust their emotional responses appropriately."
-                            } %>
-                            <% full_profile[:emotional_intelligence].each do |trait, score| %>
-                              <div class="mb-3">
-                                <div class="trait-score">
-                                  <div class="d-flex justify-content-between mb-1">
-                                    <label>
-                                      <span data-bs-toggle="tooltip" data-bs-placement="top" title="<%= ei_descriptions[trait.to_sym] %>">
-                                        <strong><%= trait.to_s.titleize %></strong>
-                                      </span>
-                                    </label>
-                                    <span><%= score %>%</span>
-                                  </div>
-                                  <div class="progress">
-                                    <div class="progress-bar bg-warning" 
-                                         role="progressbar" 
-                                         style="width: <%= score %>%"
-                                         aria-valuenow="<%= score %>" 
-                                         aria-valuemin="0" 
-                                         aria-valuemax="100">
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            <% end %>
-                          </div>
-                          <div class="col-md-6">
-                            <div style="height: 250px;">
-                              <canvas id="emotionalIntelligenceChart"></canvas>
-                            </div>
-                          </div>
-                        </div>
+                    <div class="mb-5">
+                      <h3 class="mb-3">Emotional Intelligence</h3>
+                      <div class="alert alert-light border">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Emotional intelligence is the ability to understand and manage emotions effectively. Your profile shows your strengths across four key dimensions of emotional intelligence.
                       </div>
-                    <% end %>
-                    
-                    <!-- Extended Traits Section - Only show if extended survey is completed -->
-                    <% if extended_survey_completed && full_profile[:extended_traits].present? %>
-                      <div class="mb-4">
-                        <h3 class="mb-3">Additional Personality Insights</h3>
-                        <div class="row">
-                          <% extended_descriptions = {
-                            hexaco_honesty: "Measures sincerity, fairness, and modesty. High scorers tend to be genuine and avoid manipulating others.",
-                            hexaco_emotionality: "Reflects anxiety, fear, and emotional dependence. High scorers may experience more emotional reactions.",
-                            cognitive_analytical: "Measures logical and analytical thinking abilities. High scorers excel at systematic problem-solving.",
-                            cognitive_creative: "Reflects innovative and imaginative thinking. High scorers tend to generate novel ideas and solutions.",
-                            moral_care: "Measures empathy and concern for others' wellbeing. High scorers prioritize caring for others.",
-                            moral_fairness: "Reflects commitment to justice and equality. High scorers value fair treatment for all.",
-                            narrative_preference: "Indicates preference for storytelling styles. High scores suggest preference for complex narratives.",
-                            psychological_needs: "Measures basic psychological needs for autonomy, competence, and relatedness."
+                      <div class="row">
+                        <div class="col-md-6">
+                          <% ei_descriptions = {
+                            emotional_recognition: "The ability to identify and name emotions in yourself and others. High scorers are adept at recognizing emotional cues in facial expressions, body language, and tone of voice.",
+                            emotional_management: "The ability to regulate emotions effectively and respond appropriately to different situations. High scorers can manage strong emotions without being overwhelmed and can calm themselves when upset.",
+                            emotional_understanding: "The ability to understand complex emotions, how they evolve, and how they influence behavior. High scorers comprehend emotional causes and consequences and can predict emotional reactions.",
+                            emotional_adaptation: "The ability to adapt emotions to different situations and use them to facilitate thinking and behavior. High scorers can adjust their emotional responses appropriately to changing circumstances."
                           } %>
-                          <% full_profile[:extended_traits].each do |trait, score| %>
-                            <div class="col-md-6 mb-3">
+                          <% ei_implications = {
+                            emotional_recognition: {
+                              high: "You likely pick up on subtle emotional cues in films and connect deeply with character emotions.",
+                              medium: "You can generally recognize important emotional elements in stories and characters.",
+                              low: "You might focus more on plot and action than on emotional subtleties in films."
+                            },
+                            emotional_management: {
+                              high: "You can engage with emotionally intense content without becoming overwhelmed.",
+                              medium: "You can handle moderate emotional content but might need breaks during intense films.",
+                              low: "You might prefer films with less emotional intensity or clear emotional resolution."
+                            },
+                            emotional_understanding: {
+                              high: "You likely appreciate complex emotional narratives and character development.",
+                              medium: "You can follow emotional storylines but might miss some deeper emotional themes.",
+                              low: "You might prefer straightforward emotional arcs and clear character motivations."
+                            },
+                            emotional_adaptation: {
+                              high: "You can shift between different emotional tones in films and appreciate emotional complexity.",
+                              medium: "You can adapt to changing emotional tones but might prefer consistent emotional themes.",
+                              low: "You might prefer films with consistent emotional tones rather than emotional shifts."
+                            }
+                          } %>
+                          <% full_profile[:emotional_intelligence].except(:composite_score, :ei_level).each do |trait, score| %>
+                            <div class="mb-4">
                               <div class="trait-score">
                                 <div class="d-flex justify-content-between mb-1">
                                   <label>
-                                    <span data-bs-toggle="tooltip" data-bs-placement="top" title="<%= extended_descriptions[trait.to_sym] %>">
-                                      <strong><%= trait.to_s.gsub('_', ' ').titleize %></strong>
+                                    <span data-bs-toggle="tooltip" data-bs-placement="top" title="<%= ei_descriptions[trait.to_sym] %>">
+                                      <strong><%= trait.to_s.titleize %></strong>
+                                      <i class="fas fa-info-circle text-muted ms-1"></i>
                                     </span>
                                   </label>
                                   <span><%= score %>%</span>
                                 </div>
-                                <div class="progress">
-                                  <div class="progress-bar bg-info" 
+                                <div class="progress mb-2">
+                                  <div class="progress-bar bg-warning" 
                                        role="progressbar" 
                                        style="width: <%= score %>%"
                                        aria-valuenow="<%= score %>" 
@@ -176,58 +234,269 @@
                                        aria-valuemax="100">
                                   </div>
                                 </div>
+                                <% 
+                                  level = if score >= 70
+                                    "high"
+                                  elsif score <= 30
+                                    "low"
+                                  else
+                                    "medium"
+                                  end
+                                %>
+                                <small class="text-muted"><%= ei_implications[trait.to_sym][level.to_sym] %></small>
+                              </div>
+                            </div>
+                          <% end %>
+                          
+                          <% if full_profile[:emotional_intelligence][:composite_score].present? && full_profile[:emotional_intelligence][:ei_level].present? %>
+                            <div class="mt-4 card bg-light">
+                              <div class="card-body">
+                                <h5 class="card-title">Your Emotional Intelligence Level: <%= full_profile[:emotional_intelligence][:ei_level].to_s.titleize %></h5>
+                                <p class="card-text">Overall Score: <%= full_profile[:emotional_intelligence][:composite_score] %>%</p>
+                                <% 
+                                  ei_level_descriptions = {
+                                    "developing" => "You're building your emotional intelligence skills. You may benefit from content that helps you recognize and understand emotions more clearly.",
+                                    "moderate" => "You have a balanced emotional intelligence profile. You can engage with emotionally complex content while still enjoying more straightforward narratives.",
+                                    "strong" => "You have well-developed emotional intelligence. You likely appreciate nuanced emotional storytelling and complex character development.",
+                                    "exceptional" => "You have highly developed emotional intelligence. You can deeply engage with emotionally complex narratives and subtle character dynamics."
+                                  }
+                                %>
+                                <p class="card-text"><%= ei_level_descriptions[full_profile[:emotional_intelligence][:ei_level]] %></p>
                               </div>
                             </div>
                           <% end %>
                         </div>
+                        <div class="col-md-6">
+                        <div style="height: 250px;">
+                            <canvas id="emotionalIntelligenceChart"></canvas>
+                          </div>
+                          <div class="mt-3 text-center">
+                            <small class="text-muted">Your emotional intelligence profile visualized as a polar area chart. Larger segments represent stronger abilities in those emotional dimensions.</small>
+                          </div>
+                        </div>
                       </div>
-                    <% end %>
-                    
-                    <!-- Survey Buttons Section - Different options based on completion status -->
-                    <div class="mt-4">
-                      <% if basic_survey_completed && extended_survey_completed %>
-                        <!-- Both surveys completed -->
-                        <div class="d-flex gap-3">
-                          <%= link_to "Retake Basic Survey", surveys_path(type: 'basic'), class: "btn btn-outline-primary" %>
-                          <%= link_to "Retake Extended Survey", surveys_path(type: 'extended'), class: "btn btn-outline-info" %>
-                        </div>
-                      <% elsif basic_survey_completed && extended_survey_started %>
-                        <!-- Basic completed, Extended started but not completed -->
-                        <div class="d-flex flex-column gap-3">
-                          <div class="alert alert-info">
-                            <i class="fas fa-info-circle me-2"></i>
-                            You've started the extended survey but haven't completed it yet. Continue to unlock additional personality insights!
-                          </div>
-                          <div class="d-flex gap-3">
-                            <%= link_to "Retake Basic Survey", surveys_path(type: 'basic'), class: "btn btn-outline-primary" %>
-                            <%= link_to "Continue Extended Survey", surveys_path(type: 'extended'), class: "btn btn-info" %>
-                          </div>
-                        </div>
-                      <% elsif basic_survey_completed %>
-                        <!-- Only Basic completed -->
-                        <div class="d-flex flex-column gap-3">
-                          <div class="alert alert-info">
-                            <i class="fas fa-lightbulb me-2"></i>
-                            Take the extended survey to unlock additional personality insights and get more personalized recommendations!
-                          </div>
-                          <div class="d-flex gap-3">
-                            <%= link_to "Retake Basic Survey", surveys_path(type: 'basic'), class: "btn btn-outline-primary" %>
-                            <%= link_to "Take Extended Survey", surveys_path(type: 'extended'), class: "btn btn-info" %>
-                          </div>
-                        </div>
-                      <% else %>
-                        <!-- Neither fully completed (shouldn't happen, but just in case) -->
-                        <%= link_to "Complete Personality Survey", surveys_path, class: "btn btn-primary" %>
-                      <% end %>
-                    </div>
-                  <% else %>
-                    <div class="alert alert-warning" role="alert">
-                      No personality profile available. Please complete the <%= link_to "survey", surveys_path, class: "alert-link" %> to receive recommendations.
                     </div>
                   <% end %>
+                  
+                  <% if full_profile[:extended_traits].present? %>
+                    <!-- Extended Traits Section -->
+                    <div class="mb-5">
+                      <h3 class="mb-3">Additional Personality Insights</h3>
+                      
+                      <% if full_profile[:extended_traits][:hexaco].present? && full_profile[:extended_traits][:hexaco][:honesty_humility].present? && full_profile[:extended_traits][:hexaco][:honesty_humility][:overall].present? %>
+                        <!-- HEXACO Section -->
+                        <div class="card mb-4">
+                          <div class="card-header">
+                            <h4 class="mb-0">
+                              <span data-bs-toggle="tooltip" data-bs-placement="top" title="The HEXACO model includes Honesty-Humility as a sixth major personality dimension beyond the Big Five. This trait reflects sincerity, fairness, and modesty versus manipulation and entitlement.">
+                                HEXACO Honesty-Humility
+                                <i class="fas fa-info-circle text-muted ms-1"></i>
+                              </span>
+                            </h4>
+                          </div>
+                          <div class="card-body">
+                            <div class="row">
+                              <div class="col-md-6">
+                                <% 
+                                  honesty_score = full_profile[:extended_traits][:hexaco][:honesty_humility][:overall]
+                                  integrity_level = full_profile[:extended_traits][:hexaco][:integrity_level]
+                                  
+                                  integrity_descriptions = {
+                                    "opportunistic" => "You tend to be pragmatic and may prioritize personal gain over strict ethical principles. In media, you might appreciate morally complex characters who bend rules to achieve their goals.",
+                                    "pragmatic" => "You balance ethical considerations with practical needs. You likely enjoy characters with moral complexity who face difficult ethical choices.",
+                                    "principled" => "You value honesty and fairness in most situations. You may appreciate characters with strong moral compasses who face ethical challenges.",
+                                    "highly_principled" => "You strongly prioritize ethical principles and fairness. You might connect with stories about integrity, justice, and moral courage."
+                                  }
+                                %>
+                                <div class="mb-3">
+                                  <div class="trait-score">
+                                    <div class="d-flex justify-content-between mb-1">
+                                      <label><strong>Honesty-Humility</strong></label>
+                                      <span><%= honesty_score %>%</span>
+                                    </div>
+                                    <div class="progress mb-2">
+                                      <div class="progress-bar bg-info" 
+                                           role="progressbar" 
+                                           style="width: <%= honesty_score %>%"
+                                           aria-valuenow="<%= honesty_score %>" 
+                                           aria-valuemin="0" 
+                                           aria-valuemax="100">
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                <div class="alert alert-info">
+                                  <h5 class="alert-heading">Your Integrity Level: <%= integrity_level.to_s.titleize %></h5>
+                                  <p><%= integrity_descriptions[integrity_level] %></p>
+                                </div>
+                              </div>
+                              
+                              <div class="col-md-6">
+                                <% if full_profile[:extended_traits][:hexaco][:honesty_humility].except(:overall).any? %>
+                                  <h5>Honesty-Humility Facets</h5>
+                                  <% 
+                                    facet_descriptions = {
+                                      honesty: "General tendency toward honesty and sincerity",
+                                      sincerity: "Genuineness in interpersonal relations",
+                                      fairness: "Tendency to avoid fraud and corruption",
+                                      modesty: "Tendency to be modest and unassuming",
+                                      greedavoidance: "Tendency to be uninterested in wealth and luxury",
+                                      faithfulness: "Tendency to remain loyal and committed"
+                                    }
+                                  %>
+                                  <% full_profile[:extended_traits][:hexaco][:honesty_humility].except(:overall).each do |facet, score| %>
+                                    <div class="mb-2">
+                                      <div class="trait-score">
+                                        <div class="d-flex justify-content-between mb-1">
+                                          <label>
+                                            <span data-bs-toggle="tooltip" data-bs-placement="top" title="<%= facet_descriptions[facet] if facet_descriptions[facet].present? %>">
+                                              <small><%= facet.to_s.titleize %></small>
+                                              <i class="fas fa-info-circle text-muted ms-1"></i>
+                                            </span>
+                                          </label>
+                                          <small><%= score %>%</small>
+                                        </div>
+                                        <div class="progress" style="height: 10px;">
+                                          <div class="progress-bar bg-info" 
+                                               role="progressbar" 
+                                               style="width: <%= score %>%"
+                                               aria-valuenow="<%= score %>" 
+                                               aria-valuemin="0" 
+                                               aria-valuemax="100">
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  <% end %>
+                                <% end %>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      <% end %>
+                      
+                      <% if full_profile[:extended_traits][:attachment_style].present? && full_profile[:extended_traits][:attachment_style][:anxiety].present? && full_profile[:extended_traits][:attachment_style][:avoidance].present? %>
+                        <!-- Attachment Style Section -->
+                        <div class="card mb-4">
+                          <div class="card-header">
+                            <h4 class="mb-0">
+                              <span data-bs-toggle="tooltip" data-bs-placement="top" title="Attachment style reflects how you form emotional bonds with others, based on two key dimensions: anxiety (worry about relationships) and avoidance (comfort with closeness). Your attachment style influences how you connect with characters and stories.">
+                                Attachment Style
+                                <i class="fas fa-info-circle text-muted ms-1"></i>
+                              </span>
+                            </h4>
+                          </div>
+                          <div class="card-body">
+                            <div class="row">
+                              <div class="col-md-6">
+                                <% 
+                                  anxiety_score = full_profile[:extended_traits][:attachment_style][:anxiety]
+                                  avoidance_score = full_profile[:extended_traits][:attachment_style][:avoidance]
+                                  attachment_style = full_profile[:extended_traits][:attachment_style][:attachment_style]
+                                  
+                                  attachment_descriptions = {
+                                    "secure" => "You're comfortable with both independence and closeness in relationships. You likely enjoy a wide range of content and can engage with emotional material without becoming overwhelmed.",
+                                    "anxious" => "You value closeness and may worry about rejection or abandonment. You may be drawn to emotional and romantic narratives, and may become deeply invested in character relationships.",
+                                    "avoidant" => "You value independence and may be uncomfortable with too much closeness. You may prefer action or intellectually-focused content over emotional dramas, and might maintain emotional distance from characters.",
+                                    "fearful_avoidant" => "You desire close relationships but find them difficult due to trust issues. You might be drawn to complex narratives that explore both independence and connection, possibly with conflicted feelings about character attachments."
+                                  }
+                                %>
+                                <div class="mb-3">
+                                  <div class="trait-score">
+                                    <div class="d-flex justify-content-between mb-1">
+                                      <label><strong>Attachment Anxiety</strong></label>
+                                      <span><%= anxiety_score %>%</span>
+                                    </div>
+                                    <div class="progress mb-2">
+                                      <div class="progress-bar bg-danger" 
+                                           role="progressbar" 
+                                           style="width: <%= anxiety_score %>%"
+                                           aria-valuenow="<%= anxiety_score %>" 
+                                           aria-valuemin="0" 
+                                           aria-valuemax="100">
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                  <div class="trait-score">
+                                    <div class="d-flex justify-content-between mb-1">
+                                      <label><strong>Attachment Avoidance</strong></label>
+                                      <span><%= avoidance_score %>%</span>
+                                    </div>
+                                    <div class="progress mb-2">
+                                      <div class="progress-bar bg-secondary" 
+                                           role="progressbar" 
+                                           style="width: <%= avoidance_score %>%"
+                                           aria-valuenow="<%= avoidance_score %>" 
+                                           aria-valuemin="0" 
+                                           aria-valuemax="100">
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div class="col-md-6">
+                                <div class="card bg-light">
+                                  <div class="card-body">
+                                    <h5 class="card-title">Your Attachment Style: <%= attachment_style.to_s.titleize.gsub('_', '-') %></h5>
+                                    <p class="card-text"><%= attachment_descriptions[attachment_style] %></p>
+                                  </div>
+                                </div>
+                                
+                                <div class="mt-3">
+                                  <canvas id="attachmentStyleChart" height="150"></canvas>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      <% end %>
+                    </div>
+                  <% end %>
+                  
+                  <!-- Survey Buttons Section -->
+                  <div class="mt-4">
+                    <% if basic_survey_completed && extended_survey_completed %>
+                      <div class="d-flex gap-3">
+                        <%= link_to "Retake Basic Survey", surveys_path(type: 'basic'), class: "btn btn-outline-primary" %>
+                        <%= link_to "Retake Extended Survey", surveys_path(type: 'extended'), class: "btn btn-outline-info" %>
+                      </div>
+                    <% elsif basic_survey_completed && extended_survey_started %>
+                      <div class="d-flex flex-column gap-3">
+                        <div class="alert alert-info">
+                          <i class="fas fa-info-circle me-2"></i>
+                          You've started the extended survey but haven't completed it yet. Continue to unlock additional personality insights!
+                        </div>
+                        <div class="d-flex gap-3">
+                          <%= link_to "Retake Basic Survey", surveys_path(type: 'basic'), class: "btn btn-outline-primary" %>
+                          <%= link_to "Continue Extended Survey", surveys_path(type: 'extended'), class: "btn btn-info" %>
+                        </div>
+                      </div>
+                    <% elsif basic_survey_completed %>
+                      <div class="d-flex flex-column gap-3">
+                        <div class="alert alert-info">
+                          <i class="fas fa-lightbulb me-2"></i>
+                          Take the extended survey to unlock additional personality insights and get more personalized recommendations!
+                        </div>
+                        <div class="d-flex gap-3">
+                          <%= link_to "Retake Basic Survey", surveys_path(type: 'basic'), class: "btn btn-outline-primary" %>
+                          <%= link_to "Take Extended Survey", surveys_path(type: 'extended'), class: "btn btn-info" %>
+                        </div>
+                      </div>
+                    <% end %>
+                  </div>
                 <% else %>
-                  <div class="alert alert-warning" role="alert">
-                    No personality profile available. Please complete the <%= link_to "survey", surveys_path, class: "alert-link" %> to receive recommendations.
+                  <div class="alert alert-info" role="alert">
+                    <h4 class="alert-heading">Welcome to Your Personality Profile!</h4>
+                    <p>To get personalized movie recommendations, we need to understand your preferences better. Please complete our personality survey to unlock your profile.</p>
+                    <hr>
+                    <p class="mb-0">
+                      <%= link_to "Take Basic Survey", surveys_path(type: 'basic'), class: "btn btn-primary" %>
+                    </p>
                   </div>
                 <% end %>
               <% else %>
@@ -248,30 +517,42 @@
           <div id="contentPreferencesCollapse" class="accordion-collapse collapse" aria-labelledby="contentPreferencesHeading" data-bs-parent="#profileAccordion">
             <div class="accordion-body">
               <h3>Edit Content Preferences</h3>
-
               <%= form_with model: @user_preference, local: true do |form| %>
                 <div class="mb-3">
                   <%= form.label :favorite_genres, "Select your favorite genres", class: "form-label" %><br>
                   <div class="btn-group-toggle d-flex flex-wrap" data-toggle="buttons">
                     <% @genres.each do |genre| %>
-                      <%= form.check_box :favorite_genres, { :multiple => true, :class => "btn-check", :id => genre["name"].parameterize }, genre["name"], nil %>
-                      <%= label_tag genre["name"].parameterize, genre["name"], { :class => "btn btn-outline-primary m-1" } %>
+                      <%= form.check_box :favorite_genres, { multiple: true, class: "btn-check", id: genre["name"].parameterize }, genre["name"], nil %>
+                      <%= label_tag genre["name"].parameterize, genre["name"], class: "btn btn-outline-primary m-1" %>
                     <% end %>
                   </div>
                 </div>
                 <div class="form-group mb-3">
                   <label for="disable_adult_content" class="form-label">Adult Content</label>
                   <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" id="disable_adult_content" name="user_preference[disable_adult_content]" value="1" <%= @user_preference.disable_adult_content ? 'checked' : '' %> />
-                    <label class="form-check-label" for="disable_adult_content">
-                      <span>Filter out adult content in recommendations.</span>
+                    <%= form.check_box :disable_adult_content, class: "form-check-input" %>
+                    <label class="form-check-label" for="user_preference_disable_adult_content">
+                      Filter out adult content in recommendations.
                     </label>
                   </div>
                 </div>
                 <div>
-                  <%= form.submit "Save Preferences", { :class => "btn btn-primary" } %>
+                  <%= form.submit "Save Preferences", class: "btn btn-primary" %>
                 </div>
               <% end %>
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="settingsHeading">
+            <button class="accordion-button collapsed rounded-0" type="button" data-bs-toggle="collapse" data-bs-target="#settingsCollapse" aria-expanded="false" aria-controls="settingsCollapse">
+              User Settings
+            </button>
+          </h2>
+          <div id="settingsCollapse" class="accordion-collapse collapse" aria-labelledby="settingsHeading" data-bs-parent="#profileAccordion">
+            <div class="accordion-body">
+              <h3 class="mt-4">Edit Personal Information</h3>
+              <%= render "users/edit" %>
             </div>
           </div>
         </div>
@@ -282,51 +563,65 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  // Register the annotation plugin
+  if (typeof Chart !== 'undefined' && Chart.register) {
+    Chart.register(ChartAnnotation);
+  }
+  
   // Initialize tooltips
   var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
   var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-    return new bootstrap.Tooltip(tooltipTriggerEl)
+    return new bootstrap.Tooltip(tooltipTriggerEl, {
+      html: true
+    })
   });
 
   // Big Five Chart
   const bigFiveCanvas = document.getElementById('bigFiveChart');
   if (bigFiveCanvas) {
     const bigFiveCtx = bigFiveCanvas.getContext('2d');
-    const bigFiveData = <%= raw full_profile[:big_five].to_json %>;
+    const bigFiveData = <%= raw (full_profile&.dig(:big_five)&.except(:personality_type) || {}).to_json %>;
 
     new Chart(bigFiveCtx, {
-      type: 'radar',
-      data: {
+    type: 'radar',
+    data: {
         labels: Object.keys(bigFiveData).map(trait => trait.charAt(0).toUpperCase() + trait.slice(1)),
-        datasets: [{
+      datasets: [{
           label: 'Big Five Personality Traits',
           data: Object.values(bigFiveData),
           backgroundColor: 'rgba(64, 127, 191, 0.2)',
           borderColor: 'rgb(64, 127, 191)',
           pointBackgroundColor: 'rgb(64, 127, 191)',
-          pointBorderColor: '#fff',
-          pointHoverBackgroundColor: '#fff',
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
           pointHoverBorderColor: 'rgb(64, 127, 191)'
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          r: {
-            angleLines: {
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        r: {
+          angleLines: {
               display: true
-            },
-            suggestedMin: 0,
+          },
+          suggestedMin: 0,
             suggestedMax: 100,
             ticks: {
               backdropColor: 'transparent'
             }
-          }
-        },
-        plugins: {
-          legend: {
-            display: false
+        }
+      },
+      plugins: {
+        legend: {
+          display: false
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return context.raw + '%';
+              }
+            }
           }
         }
       }
@@ -337,12 +632,12 @@ document.addEventListener('DOMContentLoaded', function() {
   const eiCanvas = document.getElementById('emotionalIntelligenceChart');
   if (eiCanvas) {
     const eiCtx = eiCanvas.getContext('2d');
-    const eiData = <%= raw full_profile[:emotional_intelligence].to_json %>;
+    const eiData = <%= raw (full_profile&.dig(:emotional_intelligence)&.except(:composite_score, :ei_level) || {}).to_json %>;
 
     new Chart(eiCtx, {
       type: 'polarArea',
       data: {
-        labels: Object.keys(eiData).map(trait => trait.charAt(0).toUpperCase() + trait.slice(1)),
+        labels: Object.keys(eiData).map(trait => trait.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')),
         datasets: [{
           data: Object.values(eiData),
           backgroundColor: [
@@ -377,10 +672,121 @@ document.addEventListener('DOMContentLoaded', function() {
               boxWidth: 10,
               padding: 10
             }
-          }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return context.raw + '%';
+              }
+            }
         }
       }
-    });
+    }
+  });
+  }
+  
+  // Attachment Style Chart
+  const attachmentStyleCanvas = document.getElementById('attachmentStyleChart');
+  if (attachmentStyleCanvas) {
+    const attachmentStyleCtx = attachmentStyleCanvas.getContext('2d');
+    const attachmentData = <%= raw (full_profile&.dig(:extended_traits, :attachment_style) || {}).to_json %>;
+    
+    if (attachmentData && attachmentData.anxiety !== undefined && attachmentData.avoidance !== undefined) {
+      // Create a scatter plot to show attachment style quadrant
+      new Chart(attachmentStyleCtx, {
+        type: 'scatter',
+        data: {
+          datasets: [{
+            label: 'Your Attachment Style',
+            data: [{
+              x: attachmentData.avoidance,
+              y: attachmentData.anxiety
+            }],
+            backgroundColor: 'rgb(255, 99, 132)',
+            borderColor: 'rgb(255, 99, 132)',
+            pointRadius: 8,
+            pointHoverRadius: 10
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              type: 'linear',
+              position: 'bottom',
+              min: 0,
+              max: 100,
+              title: {
+                display: true,
+                text: 'Avoidance'
+              }
+            },
+            y: {
+              min: 0,
+              max: 100,
+              title: {
+                display: true,
+                text: 'Anxiety'
+              }
+            }
+          },
+          plugins: {
+            annotation: {
+              annotations: {
+                quadrantLines: {
+                  type: 'line',
+                  xMin: 50,
+                  xMax: 50,
+                  yMin: 0,
+                  yMax: 100,
+                  borderColor: 'rgba(0, 0, 0, 0.3)',
+                  borderWidth: 1,
+                  borderDash: [5, 5]
+                },
+                quadrantLinesHorizontal: {
+                  type: 'line',
+                  xMin: 0,
+                  xMax: 100,
+                  yMin: 50,
+                  yMax: 50,
+                  borderColor: 'rgba(0, 0, 0, 0.3)',
+                  borderWidth: 1,
+                  borderDash: [5, 5]
+                }
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `Anxiety: ${context.raw.y}%, Avoidance: ${context.raw.x}%`;
+                }
+              }
+            }
+          }
+        }
+      });
+      
+      // Add quadrant labels manually since Chart.js doesn't support text annotations easily
+      setTimeout(function() {
+        const ctx = attachmentStyleCtx;
+        ctx.font = '10px Arial';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+        ctx.textAlign = 'center';
+        
+        // Secure (low anxiety, low avoidance)
+        ctx.fillText('Secure', 25, 75);
+        
+        // Anxious (high anxiety, low avoidance)
+        ctx.fillText('Anxious', 25, 25);
+        
+        // Avoidant (low anxiety, high avoidance)
+        ctx.fillText('Avoidant', 75, 75);
+        
+        // Fearful-Avoidant (high anxiety, high avoidance)
+        ctx.fillText('Fearful-Avoidant', 75, 25);
+      }, 100);
+    }
   }
 });
 </script>

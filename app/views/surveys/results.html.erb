@@ -158,17 +158,17 @@
           <% if @survey_type == 'basic' %>
             <p class="text-tufts-blue mb-4">Want even more personalized recommendations?</p>
             <div class="d-flex justify-content-center gap-3">
-              <a href="/surveys?type=extended" class="btn btn-engineering-orange text-mint-green">
-                Take Extended Survey
+              <a href="/surveys?type=extended" class="btn btn-engineering-orange text-mint-green btn-lg fw-bold" style="border: 2px solid var(--mint-green); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);">
+                <i class="fas fa-clipboard-list me-2"></i>Take Extended Survey
               </a>
-              <a href="/recommendations" class="btn btn-jonquil text-space-cadet">
-                Skip to Recommendations
+              <a href="/recommendations" class="btn btn-jonquil text-space-cadet btn-lg fw-bold" style="border: 2px solid var(--space-cadet); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);">
+                <i class="fas fa-film me-2"></i>Skip to Recommendations
               </a>
             </div>
           <% else %>
             <p class="text-mint-green mb-4">Your recommendations are ready!</p>
-            <a href="/recommendations" class="btn btn-engineering-orange text-mint-green">
-              View My Recommendations
+            <a href="/recommendations" class="btn btn-jonquil text-space-cadet btn-lg fw-bold" style="border: 2px solid var(--space-cadet); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);">
+              <i class="fas fa-film me-2"></i>View My Recommendations
             </a>
           <% end %>
         </div>
