@@ -104,7 +104,14 @@ class UserPreference < ApplicationRecord
   end
 
   def personality_profiles
-    read_attribute(:personality_profiles) || {}
+    profiles = read_attribute(:personality_profiles)
+    return {} if profiles.nil?
+    
+    # Handle string representation (which might happen with some ActiveRecord operations)
+    profiles = JSON.parse(profiles) if profiles.is_a?(String)
+    
+    # Ensure we return a hash with symbolized keys
+    profiles.is_a?(Hash) ? profiles.deep_symbolize_keys : {}
   end
 
   def favorite_genres
@@ -132,14 +139,32 @@ class UserPreference < ApplicationRecord
 
   def calculate_big_five_score(genres)
     score = 0
-    profiles = personality_profiles.is_a?(String) ? JSON.parse(personality_profiles) : personality_profiles
+    profiles = personality_profiles
     
-    Rails.logger.info("Calculating big five score with profiles: #{profiles.inspect}")
+    # Extract big_five from the profile structure
+    big_five = if profiles.is_a?(Hash)
+      if profiles.key?(:big_five)
+        profiles[:big_five]
+      elsif profiles.key?('big_five')
+        profiles['big_five']
+      else
+        profiles
+      end
+    else
+      {}
+    end
+    
+    Rails.logger.info("Calculating big five score with profiles: #{big_five.inspect}")
     Rails.logger.info("Genres: #{genres.inspect}")
     
     GENRE_MAPPING.each do |trait, trait_genres|
       trait_str = trait.to_s
-      trait_score = profiles[trait_str].to_f
+      trait_sym = trait.to_sym
+      
+      # Try both symbol and string keys
+      trait_score = big_five[trait_sym].to_f
+      trait_score = big_five[trait_str].to_f if trait_score == 0 && big_five.key?(trait_str)
+      
       match = (genres & trait_genres).size
       
       Rails.logger.info("Trait: #{trait_str}, Score: #{trait_score}, Matching genres: #{match}")

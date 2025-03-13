@@ -59,8 +59,8 @@ class SurveysController < ApplicationController
     if process_survey_responses
       Rails.logger.info("Survey responses processed successfully")
       
-      # Redirect to results page
-      redirect_to survey_results_path(type: @survey_type)
+      # Use the handle_successful_submission method for both survey types
+      handle_successful_submission
     else
       handle_failed_submission
     end
@@ -69,18 +69,21 @@ class SurveysController < ApplicationController
   def results
     @survey_type = params[:type] || 'basic'
     @user_preference = current_user.ensure_user_preference
+    
+    # Generate and store the personality profile if needed
     @personality_profile = PersonalityProfileService.generate_profile(current_user)
+    
     authorize :survey, :results?
     
     # Queue recommendation generation in the background
     # Only queue if recommendations are outdated or don't exist
-    if @user_preference.recommendations_outdated? || @user_preference.recommended_content_ids.blank?
-      Rails.logger.info("Queueing recommendation generation for user #{current_user.id}")
-      GenerateRecommendationsJob.perform_later(@user_preference.id)
-      Rails.logger.info("Recommendation generation job queued successfully")
-    else
-      Rails.logger.info("Using existing recommendations for user #{current_user.id}")
-    end
+    # if @user_preference.recommendations_outdated? || @user_preference.recommended_content_ids.blank?
+    #   Rails.logger.info("Queueing recommendation generation for user #{current_user.id}")
+    #   GenerateRecommendationsJob.perform_later(@user_preference.id)
+    #   Rails.logger.info("Recommendation generation job queued successfully")
+    # else
+    #   Rails.logger.info("Using existing recommendations for user #{current_user.id}")
+    # end
   end
 
   def save_progress
@@ -196,13 +199,18 @@ class SurveysController < ApplicationController
 
   def handle_successful_submission
     # Queue recommendation generation in the background
-    GenerateRecommendationsJob.perform_later(@user_preference.id)
+    # GenerateRecommendationsJob.perform_later(@user_preference.id)
     
     # Redirect to results page instead of recommendations
     redirect_to survey_results_path(type: @survey_type), 
                 notice: @survey_type == 'basic' ? 
                   'Basic survey completed! View your personality profile and initial recommendations.' : 
                   'Extended survey completed! View your comprehensive personality profile and personalized recommendations.'
+  end
+
+  def handle_failed_submission
+    flash[:alert] = "There was a problem processing your survey responses. Please try again."
+    redirect_to surveys_path(type: @survey_type)
   end
 
   def ensure_user_preference

@@ -151,13 +151,22 @@ class PersonalityProfileService
     certainty_ambiguity = calculate_dimension_pair('cognitive_certainty', 'cognitive_ambiguity')
     detail_pattern = calculate_dimension_pair('cognitive_detail', 'cognitive_pattern')
     
+    # Create array of dimension pairs with their scores and preferences
+    dimension_pairs = [
+      visual_verbal,
+      systematic_intuitive,
+      abstract_concrete,
+      certainty_ambiguity,
+      detail_pattern
+    ]
+    
     {
       visual_verbal: visual_verbal,
       systematic_intuitive: systematic_intuitive,
       abstract_concrete: abstract_concrete,
       certainty_ambiguity: certainty_ambiguity,
       detail_pattern: detail_pattern,
-      primary_style: determine_primary_cognitive_style([visual_verbal, systematic_intuitive, abstract_concrete, certainty_ambiguity, detail_pattern])
+      primary_style: determine_primary_cognitive_style(dimension_pairs)
     }
   end
 
@@ -167,7 +176,7 @@ class PersonalityProfileService
     
     # Return a single value ranging from -100 to 100
     # Negative values indicate preference for dim1, positive for dim2
-    return 0 if dim1_score == 0 && dim2_score == 0
+    return { score: 0, preference: 'balanced' } if dim1_score == 0 && dim2_score == 0
     
     total = dim1_score + dim2_score
     normalized_score = ((dim2_score - dim1_score) / total.to_f * 100).round

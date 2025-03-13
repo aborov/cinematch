@@ -39,7 +39,7 @@ rescue ActiveRecord::RecordInvalid => e
   raise e
 end
 
-# Basic Survey Questions (31 questions)
+# Basic Survey Questions (31 questions total)
 basic_survey_questions = [
   # Big Five (15 questions)
   { question_text: "I seek out new experiences.", question_type: "big5_openness_experience", survey_type: "basic" },
@@ -86,7 +86,10 @@ basic_survey_questions = [
   { question_text: "I prefer not to depend on others.", question_type: "attachment_avoidance_independence", survey_type: "basic" },
   { question_text: "I find it difficult to truly trust others.", question_type: "attachment_avoidance_trust", survey_type: "basic" },
   { question_text: "I'm comfortable being close to others.", question_type: "attachment_avoidance_closeness", survey_type: "basic", inverted: true },
+]
 
+# Extended Survey Questions (101 questions total)
+extended_survey_questions = [
   # Extended Emotional Intelligence (8 questions with balanced inverted items)
   { question_text: "I actively seek out films that challenge me emotionally.", question_type: "ei_challenge_seeking", survey_type: "extended" },
   { question_text: "I prefer to avoid movies with intense emotional scenes.", question_type: "ei_intensity_tolerance", survey_type: "extended", inverted: true },
@@ -97,7 +100,22 @@ basic_survey_questions = [
   { question_text: "Seeing characters work through emotional challenges helps me with my own.", question_type: "ei_vicarious_learning", survey_type: "extended" },
   { question_text: "I rarely connect characters' emotional experiences to my own life.", question_type: "ei_integration", survey_type: "extended", inverted: true },
 
-  # Moral Foundations (10 questions covering 5 foundations with balanced items)
+  # Cognitive Style Assessment (12 questions)
+  { question_text: "I prefer visual to written information.", question_type: "cognitive_visual", survey_type: "extended" },
+  { question_text: "I learn best through reading detailed descriptions.", question_type: "cognitive_verbal", survey_type: "extended" },
+  { question_text: "I solve problems step by step.", question_type: "cognitive_systematic", survey_type: "extended" },
+  { question_text: "I rely on intuition when making decisions.", question_type: "cognitive_intuitive", survey_type: "extended" },
+  { question_text: "I enjoy theoretical discussions.", question_type: "cognitive_abstract", survey_type: "extended" },
+  { question_text: "I prefer practical, real-world examples.", question_type: "cognitive_concrete", survey_type: "extended" },
+  { question_text: "I need clear-cut answers.", question_type: "cognitive_certainty", survey_type: "extended" },
+  { question_text: "I'm comfortable with ambiguity.", question_type: "cognitive_ambiguity", survey_type: "extended" },
+  { question_text: "I learn through practical experience.", question_type: "cognitive_experiential", survey_type: "extended" },
+  { question_text: "I prefer exploring concepts before experiencing them.", question_type: "cognitive_conceptual", survey_type: "extended" },
+  { question_text: "I notice subtle details others might miss.", question_type: "cognitive_detail", survey_type: "extended" },
+  { question_text: "I tend to see the big picture rather than small details.", question_type: "cognitive_pattern", survey_type: "extended" },
+
+  # Moral Foundations (25 questions total)
+  # Specific Moral Foundations (10 questions covering 5 foundations with balanced items)
   # Care/Harm
   { question_text: "I feel strong compassion for people who are suffering.", question_type: "moral_care_compassion", survey_type: "extended" },
   { question_text: "Some people are too sensitive about harm to others.", question_type: "moral_care_sensitivity", survey_type: "extended", inverted: true },
@@ -118,79 +136,7 @@ basic_survey_questions = [
   { question_text: "Certain acts are wrong regardless of their consequences.", question_type: "moral_purity_absolute", survey_type: "extended" },
   { question_text: "Moral standards should adapt to changing circumstances.", question_type: "moral_purity_relative", survey_type: "extended", inverted: true },
 
-  # Dark Triad in Media Preferences (8 questions organized by trait)
-  # Machiavellianism
-  { question_text: "I enjoy watching characters who strategically manipulate others to achieve their goals.", question_type: "dark_machiavellianism_strategy", survey_type: "extended" },
-  { question_text: "I find psychological manipulation in plots intellectually stimulating.", question_type: "dark_machiavellianism_plots", survey_type: "extended" },
-
-  # Narcissism
-  { question_text: "I am drawn to powerful, charismatic characters who command attention.", question_type: "dark_narcissism_power", survey_type: "extended" },
-  { question_text: "I enjoy seeing exceptional individuals who aren't bound by ordinary social rules.", question_type: "dark_narcissism_exceptional", survey_type: "extended" },
-
-  # Psychopathy
-  { question_text: "I find myself fascinated by characters who act without emotional attachment.", question_type: "dark_psychopathy_emotion", survey_type: "extended" },
-  { question_text: "Scenes of calculated revenge in films can be satisfying to watch.", question_type: "dark_psychopathy_revenge", survey_type: "extended" },
-
-  # General Dark Appeal
-  { question_text: "I prefer stories with morally complex antiheroes over clear-cut heroes.", question_type: "dark_general_antihero", survey_type: "extended" },
-  { question_text: "I'm drawn to dark or gritty content that explores the shadowy sides of human nature.", question_type: "dark_general_gritty", survey_type: "extended" },
-
-  # Narrative Transportation (12 questions)
-  { question_text: "I lose track of time in stories.", question_type: "narrative_immersion", survey_type: "extended" },
-  { question_text: "I identify with characters deeply.", question_type: "narrative_identification", survey_type: "extended" },
-  { question_text: "I experience stories emotionally.", question_type: "narrative_emotional", survey_type: "extended" },
-  { question_text: "I visualize story scenes vividly.", question_type: "narrative_visualization", survey_type: "extended" },
-  { question_text: "I reflect on stories afterward.", question_type: "narrative_reflection", survey_type: "extended" },
-  { question_text: "I enjoy complex plot structures.", question_type: "narrative_complexity", survey_type: "extended" },
-  { question_text: "I appreciate non-linear storytelling.", question_type: "narrative_nonlinear", survey_type: "extended" },
-  { question_text: "I connect stories to my life.", question_type: "narrative_personal", survey_type: "extended" },
-  { question_text: "I enjoy multiple plot threads.", question_type: "narrative_multiple", survey_type: "extended" },
-  { question_text: "I appreciate ambiguous endings.", question_type: "narrative_ambiguity", survey_type: "extended" },
-  { question_text: "I enjoy character development.", question_type: "narrative_character", survey_type: "extended" },
-  { question_text: "I value thematic depth.", question_type: "narrative_theme", survey_type: "extended" },
-
-  # Psychological Needs (12 questions)
-  { question_text: "I value personal autonomy.", question_type: "psych_autonomy", survey_type: "extended" },
-  { question_text: "I seek competence growth.", question_type: "psych_competence", survey_type: "extended" },
-  { question_text: "I desire deep connections.", question_type: "psych_relatedness", survey_type: "extended" },
-  { question_text: "I use media for escape.", question_type: "psych_escapism", survey_type: "extended" },
-  { question_text: "I process emotions through media.", question_type: "psych_catharsis", survey_type: "extended" },
-  { question_text: "I seek intellectual stimulation.", question_type: "psych_cognition", survey_type: "extended" },
-  { question_text: "I appreciate self-discovery stories.", question_type: "psych_selfdiscovery", survey_type: "extended" },
-  { question_text: "I look for meaningful content.", question_type: "psych_meaning", survey_type: "extended" },
-  { question_text: "I seek inspiration in stories.", question_type: "psych_inspiration", survey_type: "extended" },
-  { question_text: "I value personal transformation.", question_type: "psych_transformation", survey_type: "extended" },
-  { question_text: "I use stories for comfort.", question_type: "psych_comfort", survey_type: "extended" },
-  { question_text: "I seek validation through content.", question_type: "psych_validation", survey_type: "extended" },
-]
-
-# Extended Survey Questions (59 questions)
-extended_survey_questions = [
-  # Cognitive Style Assessment (12 questions)
-  { question_text: "I prefer visual to written information.", question_type: "cognitive_visual", survey_type: "extended" },
-  { question_text: "I learn best through reading detailed descriptions.", question_type: "cognitive_verbal", survey_type: "extended" },
-  { question_text: "I solve problems step by step.", question_type: "cognitive_systematic", survey_type: "extended" },
-  { question_text: "I rely on intuition when making decisions.", question_type: "cognitive_intuitive", survey_type: "extended" },
-  { question_text: "I enjoy theoretical discussions.", question_type: "cognitive_abstract", survey_type: "extended" },
-  { question_text: "I prefer practical, real-world examples.", question_type: "cognitive_concrete", survey_type: "extended" },
-  { question_text: "I need clear-cut answers.", question_type: "cognitive_certainty", survey_type: "extended" },
-  { question_text: "I'm comfortable with ambiguity.", question_type: "cognitive_ambiguity", survey_type: "extended" },
-  { question_text: "I learn through practical experience.", question_type: "cognitive_experiential", survey_type: "extended" },
-  { question_text: "I prefer exploring concepts before experiencing them.", question_type: "cognitive_conceptual", survey_type: "extended" },
-  { question_text: "I notice subtle details others might miss.", question_type: "cognitive_detail", survey_type: "extended" },
-  { question_text: "I tend to see the big picture rather than small details.", question_type: "cognitive_pattern", survey_type: "extended" },
-
-  # Extended Emotional Intelligence (8 questions with balanced inverted items)
-  { question_text: "I actively seek out films that challenge me emotionally.", question_type: "ei_challenge_seeking", survey_type: "extended" },
-  { question_text: "I prefer to avoid movies with intense emotional scenes.", question_type: "ei_intensity_tolerance", survey_type: "extended", inverted: true },
-  { question_text: "I choose different types of entertainment based on my current mood.", question_type: "ei_regulation_strategy", survey_type: "extended" },
-  { question_text: "I find it hard to stop thinking about emotional scenes from movies.", question_type: "ei_resilience", survey_type: "extended", inverted: true },
-  { question_text: "I can identify complex emotional nuances in film characters.", question_type: "ei_narrative_processing", survey_type: "extended" },
-  { question_text: "I often analyze why characters respond emotionally the way they do.", question_type: "ei_reflection", survey_type: "extended" },
-  { question_text: "Seeing characters work through emotional challenges helps me with my own.", question_type: "ei_vicarious_learning", survey_type: "extended" },
-  { question_text: "I rarely connect characters' emotional experiences to my own life.", question_type: "ei_integration", survey_type: "extended", inverted: true },
-
-  # Values and Moral Foundations (15 questions)
+  # General Values and Moral Foundations (15 questions)
   { question_text: "I protect the vulnerable.", question_type: "moral_care", survey_type: "extended" },
   { question_text: "I value equal treatment.", question_type: "moral_fairness", survey_type: "extended" },
   { question_text: "I maintain group loyalty.", question_type: "moral_loyalty", survey_type: "extended" },
@@ -207,7 +153,25 @@ extended_survey_questions = [
   { question_text: "I pursue hedonistic pleasures.", question_type: "moral_hedonism", survey_type: "extended" },
   { question_text: "I value social recognition.", question_type: "moral_recognition", survey_type: "extended" },
 
-  # Dark Triad/Tetrad (8 questions)
+  # Dark Triad/Tetrad (16 questions total)
+  # Specific Dark Triad Traits (8 questions organized by trait)
+  # Machiavellianism
+  { question_text: "I enjoy watching characters who strategically manipulate others to achieve their goals.", question_type: "dark_machiavellianism_strategy", survey_type: "extended" },
+  { question_text: "I find psychological manipulation in plots intellectually stimulating.", question_type: "dark_machiavellianism_plots", survey_type: "extended" },
+
+  # Narcissism
+  { question_text: "I am drawn to powerful, charismatic characters who command attention.", question_type: "dark_narcissism_power", survey_type: "extended" },
+  { question_text: "I enjoy seeing exceptional individuals who aren't bound by ordinary social rules.", question_type: "dark_narcissism_exceptional", survey_type: "extended" },
+
+  # Psychopathy
+  { question_text: "I find myself fascinated by characters who act without emotional attachment.", question_type: "dark_psychopathy_emotion", survey_type: "extended" },
+  { question_text: "Scenes of calculated revenge in films can be satisfying to watch.", question_type: "dark_psychopathy_revenge", survey_type: "extended" },
+
+  # General Dark Appeal
+  { question_text: "I prefer stories with morally complex antiheroes over clear-cut heroes.", question_type: "dark_general_antihero", survey_type: "extended" },
+  { question_text: "I'm drawn to dark or gritty content that explores the shadowy sides of human nature.", question_type: "dark_general_gritty", survey_type: "extended" },
+
+  # General Dark Triad/Tetrad (8 questions)
   { question_text: "I appreciate complex villains in stories.", question_type: "dark_antihero", survey_type: "extended" },
   { question_text: "I enjoy stories about strategic manipulation.", question_type: "dark_machiavellianism", survey_type: "extended" },
   { question_text: "I'm drawn to characters who break social rules.", question_type: "dark_nonconformity", survey_type: "extended" },
@@ -217,7 +181,22 @@ extended_survey_questions = [
   { question_text: "I appreciate morally ambiguous storylines.", question_type: "dark_morality", survey_type: "extended" },
   { question_text: "I'm interested in revenge narratives.", question_type: "dark_revenge", survey_type: "extended" },
 
-  # Narrative Transportation (8 questions with key dimensions)
+  # Narrative Transportation (20 questions total)
+  # General Narrative Transportation (12 questions)
+  { question_text: "I lose track of time in stories.", question_type: "narrative_immersion", survey_type: "extended" },
+  { question_text: "I identify with characters deeply.", question_type: "narrative_identification", survey_type: "extended" },
+  { question_text: "I experience stories emotionally.", question_type: "narrative_emotional", survey_type: "extended" },
+  { question_text: "I visualize story scenes vividly.", question_type: "narrative_visualization", survey_type: "extended" },
+  { question_text: "I reflect on stories afterward.", question_type: "narrative_reflection", survey_type: "extended" },
+  { question_text: "I enjoy complex plot structures.", question_type: "narrative_complexity", survey_type: "extended" },
+  { question_text: "I appreciate non-linear storytelling.", question_type: "narrative_nonlinear", survey_type: "extended" },
+  { question_text: "I connect stories to my life.", question_type: "narrative_personal", survey_type: "extended" },
+  { question_text: "I enjoy multiple plot threads.", question_type: "narrative_multiple", survey_type: "extended" },
+  { question_text: "I appreciate ambiguous endings.", question_type: "narrative_ambiguity", survey_type: "extended" },
+  { question_text: "I enjoy character development.", question_type: "narrative_character", survey_type: "extended" },
+  { question_text: "I value thematic depth.", question_type: "narrative_theme", survey_type: "extended" },
+
+  # Specific Narrative Transportation Dimensions (8 questions with key dimensions)
   # Immersion
   { question_text: "I become so absorbed in movies that I lose track of time.", question_type: "narrative_immersion_time", survey_type: "extended" },
   { question_text: "I often find my mind wandering during films.", question_type: "narrative_immersion_focus", survey_type: "extended", inverted: true },
@@ -234,7 +213,22 @@ extended_survey_questions = [
   { question_text: "I create vivid mental images when engaging with stories.", question_type: "narrative_imagery_vivid", survey_type: "extended" },
   { question_text: "I enjoy stories that leave certain elements to the imagination.", question_type: "narrative_imagery_imagination", survey_type: "extended" },
 
-  # Psychological Needs (SDT + Media-specific needs, 8 questions)
+  # Psychological Needs (20 questions total)
+  # General Psychological Needs (12 questions)
+  { question_text: "I value personal autonomy.", question_type: "psych_autonomy", survey_type: "extended" },
+  { question_text: "I seek competence growth.", question_type: "psych_competence", survey_type: "extended" },
+  { question_text: "I desire deep connections.", question_type: "psych_relatedness", survey_type: "extended" },
+  { question_text: "I use media for escape.", question_type: "psych_escapism", survey_type: "extended" },
+  { question_text: "I process emotions through media.", question_type: "psych_catharsis", survey_type: "extended" },
+  { question_text: "I seek intellectual stimulation.", question_type: "psych_cognition", survey_type: "extended" },
+  { question_text: "I appreciate self-discovery stories.", question_type: "psych_selfdiscovery", survey_type: "extended" },
+  { question_text: "I look for meaningful content.", question_type: "psych_meaning", survey_type: "extended" },
+  { question_text: "I seek inspiration in stories.", question_type: "psych_inspiration", survey_type: "extended" },
+  { question_text: "I value personal transformation.", question_type: "psych_transformation", survey_type: "extended" },
+  { question_text: "I use stories for comfort.", question_type: "psych_comfort", survey_type: "extended" },
+  { question_text: "I seek validation through content.", question_type: "psych_validation", survey_type: "extended" },
+
+  # Specific Psychological Needs (SDT + Media-specific needs, 8 questions)
   # Autonomy
   { question_text: "I prefer stories where characters make their own choices.", question_type: "psych_autonomy_choice", survey_type: "extended" },
   { question_text: "I enjoy watching characters who rebel against restrictions.", question_type: "psych_autonomy_rebellion", survey_type: "extended" },
@@ -258,21 +252,21 @@ create_questions(basic_survey_questions)
 puts "Creating extended survey questions..."
 create_questions(extended_survey_questions)
 
-# Attention Check Questions
+# Attention Check Questions (3 questions)
 attention_check_questions = [
-  {
+  { 
     question_text: "For this attention check, please select 'Agree'",
     question_type: "attention_check",
     survey_type: "basic",
     correct_answer: "Agree",
   },
-  {
+  { 
     question_text: "For this attention check, please select 'Disagree'",
     question_type: "attention_check",
     survey_type: "basic",
     correct_answer: "Disagree",
   },
-  {
+  { 
     question_text: "For this attention check, please select 'Neutral'",
     question_type: "attention_check",
     survey_type: "basic",

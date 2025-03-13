@@ -74,22 +74,16 @@ class SurveyResponsesController < ApplicationController
     valid_responses = responses.reject { |r| r.survey_question.attention_check? }
     Rails.logger.info("Found #{valid_responses.size} valid responses after filtering out attention checks")
     
-    # Calculate personality profile
-    personality_profile = PersonalityProfileCalculator.calculate(valid_responses)
-    Rails.logger.info("Calculated personality profile: #{personality_profile.inspect}")
+    # Generate personality profile using the service
+    personality_profile = PersonalityProfileService.generate_profile(user, true)
+    Rails.logger.info("Generated personality profile: #{personality_profile.inspect}")
 
     # Ensure user preference exists
     user.ensure_user_preference
     
-    # Update user preference with personality profile
-    result = user.user_preference.update!(personality_profiles: personality_profile)
-
-    if result
-      Rails.logger.info "Successfully updated personality profile for user #{user.id}"
-    else
-      Rails.logger.error "Failed to update personality profile for user #{user.id}"
-    end
-
-    GenerateRecommendationsJob.perform_now(user.user_preference.id)
+    # The profile is already saved by the service, so we don't need to update it here
+    
+    # Queue recommendation generation
+    # GenerateRecommendationsJob.perform_now(user.user_preference.id)
   end
 end

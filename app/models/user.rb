@@ -132,7 +132,7 @@ class User < ApplicationRecord
   private
 
   def create_user_preference
-    create_user_preference!
+    user_preference || create_user_preference!
   end
 
   def password_required?
