@@ -47,7 +47,15 @@ class UserPreference < ApplicationRecord
   }
 
   def generate_recommendations
-    return [] if personality_profiles.blank? || favorite_genres.blank?
+    if personality_profiles.blank?
+      Rails.logger.error "Cannot generate recommendations: personality_profiles is blank"
+      return []
+    end
+    
+    if favorite_genres.blank?
+      Rails.logger.error "Cannot generate recommendations: favorite_genres is blank"
+      return []
+    end
 
     begin
       if use_ai
@@ -84,9 +92,59 @@ class UserPreference < ApplicationRecord
 
   def calculate_match_score(genre_ids)
     genre_names = Genre.where(tmdb_id: genre_ids).pluck(:name)
+    
+    # Start with base scores
     big_five_score = calculate_big_five_score(genre_names)
     favorite_genres_score = calculate_favorite_genres_score(genre_names)
-    (big_five_score * 0.7) + (favorite_genres_score * 0.3)
+    
+    # Initialize additional scores from extended profile
+    extended_scores = {}
+    
+    # Get the full personality profile
+    profile = personality_profiles
+    
+    # Calculate weights based on profile depth
+    weights = determine_score_weights(profile)
+    
+    # Include extended trait scores if available
+    if profile[:extended_traits].present?
+      # HEXACO score - focus on honesty-humility trait for ethical/moral content
+      extended_scores[:hexaco] = calculate_hexaco_genre_match(genre_names, profile[:extended_traits][:hexaco])
+      
+      # Attachment style score - impacts emotional/relationship content preferences
+      extended_scores[:attachment] = calculate_attachment_genre_match(genre_names, profile[:extended_traits][:attachment_style])
+      
+      # Moral foundations - impacts theme preferences
+      if profile[:extended_traits][:moral_foundations].present?
+        extended_scores[:moral] = calculate_moral_foundations_match(genre_names, profile[:extended_traits][:moral_foundations])
+      end
+      
+      # Cognitive style - impacts complexity and narrative structure preferences
+      if profile[:extended_traits][:cognitive].present?
+        extended_scores[:cognitive] = calculate_cognitive_match(genre_names, profile[:extended_traits][:cognitive])
+      end
+    end
+    
+    # Calculate emotional intelligence impact - affects emotional content
+    extended_scores[:emotional_intelligence] = calculate_emotional_intelligence_match(
+      genre_names, 
+      profile[:emotional_intelligence]
+    )
+    
+    # Combine all scores using weighted approach
+    final_score = 0
+    final_score += (big_five_score * weights[:big_five])
+    final_score += (favorite_genres_score * weights[:favorite_genres])
+    
+    # Add extended scores if available
+    extended_scores.each do |key, score|
+      if score > 0 && weights[key].present?
+        final_score += (score * weights[key])
+      end
+    end
+    
+    # Normalize to ensure we stay in 0-100 range
+    [final_score, 100].min
   end
 
   def personality_profiles
@@ -215,19 +273,144 @@ class UserPreference < ApplicationRecord
                        .map { |r| r[:id] }
   end
 
-  def generate_internal_recommendations
-    base_content = Content.all
-    base_content = base_content.where(adult: [false, nil]) if disable_adult_content
-
-    content_with_scores = base_content.map do |content|
-      {
-        id: content.id,
-        match_score: calculate_match_score(content.genre_ids_array)
+  def determine_score_weights(profile)
+    # Default weights for basic profile
+    weights = {
+      big_five: 0.5,
+      favorite_genres: 0.4,
+      emotional_intelligence: 0.1
+    }
+    
+    # Adjust weights if we have extended profile data
+    if profile[:extended_traits].present? && profile[:extended_traits][:profile_depth] == "extended"
+      weights = {
+        big_five: 0.3,
+        favorite_genres: 0.3,
+        emotional_intelligence: 0.1,
+        hexaco: 0.1,
+        attachment: 0.1,
+        moral: 0.05,
+        cognitive: 0.05
       }
     end
-
-    content_with_scores.sort_by { |r| -r[:match_score] }
-                       .first(100)
-                       .map { |r| r[:id] }
+    
+    weights
+  end
+  
+  def calculate_hexaco_genre_match(genres, hexaco_data)
+    return 0 unless hexaco_data.present?
+    
+    honesty_score = hexaco_data[:honesty_humility][:overall].to_f
+    integrity_level = hexaco_data[:integrity_level]
+    
+    score = 0
+    
+    # High honesty individuals may prefer content with moral messages
+    # Lower honesty individuals may enjoy morally ambiguous content
+    moral_genres = ['Drama', 'Biography', 'History', 'War', 'Documentary']
+    ambiguous_genres = ['Crime', 'Thriller', 'Mystery']
+    
+    if integrity_level == "highly_principled" || integrity_level == "principled"
+      score += 25 if (genres & moral_genres).any?
+    elsif integrity_level == "pragmatic" || integrity_level == "opportunistic"
+      score += 25 if (genres & ambiguous_genres).any?
+    end
+    
+    score
+  end
+  
+  def calculate_attachment_genre_match(genres, attachment_data)
+    return 0 unless attachment_data.present?
+    
+    attachment_style = attachment_data[:attachment_style]
+    
+    score = 0
+    romantic_genres = ['Romance', 'Drama']
+    action_genres = ['Action', 'Adventure', 'Thriller']
+    complex_genres = ['Drama', 'Mystery', 'Science-Fiction']
+    
+    case attachment_style
+    when "anxious"
+      score += 25 if (genres & romantic_genres).any?
+    when "avoidant"
+      score += 25 if (genres & action_genres).any?
+    when "fearful_avoidant"
+      score += 25 if (genres & complex_genres).any?
+    when "secure"
+      score += 15 # Secure individuals enjoy diverse content
+    end
+    
+    score
+  end
+  
+  def calculate_moral_foundations_match(genres, moral_data)
+    return 0 unless moral_data.present?
+    
+    moral_orientation = moral_data[:moral_orientation]
+    
+    score = 0
+    progressive_genres = ['Documentary', 'Drama', 'Biography']
+    traditional_genres = ['War', 'History', 'Western', 'Family']
+    
+    case moral_orientation
+    when "progressive"
+      score += 20 if (genres & progressive_genres).any?
+    when "traditional"
+      score += 20 if (genres & traditional_genres).any?
+    when "moderate"
+      score += 10 # Moderates have balanced preferences
+    end
+    
+    score
+  end
+  
+  def calculate_cognitive_match(genres, cognitive_data)
+    return 0 unless cognitive_data.present?
+    
+    # Get cognitive style preferences
+    visual_verbal = cognitive_data[:visual_verbal][:score]
+    systematic_intuitive = cognitive_data[:systematic_intuitive][:score]
+    abstract_concrete = cognitive_data[:abstract_concrete][:score]
+    
+    score = 0
+    
+    # Visual preference matches visually-driven genres
+    if visual_verbal < -20 # Visual preference
+      score += 15 if (genres & ['Action', 'Adventure', 'Animation', 'Fantasy']).any?
+    end
+    
+    # Systematic preference matches structured genres
+    if systematic_intuitive < -20 # Systematic preference
+      score += 15 if (genres & ['Mystery', 'Crime', 'Thriller']).any?
+    end
+    
+    # Abstract preference matches conceptual genres
+    if abstract_concrete < -20 # Abstract preference
+      score += 15 if (genres & ['Science-Fiction', 'Fantasy', 'Animation']).any?
+    end
+    
+    score
+  end
+  
+  def calculate_emotional_intelligence_match(genres, ei_data)
+    return 0 unless ei_data.present?
+    
+    ei_level = ei_data[:ei_level]
+    composite_score = ei_data[:composite_score].to_f
+    
+    score = 0
+    emotional_genres = ['Drama', 'Romance', 'Family']
+    complex_emotional_genres = ['Drama', 'Thriller', 'Mystery']
+    
+    case ei_level
+    when "exceptional", "strong"
+      score += 20 if (genres & complex_emotional_genres).any?
+    when "moderate"
+      score += 15 if (genres & emotional_genres).any?
+    when "developing"
+      score += 10 if (genres & ['Comedy', 'Action', 'Adventure']).any?
+    end
+    
+    score
   end
 end
