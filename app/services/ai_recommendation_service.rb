@@ -712,7 +712,9 @@ class AiRecommendationService
       # Moral foundations
       'moral', 'care', 'fairness', 'loyalty', 'authority', 'purity',
       # Cognitive styles
-      'cognitive', 'visual', 'verbal', 'abstract', 'concrete', 'systematic', 'intuitive'
+      'cognitive', 'visual', 'verbal', 'abstract', 'concrete', 'systematic', 'intuitive',
+      # Personality general terms
+      'personality', 'traits', 'profile', 'psychological'
     ]
     
     # Boost for mentioning psychological traits (more specific than before)
@@ -721,8 +723,9 @@ class AiRecommendationService
     
     # Boost for mentioning user preferences
     preference_terms = [
-      'preference', 'favorite', 'enjoys', 'liked', 'rated highly',
-      'watch history', 'watched', 'enjoyed', 'appreciated', 'resonated'
+      'preference', 'favorite', 'enjoys', 'liked', 'rated highly', 'ratings',
+      'watch history', 'watched', 'enjoyed', 'appreciated', 'resonated',
+      'similar to', 'matches your', 'aligns with', 'based on your'
     ]
     preference_matches = preference_terms.count { |term| reason.downcase.include?(term) }
     score += [preference_matches * 5, 15].min # Cap at 15 points
