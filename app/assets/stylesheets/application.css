@@ -55,15 +55,15 @@ h6 {
 }
 
 .navbar-brand {
-  color: var(--jonquil) !important;
+  color: var(--jonquil);
 }
 
 .nav-link {
-  color: var(--mint-green) !important;
+  color: var(--mint-green);
 }
 
 .nav-link:hover {
-  color: var(--jonquil) !important;
+  color: var(--jonquil);
 }
 
 .user-greeting {
