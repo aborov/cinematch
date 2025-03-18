@@ -10,6 +10,7 @@
 #  disable_adult_content        :boolean
 #  favorite_genres              :json
 #  personality_profiles         :json
+#  personality_summary          :text
 #  processing                   :boolean          default(FALSE)
 #  recommendation_reasons       :jsonb
 #  recommendation_scores        :jsonb

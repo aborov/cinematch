@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_03_11_234423) do
+ActiveRecord::Schema[7.1].define(version: 2025_03_17_180154) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "pgcrypto"
@@ -202,6 +202,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_03_11_234423) do
     t.string "ai_model"
     t.jsonb "recommendation_scores", default: {}
     t.boolean "processing", default: false
+    t.text "personality_summary"
     t.index ["deleted_at"], name: "index_user_preferences_on_deleted_at"
     t.index ["user_id"], name: "index_user_preferences_on_user_id"
   end

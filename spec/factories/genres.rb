@@ -1,3 +1,17 @@
+# == Schema Information
+#
+# Table name: genres
+#
+#  id         :bigint           not null, primary key
+#  name       :string
+#  created_at :datetime         not null
+#  updated_at :datetime         not null
+#  tmdb_id    :integer
+#
+# Indexes
+#
+#  index_genres_on_tmdb_id  (tmdb_id) UNIQUE
+#
 FactoryBot.define do
   factory :genre do
     sequence(:name) { |n| "Genre #{n}" }
