@@ -4,22 +4,20 @@
 #
 # Table name: user_preferences
 #
-#  id                           :bigint           not null, primary key
-#  ai_model                     :string
-#  deleted_at                   :datetime
-#  disable_adult_content        :boolean
-#  favorite_genres              :json
-#  personality_profiles         :json
-#  personality_summary          :text
-#  processing                   :boolean          default(FALSE)
-#  recommendation_reasons       :jsonb
-#  recommendation_scores        :jsonb
-#  recommendations_generated_at :datetime
-#  recommended_content_ids      :integer          default([]), is an Array
-#  use_ai                       :boolean          default(FALSE)
-#  created_at                   :datetime         not null
-#  updated_at                   :datetime         not null
-#  user_id                      :bigint           not null
+#  id                          :bigint           not null, primary key
+#  ai_model                    :string
+#  basic_survey_completed      :boolean          default(FALSE)
+#  deleted_at                  :datetime
+#  disable_adult_content       :boolean
+#  extended_survey_completed   :boolean          default(FALSE)
+#  extended_survey_in_progress :boolean          default(FALSE)
+#  favorite_genres             :json
+#  personality_profiles        :json
+#  personality_summary         :text
+#  use_ai                      :boolean          default(FALSE)
+#  created_at                  :datetime         not null
+#  updated_at                  :datetime         not null
+#  user_id                     :bigint           not null
 #
 # Indexes
 #
@@ -79,8 +77,8 @@ class UserPreference < ApplicationRecord
         )
       end
       
-      Rails.cache.delete_matched("user_#{user_id}_recommendations_*")
-      Rails.cache.delete("user_#{user_id}_recommendations_page_1")
+    Rails.cache.delete_matched("user_#{user_id}_recommendations_*")
+    Rails.cache.delete("user_#{user_id}_recommendations_page_1")
       
       recommended_ids
     rescue StandardError => e
@@ -196,6 +194,19 @@ class UserPreference < ApplicationRecord
     read_attribute(:ai_model) || AiModelsConfig.default_model
   end
 
+  def ensure_recommendations
+    if recommendations_outdated? || recommended_content_ids.blank?
+      Rails.logger.info("Ensuring recommendations for user #{user_id}")
+      # Avoid queueing multiple jobs by checking if already processing
+      unless processing?
+        update(processing: true)
+        GenerateRecommendationsJob.perform_later(id)
+      end
+      return false
+    end
+    true
+  end
+
   private
 
   def calculate_big_five_score(genres)
@@ -248,7 +259,7 @@ class UserPreference < ApplicationRecord
       Rails.logger.warn("User has no favorite genres")
       return 0
     end
-    
+
     matching_genres = genres & user_favorite_genres
     score = matching_genres.size.to_f / user_favorite_genres.size
     

@@ -2,22 +2,20 @@
 #
 # Table name: user_preferences
 #
-#  id                           :bigint           not null, primary key
-#  ai_model                     :string
-#  deleted_at                   :datetime
-#  disable_adult_content        :boolean
-#  favorite_genres              :json
-#  personality_profiles         :json
-#  personality_summary          :text
-#  processing                   :boolean          default(FALSE)
-#  recommendation_reasons       :jsonb
-#  recommendation_scores        :jsonb
-#  recommendations_generated_at :datetime
-#  recommended_content_ids      :integer          default([]), is an Array
-#  use_ai                       :boolean          default(FALSE)
-#  created_at                   :datetime         not null
-#  updated_at                   :datetime         not null
-#  user_id                      :bigint           not null
+#  id                          :bigint           not null, primary key
+#  ai_model                    :string
+#  basic_survey_completed      :boolean          default(FALSE)
+#  deleted_at                  :datetime
+#  disable_adult_content       :boolean
+#  extended_survey_completed   :boolean          default(FALSE)
+#  extended_survey_in_progress :boolean          default(FALSE)
+#  favorite_genres             :json
+#  personality_profiles        :json
+#  personality_summary         :text
+#  use_ai                      :boolean          default(FALSE)
+#  created_at                  :datetime         not null
+#  updated_at                  :datetime         not null
+#  user_id                     :bigint           not null
 #
 # Indexes
 #

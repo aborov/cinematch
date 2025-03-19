@@ -60,6 +60,7 @@ class User < ApplicationRecord
   has_one :user_preference, dependent: :destroy
   has_many :survey_responses, dependent: :destroy
   has_many :watchlist_items, dependent: :destroy
+  has_one :user_recommendation, dependent: :destroy
   has_many :watchlist_contents, through: :watchlist_items, source: :content
 
   validates :name, presence: true
@@ -90,6 +91,10 @@ class User < ApplicationRecord
   
   def ensure_user_preference
     user_preference || create_user_preference
+  end
+
+  def ensure_user_recommendation
+    user_recommendation || create_user_recommendation!
   end
 
   def validate_age

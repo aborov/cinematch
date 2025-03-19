@@ -5,6 +5,7 @@ require_relative '../../lib/tasks/tmdb_tasks'
 class RecommendationsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_user_preference, only: [:index, :show, :check_status, :refresh]
+  before_action :set_user_recommendation, only: [:index, :show, :check_status, :refresh]
 
   def index
     authorize :recommendation, :index?
