@@ -1,29 +1,27 @@
-<div class="navigation-buttons d-flex justify-content-between mt-5">
+<div class="navigation-buttons d-flex justify-content-between align-items-center mt-5">
   <button type="button" 
-          class="btn btn-outline-mint-green px-4" 
+          class="btn nav-button prev-button" 
           id="prev-button"
           style="display: none;">
     <i class="fas fa-arrow-left me-2"></i>Previous
   </button>
   
+  <% if survey_type == 'extended' %>
+    <button type="button" id="save-progress" class="btn nav-button save-progress-button">
+      <i class="fas fa-save me-2"></i>Save Progress
+    </button>
+  <% end %>
+  
   <button type="button" 
-          class="btn btn-engineering-orange text-mint-green px-4"
+          class="btn nav-button next-button"
           id="next-button">
     Next<i class="fas fa-arrow-right ms-2"></i>
   </button>
   
   <button type="button" 
           id="complete-survey" 
-          class="btn btn-jonquil text-space-cadet" 
+          class="btn nav-button complete-button" 
           style="display: none;">
     Complete Survey<i class="fas fa-check ms-2"></i>
   </button>
 </div>
-
-<% if survey_type == 'extended' %>
-  <div class="text-center mt-3">
-    <button type="button" id="save-progress" class="btn btn-outline-mint-green btn-sm">
-      <i class="fas fa-save me-2"></i>Save Progress
-    </button>
-  </div>
-<% end %> 

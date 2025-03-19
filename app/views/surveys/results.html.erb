@@ -2,175 +2,432 @@
 
 <div class="container-fluid p-0">
   <div class="d-flex justify-content-center align-items-center vh-100">
-    <div class="card shadow" style="max-width: 800px; width: 90%;">
-      <div class="card-header bg-engineering-orange text-mint-green">
-        <h2 class="h4 mb-0">
-          <%= @survey_type == 'basic' ? 'Basic' : 'Extended' %> Survey Results
-        </h2>
+    <div class="card shadow" style="max-width: 800px; width: 90%; overflow: hidden;">
+      <div class="card-header">
+        <h3 class="mb-0">
+          <%= @survey_type == 'basic' ? 'Survey Results' : 'Extended Survey Results' %>
+        </h3>
       </div>
 
-      <div class="card-body bg-space-cadet text-mint-green">
-        <div class="text-center mb-4">
-          <i class="<%= @survey_type == 'basic' ? 'fas fa-check-circle text-jonquil' : 'fas fa-star text-jonquil' %> fa-3x mb-3"></i>
-          <h3 class="text-jonquil"><%= @survey_type == 'basic' ? 'Great Start!' : 'Excellent!' %></h3>
-          <p class="text-mint-green">
+      <div class="card-body" style="background-color: var(--space-cadet); color: var(--mint-green); border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;">
+        <div class="text-center mb-4 animate__animated animate__fadeIn animate__delay-0.5s">
+          <i class="<%= @survey_type == 'basic' ? 'fas fa-check-circle' : 'fas fa-star' %> fa-3x mb-3" style="color: var(--jonquil);"></i>
+          <h3 style="color: var(--jonquil);"><%= @survey_type == 'basic' ? 'Great Start!' : 'Excellent!' %></h3>
+          <p style="color: var(--mint-green);">
             <%= @survey_type == 'basic' ? 
-                "We've analyzed your responses and generated initial recommendations." : 
-                "Thank you for completing the extended survey. We've analyzed your responses for highly personalized recommendations." %>
+                "We've analyzed your responses and created your initial personality profile." : 
+                "Thank you for completing the extended survey. Your full personality profile has been updated." %>
           </p>
         </div>
 
-        <div class="personality-insights mb-4">
-          <h4 class="mb-3 text-tufts-blue">Your Personality Profile</h4>
+        <!-- Key Insights Section -->
+        <div class="mb-4">
+          <h4 style="color: var(--jonquil); font-weight: bold;" class="mb-3" data-bs-toggle="tooltip" data-bs-placement="top" title="These insights show how your personality traits influence your movie preferences">Key Insights</h4>
           
-          <% if @personality_profile[:big_five].present? %>
-            <div class="mb-4">
-              <h5 class="text-jonquil">Big Five Personality Traits</h5>
-              <div class="row">
-                <div class="col-md-6">
-                  <% trait_descriptions = {
-                    openness: "Openness reflects curiosity, creativity, and preference for variety. High scorers tend to be imaginative and adventurous.",
-                    conscientiousness: "Conscientiousness indicates organization, dependability, and self-discipline. High scorers are typically careful and diligent.",
-                    extraversion: "Extraversion relates to sociability, assertiveness, and emotional expressiveness. High scorers tend to be outgoing and energetic.",
-                    agreeableness: "Agreeableness represents traits like trust, altruism, and cooperation. High scorers are typically friendly and compassionate.",
-                    neuroticism: "Neuroticism reflects emotional stability and anxiety levels. High scorers may experience more stress and emotional reactivity."
-                  } %>
-                  <% @personality_profile[:big_five].each do |trait, score| %>
-                    <div class="mb-3">
-                      <div class="trait-score">
+          <% if @personality_profile[:big_five].present? && @survey_type == 'basic' %>
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <div class="card h-100" style="background-color: rgba(233, 255, 249, 0.1); border: none;">
+                  <div class="card-body">
+                    <h5 style="color: var(--jonquil); font-weight: bold;" class="mb-3" data-bs-toggle="tooltip" data-bs-placement="top" title="The Big Five personality traits represent the fundamental dimensions of human personality">Big Five Traits</h5>
+                    <% trait_descriptions = {
+                      openness: "Openness reflects curiosity, creativity, and preference for variety in movies",
+                      conscientiousness: "Conscientiousness indicates preference for structured and well-crafted narratives",
+                      extraversion: "Extraversion relates to enjoyment of social dynamics and character interactions",
+                      agreeableness: "Agreeableness suggests appreciation for emotional depth and character relationships",
+                      neuroticism: "Neuroticism reflects sensitivity to emotional intensity and dramatic tension"
+                    } %>
+                    <% @personality_profile[:big_five].except(:personality_type).each do |trait, score| %>
+                      <div class="mb-3">
                         <div class="d-flex justify-content-between mb-1">
-                          <label class="text-mint-green">
+                          <label style="color: var(--mint-green);">
                             <span data-bs-toggle="tooltip" data-bs-placement="top" title="<%= trait_descriptions[trait.to_sym] %>">
                               <%= trait.to_s.titleize %>
                             </span>
                           </label>
-                          <span class="text-mint-green"><%= score %>%</span>
+                          <span style="color: var(--mint-green);"><%= score %>%</span>
                         </div>
-                        <div class="progress bg-space-cadet-light">
-                          <div class="progress-bar bg-tufts-blue" 
+                        <div class="progress" style="height: 8px; background-color: rgba(26, 143, 227, 0.2);">
+                          <div class="progress-bar animated-progress" 
                                role="progressbar" 
-                               style="width: <%= score %>%"
+                               style="width: 0%; background-color: var(--tufts-blue);"
+                               data-width="<%= score %>%"
                                aria-valuenow="<%= score %>" 
                                aria-valuemin="0" 
                                aria-valuemax="100">
                           </div>
                         </div>
                       </div>
-                    </div>
-                  <% end %>
-                </div>
-                <div class="col-md-6">
-                  <div style="height: 250px;">
-                    <canvas id="bigFiveChart"></canvas>
+                    <% end %>
                   </div>
                 </div>
               </div>
-            </div>
-          <% end %>
 
-          <% if @personality_profile[:emotional_intelligence].present? %>
-            <div class="mb-4 mt-5">
-              <h5 class="text-jonquil">Emotional Intelligence</h5>
-              <div class="row">
+              <% if @personality_profile[:emotional_intelligence].present? %>
                 <div class="col-md-6">
-                  <% ei_descriptions = {
-                    emotional_recognition: "The ability to identify and name emotions in yourself and others. High scorers are adept at recognizing emotional cues.",
-                    emotional_management: "The ability to regulate emotions effectively. High scorers can manage strong emotions without being overwhelmed.",
-                    emotional_understanding: "The ability to understand complex emotions and how they evolve. High scorers comprehend emotional causes and consequences.",
-                    emotional_adaptation: "The ability to adapt emotions to different situations. High scorers can adjust their emotional responses appropriately."
-                  } %>
-                  <% @personality_profile[:emotional_intelligence].each do |trait, score| %>
-                    <div class="mb-3">
-                      <div class="trait-score">
-                        <div class="d-flex justify-content-between mb-1">
-                          <label class="text-mint-green">
-                            <span data-bs-toggle="tooltip" data-bs-placement="top" title="<%= ei_descriptions[trait.to_sym] %>">
-                              <%= trait.to_s.gsub('_', ' ').titleize %>
-                            </span>
-                          </label>
-                          <span class="text-mint-green"><%= score %>%</span>
-                        </div>
-                        <div class="progress bg-space-cadet-light">
-                          <div class="progress-bar bg-jonquil" 
-                               role="progressbar" 
-                               style="width: <%= score %>%"
-                               aria-valuenow="<%= score %>" 
-                               aria-valuemin="0" 
-                               aria-valuemax="100">
+                  <div class="card h-100" style="background-color: rgba(233, 255, 249, 0.1); border: none;">
+                    <div class="card-body">
+                      <h5 style="color: var(--jonquil); font-weight: bold;" class="mb-3" data-bs-toggle="tooltip" data-bs-placement="top" title="Emotional Intelligence measures your ability to understand and engage with emotional content">Emotional Intelligence</h5>
+                      <% ei_descriptions = {
+                        emotional_recognition: "Ability to identify and appreciate emotional nuances in characters and scenes",
+                        emotional_management: "Capacity to handle emotionally intense movie content",
+                        emotional_understanding: "Comprehension of complex emotional narratives and character motivations",
+                        emotional_adaptation: "Flexibility in engaging with different emotional tones in movies"
+                      } %>
+                      <% @personality_profile[:emotional_intelligence].except(:composite_score, :ei_level).each do |trait, score| %>
+                        <div class="mb-3">
+                          <div class="d-flex justify-content-between mb-1">
+                            <label style="color: var(--mint-green);">
+                              <span data-bs-toggle="tooltip" data-bs-placement="top" title="<%= ei_descriptions[trait.to_sym] %>">
+                                <%= trait.to_s.gsub('emotional_', '').titleize %>
+                              </span>
+                            </label>
+                            <span style="color: var(--mint-green);"><%= score %>%</span>
+                          </div>
+                          <div class="progress" style="height: 8px; background-color: rgba(186, 45, 11, 0.2);">
+                            <div class="progress-bar animated-progress" 
+                                 role="progressbar" 
+                                 style="width: 0%; background-color: var(--engineering-orange);"
+                                 data-width="<%= score %>%"
+                                 aria-valuenow="<%= score %>" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      <% end %>
                     </div>
-                  <% end %>
-                </div>
-                <div class="col-md-6">
-                  <div style="height: 250px;">
-                    <canvas id="emotionalIntelligenceChart"></canvas>
                   </div>
                 </div>
-              </div>
+              <% end %>
             </div>
           <% end %>
 
           <% if @survey_type == 'extended' && @personality_profile[:extended_traits].present? %>
-            <div class="mb-4 mt-5">
-              <h5 class="text-jonquil">Additional Personality Insights</h5>
-              <div class="row">
-                <% extended_descriptions = {
-                  hexaco_honesty: "Measures sincerity, fairness, and modesty. High scorers tend to be genuine and avoid manipulating others.",
-                  hexaco_emotionality: "Reflects anxiety, fear, and emotional dependence. High scorers may experience more emotional reactions.",
-                  cognitive_analytical: "Measures logical and analytical thinking abilities. High scorers excel at systematic problem-solving.",
-                  cognitive_creative: "Reflects innovative and imaginative thinking. High scorers tend to generate novel ideas and solutions.",
-                  moral_care: "Measures empathy and concern for others' wellbeing. High scorers prioritize caring for others.",
-                  moral_fairness: "Reflects commitment to justice and equality. High scorers value fair treatment for all.",
-                  narrative_preference: "Indicates preference for storytelling styles. High scores suggest preference for complex narratives.",
-                  psychological_needs: "Measures basic psychological needs for autonomy, competence, and relatedness."
-                } %>
-                <% @personality_profile[:extended_traits].each do |trait, score| %>
-                  <div class="col-md-6 mb-3">
-                    <div class="trait-score">
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <div class="card h-100" style="background-color: rgba(233, 255, 249, 0.1); border: none;">
+                  <div class="card-body">
+                    <h5 style="color: var(--jonquil); font-weight: bold;" class="mb-3" data-bs-toggle="tooltip" data-bs-placement="top" title="Your attachment style influences how you connect with characters and narratives">Attachment Style</h5>
+                    <% attachment_descriptions = {
+                      anxiety: "Tendency to worry about connections and relationships in narratives",
+                      avoidance: "Tendency to maintain emotional distance from characters and stories"
+                    } %>
+                    
+                    <% 
+                      # Get attachment data with safe fallbacks
+                      attachment = @personality_profile[:extended_traits][:attachment_style] || {}
+                      
+                      # Extract values with fallbacks
+                      anxiety_score = attachment[:anxiety].to_i
+                      avoidance_score = attachment[:avoidance].to_i
+                    %>
+                    
+                    <div class="mb-3">
                       <div class="d-flex justify-content-between mb-1">
-                        <label class="text-mint-green">
-                          <span data-bs-toggle="tooltip" data-bs-placement="top" title="<%= extended_descriptions[trait.to_sym] %>">
-                            <%= trait.to_s.gsub('_', ' ').titleize %>
+                        <label style="color: var(--mint-green);">
+                          <span data-bs-toggle="tooltip" data-bs-placement="top" title="<%= attachment_descriptions[:anxiety] %>">
+                            Attachment Anxiety
                           </span>
                         </label>
-                        <span class="text-mint-green"><%= score %>%</span>
+                        <span style="color: var(--mint-green);"><%= anxiety_score %>%</span>
                       </div>
-                      <div class="progress bg-space-cadet-light">
-                        <div class="progress-bar bg-engineering-orange" 
+                      <div class="progress" style="height: 8px; background-color: rgba(26, 143, 227, 0.2);">
+                        <div class="progress-bar animated-progress" 
                              role="progressbar" 
-                             style="width: <%= score %>%"
-                             aria-valuenow="<%= score %>" 
+                             style="width: 0%; background-color: var(--tufts-blue);"
+                             data-width="<%= anxiety_score %>%"
+                             aria-valuenow="<%= anxiety_score %>" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                      <div class="d-flex justify-content-between mb-1">
+                        <label style="color: var(--mint-green);">
+                          <span data-bs-toggle="tooltip" data-bs-placement="top" title="<%= attachment_descriptions[:avoidance] %>">
+                            Attachment Avoidance
+                          </span>
+                        </label>
+                        <span style="color: var(--mint-green);"><%= avoidance_score %>%</span>
+                      </div>
+                      <div class="progress" style="height: 8px; background-color: rgba(26, 143, 227, 0.2);">
+                        <div class="progress-bar animated-progress" 
+                             role="progressbar" 
+                             style="width: 0%; background-color: var(--tufts-blue);"
+                             data-width="<%= avoidance_score %>%"
+                             aria-valuenow="<%= avoidance_score %>" 
                              aria-valuemin="0" 
                              aria-valuemax="100">
                         </div>
                       </div>
                     </div>
                   </div>
-                <% end %>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="card h-100" style="background-color: rgba(233, 255, 249, 0.1); border: none;">
+                  <div class="card-body">
+                    <h5 style="color: var(--jonquil); font-weight: bold;" class="mb-3" data-bs-toggle="tooltip" data-bs-placement="top" title="Your narrative preferences influence how you engage with storytelling">Narrative Preferences</h5>
+                    <% 
+                      # Get narrative preferences with safe fallbacks
+                      narrative = @personality_profile[:extended_traits][:narrative] || {}
+                      
+                      narrative_descriptions = {
+                        immersion: "Ability to lose yourself in story worlds and fictional settings",
+                        character_identification: "Tendency to emotionally connect with and relate to characters"
+                      }
+                      
+                      # Extract values with fallbacks
+                      immersion_score = narrative[:immersion].to_i
+                      identification_score = narrative[:character_identification].to_i
+                    %>
+                    
+                    <div class="mb-3">
+                      <div class="d-flex justify-content-between mb-1">
+                        <label style="color: var(--mint-green);">
+                          <span data-bs-toggle="tooltip" data-bs-placement="top" title="<%= narrative_descriptions[:immersion] %>">
+                            Story Immersion
+                          </span>
+                        </label>
+                        <span style="color: var(--mint-green);"><%= immersion_score %>%</span>
+                      </div>
+                      <div class="progress" style="height: 8px; background-color: rgba(186, 45, 11, 0.2);">
+                        <div class="progress-bar animated-progress" 
+                             role="progressbar" 
+                             style="width: 0%; background-color: var(--engineering-orange);"
+                             data-width="<%= immersion_score %>%"
+                             aria-valuenow="<%= immersion_score %>" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                      <div class="d-flex justify-content-between mb-1">
+                        <label style="color: var(--mint-green);">
+                          <span data-bs-toggle="tooltip" data-bs-placement="top" title="<%= narrative_descriptions[:character_identification] %>">
+                            Character Identification
+                          </span>
+                        </label>
+                        <span style="color: var(--mint-green);"><%= identification_score %>%</span>
+                      </div>
+                      <div class="progress" style="height: 8px; background-color: rgba(186, 45, 11, 0.2);">
+                        <div class="progress-bar animated-progress" 
+                             role="progressbar" 
+                             style="width: 0%; background-color: var(--engineering-orange);"
+                             data-width="<%= identification_score %>%"
+                             aria-valuenow="<%= identification_score %>" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="card h-100" style="background-color: rgba(233, 255, 249, 0.1); border: none;">
+                  <div class="card-body">
+                    <h5 style="color: var(--jonquil); font-weight: bold;" class="mb-3" data-bs-toggle="tooltip" data-bs-placement="top" title="Your cognitive style influences how you process and interpret movie narratives">Cognitive Style</h5>
+                    <% 
+                      # Get cognitive data with safe fallbacks
+                      cognitive = @personality_profile[:extended_traits][:cognitive] || {}
+                      
+                      # Get all cognitive dimension pairs
+                      visual_verbal = cognitive[:visual_verbal] || { score: 0 }
+                      systematic_intuitive = cognitive[:systematic_intuitive] || { score: 0 }
+                      abstract_concrete = cognitive[:abstract_concrete] || { score: 0 }
+                      certainty_ambiguity = cognitive[:certainty_ambiguity] || { score: 0 }
+                      detail_pattern = cognitive[:detail_pattern] || { score: 0 }
+                      
+                      # Cognitive style descriptions
+                      cognitive_descriptions = {
+                        visual: "Preference for visual information and imagery in storytelling",
+                        verbal: "Preference for language and dialogue in storytelling",
+                        systematic: "Preference for logical and structured storytelling",
+                        intuitive: "Appreciation for intuitive and spontaneous narratives",
+                        abstract: "Appreciation for conceptual and symbolic narrative elements",
+                        concrete: "Appreciation for tangible and practical narrative elements",
+                        certainty: "Preference for clear resolutions and defined narratives",
+                        ambiguity: "Comfort with open-ended stories and ambiguous meanings",
+                        detail: "Focus on specific elements and details in narratives",
+                        pattern: "Focus on overarching patterns and themes in narratives"
+                      }
+                      
+                      # Calculate individual dimension scores (convert from -100 to 100 scale to 0-100 for each dimension)
+                      vis_score = visual_verbal[:score].to_i < 0 ? visual_verbal[:score].to_i.abs : 0
+                      ver_score = visual_verbal[:score].to_i > 0 ? visual_verbal[:score].to_i : 0
+                      sys_score = systematic_intuitive[:score].to_i < 0 ? systematic_intuitive[:score].to_i.abs : 0
+                      int_score = systematic_intuitive[:score].to_i > 0 ? systematic_intuitive[:score].to_i : 0
+                      abs_score = abstract_concrete[:score].to_i < 0 ? abstract_concrete[:score].to_i.abs : 0
+                      con_score = abstract_concrete[:score].to_i > 0 ? abstract_concrete[:score].to_i : 0
+                      cer_score = certainty_ambiguity[:score].to_i < 0 ? certainty_ambiguity[:score].to_i.abs : 0
+                      amb_score = certainty_ambiguity[:score].to_i > 0 ? certainty_ambiguity[:score].to_i : 0
+                      det_score = detail_pattern[:score].to_i < 0 ? detail_pattern[:score].to_i.abs : 0
+                      pat_score = detail_pattern[:score].to_i > 0 ? detail_pattern[:score].to_i : 0
+                      
+                      # Create an array of all dimension scores to find the strongest ones
+                      all_dimensions = [
+                        {name: :visual, score: vis_score},
+                        {name: :verbal, score: ver_score},
+                        {name: :systematic, score: sys_score},
+                        {name: :intuitive, score: int_score},
+                        {name: :abstract, score: abs_score},
+                        {name: :concrete, score: con_score},
+                        {name: :certainty, score: cer_score},
+                        {name: :ambiguity, score: amb_score},
+                        {name: :detail, score: det_score},
+                        {name: :pattern, score: pat_score}
+                      ]
+                      
+                      # Sort by score in descending order and take the top two
+                      all_dimensions.sort_by! { |d| -d[:score] }
+                      top_dimensions = all_dimensions.select { |d| d[:score] > 0 }.take(2)
+                      
+                      # If we don't have two dimensions with scores > 0, add default dimensions
+                      if top_dimensions.length < 2 && vis_score > 0
+                        top_dimensions << {name: :visual, score: vis_score}
+                      end
+                      
+                      if top_dimensions.length < 2 && abs_score > 0
+                        top_dimensions << {name: :abstract, score: abs_score}
+                      end
+                    %>
+                    
+                    <% top_dimensions.each do |dimension| %>
+                      <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                          <label style="color: var(--mint-green);">
+                            <span data-bs-toggle="tooltip" data-bs-placement="top" title="<%= cognitive_descriptions[dimension[:name]] %>">
+                              <%= dimension[:name].to_s.titleize %> Thinking
+                            </span>
+                          </label>
+                          <span style="color: var(--mint-green);"><%= dimension[:score] %>%</span>
+                        </div>
+                        <div class="progress" style="height: 8px; background-color: rgba(239, 200, 26, 0.2);">
+                          <div class="progress-bar animated-progress" 
+                               role="progressbar" 
+                               style="width: 0%; background-color: var(--jonquil);"
+                               data-width="<%= dimension[:score] %>%"
+                               aria-valuenow="<%= dimension[:score] %>" 
+                               aria-valuemin="0" 
+                               aria-valuemax="100">
+                          </div>
+                        </div>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="card h-100" style="background-color: rgba(233, 255, 249, 0.1); border: none;">
+                  <div class="card-body">
+                    <h5 style="color: var(--jonquil); font-weight: bold;" class="mb-3" data-bs-toggle="tooltip" data-bs-placement="top" title="Moral foundations shape how you connect with ethical themes in movies">Moral Foundations</h5>
+                    <% 
+                      # Get the moral foundations data with safe fallbacks
+                      moral_foundations = @personality_profile[:extended_traits][:moral_foundations] || {}
+                      
+                      moral_descriptions = {
+                        care: "Connection with themes of compassion and protection",
+                        fairness: "Resonance with justice and equality narratives",
+                        loyalty: "Appreciation for themes of group loyalty and solidarity",
+                        authority: "Resonance with stories about respect for legitimate authority",
+                        purity: "Connection with themes of sanctity and moral purity"
+                      }
+                      
+                      # Extract values with fallbacks
+                      care_score = moral_foundations[:care].to_i
+                      fairness_score = moral_foundations[:fairness].to_i
+                      loyalty_score = moral_foundations[:loyalty].to_i
+                      authority_score = moral_foundations[:authority].to_i
+                      purity_score = moral_foundations[:purity].to_i
+                    %>
+                    
+                    <% 
+                      # Select the two highest foundation scores to display (besides care/fairness which are common)
+                      binding_foundations = [
+                        {name: :loyalty, score: loyalty_score},
+                        {name: :authority, score: authority_score},
+                        {name: :purity, score: purity_score}
+                      ]
+                      # Sort by score in descending order
+                      binding_foundations.sort_by! { |f| -f[:score] }
+                      
+                      # Display the top 2 binding foundations
+                      top_foundations = binding_foundations.take(2)
+                    %>
+                    
+                    <% top_foundations.each do |foundation| %>
+                      <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                          <label style="color: var(--mint-green);">
+                            <span data-bs-toggle="tooltip" data-bs-placement="top" title="<%= moral_descriptions[foundation[:name]] %>">
+                              <%= foundation[:name].to_s.titleize %>
+                            </span>
+                          </label>
+                          <span style="color: var(--mint-green);"><%= foundation[:score] %>%</span>
+                        </div>
+                        <div class="progress" style="height: 8px; background-color: rgba(233, 255, 249, 0.2);">
+                          <div class="progress-bar animated-progress" 
+                               role="progressbar" 
+                               style="width: 0%; background-color: var(--mint-green); color: var(--space-cadet);"
+                               data-width="<%= foundation[:score] %>%"
+                               aria-valuenow="<%= foundation[:score] %>" 
+                               aria-valuemin="0" 
+                               aria-valuemax="100">
+                          </div>
+                        </div>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
               </div>
             </div>
           <% end %>
         </div>
 
+        <div class="alert p-3 mb-4" style="background-color: rgba(233, 255, 249, 0.1); border: 1px solid var(--mint-green);">
+          <div class="row g-0">
+            <div class="col-12">
+              <h5 class="mb-2" style="color: var(--jonquil); font-weight: bold;">What's Next?</h5>
+              <p class="mb-0" style="color: var(--mint-green);">
+                <%= @survey_type == 'basic' ? 
+                    "Visit your profile to explore detailed insights about your personality traits and how they influence your movie preferences. For even more personalized recommendations, consider taking the extended survey." : 
+                    "Your complete personality profile is now available. Visit your profile to explore detailed insights about your personality traits and how they shape your movie preferences." %>
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div class="text-center">
           <% if @survey_type == 'basic' %>
-            <p class="text-tufts-blue mb-4">Want even more personalized recommendations?</p>
             <div class="d-flex justify-content-center gap-3">
-              <a href="/surveys?type=extended" class="btn btn-engineering-orange text-mint-green btn-lg fw-bold" style="border: 2px solid var(--mint-green); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);">
+              <a href="<%= surveys_path(type: 'extended') %>" class="btn" style="background-color: var(--engineering-orange); color: var(--mint-green);">
                 <i class="fas fa-clipboard-list me-2"></i>Take Extended Survey
               </a>
-              <a href="/recommendations" class="btn btn-jonquil text-space-cadet btn-lg fw-bold" style="border: 2px solid var(--space-cadet); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);">
-                <i class="fas fa-film me-2"></i>Skip to Recommendations
+              <a href="<%= recommendations_path %>" class="btn" style="background-color: var(--jonquil); color: var(--space-cadet);">
+                <i class="fas fa-film me-2"></i>View Recommendations
               </a>
             </div>
           <% else %>
-            <p class="text-mint-green mb-4">Your recommendations are ready!</p>
-            <a href="/recommendations" class="btn btn-jonquil text-space-cadet btn-lg fw-bold" style="border: 2px solid var(--space-cadet); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);">
+            <a href="<%= recommendations_path %>" class="btn" style="background-color: var(--jonquil); color: var(--space-cadet);">
               <i class="fas fa-film me-2"></i>View My Recommendations
             </a>
           <% end %>
+          <div class="mt-3">
+            <a href="<%= profile_path %>" class="btn" style="border: 1px solid var(--mint-green); color: var(--mint-green);">
+              <i class="fas fa-user me-2"></i>View My Profile
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -184,115 +441,34 @@ document.addEventListener('DOMContentLoaded', function() {
   var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
     return new bootstrap.Tooltip(tooltipTriggerEl)
   });
-
-  // Big Five Chart
-  const bigFiveCanvas = document.getElementById('bigFiveChart');
-  if (bigFiveCanvas) {
-    const bigFiveCtx = bigFiveCanvas.getContext('2d');
-    const bigFiveData = <%= raw @personality_profile[:big_five].to_json %>;
-
-    new Chart(bigFiveCtx, {
-      type: 'radar',
-      data: {
-        labels: Object.keys(bigFiveData).map(trait => trait.charAt(0).toUpperCase() + trait.slice(1)),
-        datasets: [{
-          label: 'Big Five Personality Traits',
-          data: Object.values(bigFiveData),
-          backgroundColor: 'rgba(64, 127, 191, 0.2)',
-          borderColor: 'rgb(64, 127, 191)',
-          pointBackgroundColor: 'rgb(64, 127, 191)',
-          pointBorderColor: '#fff',
-          pointHoverBackgroundColor: '#fff',
-          pointHoverBorderColor: 'rgb(64, 127, 191)'
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          r: {
-            angleLines: {
-              display: true
-            },
-            suggestedMin: 0,
-            suggestedMax: 100,
-            ticks: {
-              color: '#a3e4d7',
-              backdropColor: 'transparent'
-            },
-            grid: {
-              color: 'rgba(163, 228, 215, 0.3)'
-            },
-            pointLabels: {
-              color: '#a3e4d7'
-            }
-          }
-        },
-        plugins: {
-          legend: {
-            display: false
-          }
-        }
-      }
+  
+  // Animate progress bars
+  setTimeout(function() {
+    document.querySelectorAll('.animated-progress').forEach(function(progressBar) {
+      var target = progressBar.getAttribute('data-width');
+      progressBar.style.transition = 'width 1s ease-in-out';
+      progressBar.style.width = target;
     });
-  }
-
-  // Emotional Intelligence Chart
-  const eiCanvas = document.getElementById('emotionalIntelligenceChart');
-  if (eiCanvas) {
-    const eiCtx = eiCanvas.getContext('2d');
-    const eiData = <%= raw @personality_profile[:emotional_intelligence].to_json %>;
-
-    new Chart(eiCtx, {
-      type: 'polarArea',
-      data: {
-        labels: Object.keys(eiData).map(trait => trait.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())),
-        datasets: [{
-          data: Object.values(eiData),
-          backgroundColor: [
-            'rgba(255, 206, 86, 0.5)',
-            'rgba(255, 159, 64, 0.5)',
-            'rgba(255, 99, 132, 0.5)',
-            'rgba(54, 162, 235, 0.5)'
-          ],
-          borderColor: [
-            'rgb(255, 206, 86)',
-            'rgb(255, 159, 64)',
-            'rgb(255, 99, 132)',
-            'rgb(54, 162, 235)'
-          ],
-          borderWidth: 1
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          r: {
-            ticks: {
-              color: '#a3e4d7',
-              backdropColor: 'transparent'
-            },
-            grid: {
-              color: 'rgba(163, 228, 215, 0.3)'
-            },
-            pointLabels: {
-              color: '#a3e4d7'
-            }
-          }
-        },
-        plugins: {
-          legend: {
-            position: 'bottom',
-            labels: {
-              color: '#a3e4d7',
-              boxWidth: 10,
-              padding: 10
-            }
-          }
-        }
-      }
-    });
-  }
+  }, 500);
 });
-</script> 
+</script>
+
+<style>
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate__animated {
+  animation-duration: 1s;
+  animation-fill-mode: both;
+}
+
+.animate__fadeIn {
+  animation-name: fadeIn;
+}
+
+.animate__delay-0.5s {
+  animation-delay: 0.5s;
+}
+</style> 

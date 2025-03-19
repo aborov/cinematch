@@ -15,14 +15,14 @@
         </div>
         
         <div class="text-center mb-4">
-          <h3>
+          <h4 class="question-text">
             <%= question.question_text %>
-          </h3>
+          </h4>
 
           <div class="response-options d-flex justify-content-between align-items-stretch gap-2">
             <% %w[Strongly_Disagree Disagree Neutral Agree Strongly_Agree].each do |response| %>
               <button type="button"
-                      class="btn btn-outline-primary response-button flex-1"
+                      class="response-button flex-1"
                       data-value="<%= response %>">
                 <%= response.humanize %>
               </button>

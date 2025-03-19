@@ -4,22 +4,22 @@
 <% end %>
 
 <div class="container-fluid p-0">
-  <div class="d-flex justify-content-center align-items-center vh-100">
-    <%= render 'welcome_modal' if show_welcome_modal? %>
+  <div class="d-flex justify-content-center align-items-center" style="min-height: calc(100vh - 200px);">
+    <%= render 'welcome_modal' if @show_welcome_modal %>
     
-    <div class="card shadow" style="max-width: 650px; width: 90%;">
-      <div class="card-header bg-warning text-dark">
-        <h2 class="h4 mb-0">
-          <%= @survey_type == 'basic' ? 'Basic' : 'Extended' %> Personalization Survey
-        </h2>
+    <div class="card shadow survey-card">
+      <div class="card-header">
+        <h3 class="mb-0">
+          <%= @survey_type == 'basic' ? 'Personalization Survey' : 'Extended Personalization Survey' %>
+        </h3>
       </div>
 
-      <div class="card-body p-4">
-        <div class="progress mb-4">
-          <div class="progress-bar bg-primary" 
+      <div class="card-body p-4 survey-card-body">
+        <div class="progress survey-progress mb-4">
+          <div class="progress-bar survey-progress-bar" 
                role="progressbar" 
                data-progress
-               style="width: <%= @progress %>%"
+               style="width: <%= @progress %>%;"
                aria-valuenow="<%= @progress %>" 
                aria-valuemin="0" 
                aria-valuemax="100">

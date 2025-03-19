@@ -119,7 +119,7 @@ function initializeSurvey() {
           completionMessage.innerHTML = `
             <div class="mb-4">
               <i class="fas fa-check-circle text-success fa-3x"></i>
-              <h3 class="mt-3">You've completed all the questions!</h3>
+              <h3 class="mt-3" style="color: var(--jonquil);">You've completed all the questions!</h3>
               <p class="mb-4">Click the "Complete Survey" button below to submit your responses and view your results.</p>
             </div>
           `;

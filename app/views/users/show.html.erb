@@ -107,7 +107,7 @@
                             <i class="fas fa-puzzle-piece me-2"></i>Psychological
                           </button>
                           <button class="nav-link mb-2" id="dark-tab" data-bs-toggle="pill" data-bs-target="#dark" type="button" role="tab" aria-controls="dark" aria-selected="false">
-                            <i class="fas fa-mask me-2"></i>Dark Content
+                            <i class="fas fa-mask me-2"></i>Dark Triad
                           </button>
                         <% end %>
                       </div>
@@ -1044,7 +1044,7 @@
                             </div>
                           <% end %>
 
-                          <!-- Dark Content Tab -->
+                          <!-- Dark Triad Tab -->
                           <div class="tab-pane fade" id="dark" role="tabpanel" aria-labelledby="dark-tab">
                             <div class="mb-5">
                               <h3 class="mb-3">Dark Triad</h3>
@@ -1061,7 +1061,7 @@
                                   <p class="text-muted mt-2" style="font-size: 0.8rem;">Higher scores indicate greater resonance with these psychological themes.</p>
                                 </div>
 
-                                <!-- Dark Content Dimensions -->
+                                <!-- Dark Triad Dimensions -->
                                 <div class="row">
                                   <div class="col-md-6">
                                     <% dark_dimensions = {
@@ -1135,11 +1135,11 @@
                                     </div>
                                   </div>
                                 </div>
-                              <% else %>
+                  <% else %>
                                 <div class="alert alert-info">
-                                  <p class="mb-0">Dark content preferences data is not available. Please complete the extended survey to see this information.</p>
-                                </div>
-                              <% end %>
+                                  <p class="mb-0">Dark Triad data is not available. Please complete the extended survey to see this information.</p>
+                    </div>
+                  <% end %>
                             </div>
                           </div>
                         <% end %>
@@ -1386,7 +1386,7 @@ document.addEventListener('DOMContentLoaded', function() {
     borderColor: 'rgb(54, 162, 235)'
   });
 
-  // Initialize Dark Content Chart
+  // Initialize Dark Triad Chart
   const darkData = <%= raw (full_profile&.dig(:extended_traits, :dark_triad)&.slice(:machiavellianism_appeal, :narcissism_appeal, :psychopathy_appeal) || {}).to_json %>;
   new Chart(document.getElementById('darkChart')?.getContext('2d'), {
     type: 'radar',
