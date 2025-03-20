@@ -1,6 +1,6 @@
 ActiveAdmin.register UserPreference do
-  permit_params :user_id, :favorite_genres, :personality_profiles, :recommended_content_ids, 
-                :recommendations_generated_at, :disable_adult_content, :ai_model, :use_ai
+  permit_params :user_id, :favorite_genres, :personality_profiles, :personality_summary,
+                :disable_adult_content, :ai_model, :use_ai
 
   index do
     selectable_column
@@ -9,16 +9,28 @@ ActiveAdmin.register UserPreference do
     column :favorite_genres do |pref|
       truncate(pref.favorite_genres.join(", "), length: 50) if pref.favorite_genres.present?
     end
-    column :recommendations_count do |pref|
-      pref.recommended_content_ids&.size || 0
+    column :personality_summary do |pref|
+      truncate(pref.personality_summary, length: 50) if pref.personality_summary.present?
     end
-    column :recommendations_generated_at
+    column :surveys do |pref|
+      div do
+        if pref.user.basic_survey_completed?
+          status_tag("Basic")
+        else
+          span "Basic (incomplete)"
+        end
+      end
+      div do 
+        if pref.user.extended_survey_completed?
+          status_tag("Extended")
+        else
+          span "Extended (incomplete)"
+        end
+      end
+    end
     column :disable_adult_content
     column :use_ai
     column :ai_model
-    column :outdated do |pref|
-      status_tag(pref.recommendations_outdated?)
-    end
     column :updated_at
     actions
   end
@@ -26,8 +38,8 @@ ActiveAdmin.register UserPreference do
   index download_links: [:csv, :xml, :json, :pdf]
 
   filter :user
-  filter :recommendations_generated_at
   filter :disable_adult_content
+  filter :use_ai
   filter :ai_model
   filter :created_at
   filter :updated_at
@@ -37,6 +49,10 @@ ActiveAdmin.register UserPreference do
       f.input :user
       f.input :favorite_genres
       f.input :personality_profiles
+      f.input :personality_summary
+      f.input :disable_adult_content
+      f.input :use_ai
+      f.input :ai_model, collection: AiModelsConfig::MODELS.keys
     end
     f.actions
   end
@@ -48,32 +64,120 @@ ActiveAdmin.register UserPreference do
       row :favorite_genres do |pref|
         pref.favorite_genres.join(", ") if pref.favorite_genres.present?
       end
-      row :personality_profiles do |pref|
-        pre code: JSON.pretty_generate(pref.personality_profiles)
-      end
-      row :recommended_content_ids do |pref|
-        if pref.recommended_content_ids.present?
-          table_for Content.where(id: pref.recommended_content_ids.first(10)) do
-            column :title
-            column :content_type
-            column :release_year
-            column :reason do |content|
-              if pref.recommendation_reasons.present? && pref.recommendation_reasons[content.id.to_s].present?
-                content_tag :div, class: 'recommendation-reason' do
-                  pref.recommendation_reasons[content.id.to_s]
-                end
-              end
-            end
+      row :personality_summary
+      row :surveys do |pref|
+        div do
+          b "Basic Survey: "
+          if pref.user.basic_survey_completed?
+            status_tag("Completed")
+          else
+            span "Incomplete"
           end
-          div "Showing 10 of #{pref.recommended_content_ids.size} recommendations"
+          span "Progress: #{pref.user.basic_survey_progress}%" if pref.user.basic_survey_in_progress?
+        end
+        div do 
+          b "Extended Survey: "
+          if pref.user.extended_survey_completed?
+            status_tag("Completed")
+          else
+            span "Incomplete"
+          end
+          span "Progress: #{pref.user.extended_survey_progress}%" if pref.user.extended_survey_in_progress?
         end
       end
-      row :recommendations_generated_at
-      row :disable_adult_content
-      row :use_ai
-      row :ai_model
-      row :created_at
-      row :updated_at
+    end
+    
+    panel "Personality Profile" do
+      if pref.personality_profiles.present?
+        tabs do
+          tab "Big Five" do
+            if pref.personality_profiles.dig(:big_five).present?
+              table_for pref.personality_profiles[:big_five].to_a do
+                column "Trait" do |trait_pair|
+                  b trait_pair[0].to_s.humanize
+                end
+                column "Score" do |trait_pair|
+                  div style: "width: 200px" do
+                    div style: "background: #eee; width: 100%; height: 20px; border-radius: 4px;" do
+                      div style: "background: #4CAF50; width: #{trait_pair[1] * 100}%; height: 20px; border-radius: 4px;"
+                    end
+                  end
+                  span "#{(trait_pair[1] * 100).round}%"
+                end
+              end
+            else
+              div "No Big Five data available"
+            end
+          end
+          
+          tab "Emotional Intelligence" do
+            if pref.personality_profiles.dig(:emotional_intelligence).present?
+              table_for pref.personality_profiles[:emotional_intelligence].to_a do
+                column "Trait" do |trait_pair|
+                  b trait_pair[0].to_s.humanize
+                end
+                column "Score" do |trait_pair|
+                  div style: "width: 200px" do
+                    div style: "background: #eee; width: 100%; height: 20px; border-radius: 4px;" do
+                      div style: "background: #2196F3; width: #{trait_pair[1] * 100}%; height: 20px; border-radius: 4px;"
+                    end
+                  end
+                  span "#{(trait_pair[1] * 100).round}%"
+                end
+              end
+            else
+              div "No Emotional Intelligence data available"
+            end
+          end
+          
+          tab "Extended Traits" do
+            if pref.personality_profiles.dig(:extended_traits).present?
+              accordion do
+                pref.personality_profiles[:extended_traits].each do |trait_category, traits|
+                  panel trait_category.to_s.humanize do
+                    table_for traits.to_a do
+                      column "Trait" do |trait_pair|
+                        b trait_pair[0].to_s.humanize
+                      end
+                      column "Score" do |trait_pair|
+                        div style: "width: 200px" do
+                          div style: "background: #eee; width: 100%; height: 20px; border-radius: 4px;" do
+                            div style: "background: #FF9800; width: #{trait_pair[1] * 100}%; height: 20px; border-radius: 4px;"
+                          end
+                        end
+                        span "#{(trait_pair[1] * 100).round}%"
+                      end
+                    end
+                  end
+                end
+              end
+            else
+              div "No Extended Traits data available"
+            end
+          end
+          
+          tab "JSON Data" do
+            pre code: JSON.pretty_generate(pref.personality_profiles) if pref.personality_profiles.present?
+          end
+        end
+      else
+        div "No personality profile data available"
+      end
+    end
+    
+    row :disable_adult_content
+    row :use_ai
+    row :ai_model
+    row :created_at
+    row :updated_at
+    
+    # Add a link to view the user's recommendations
+    row :user_recommendations do |pref|
+      if pref.user.user_recommendation.present?
+        link_to "View Recommendations", admin_user_recommendation_path(pref.user.user_recommendation)
+      else
+        "No recommendations found"
+      end
     end
   end
 
@@ -93,7 +197,7 @@ ActiveAdmin.register UserPreference do
   def self.ransackable_attributes(auth_object = nil)
     [
       "id", "user_id", "favorite_genres", "disable_adult_content", 
-      "recommendations_generated_at", "ai_model", "created_at", "updated_at"
+      "ai_model", "use_ai", "created_at", "updated_at"
     ]
   end
 

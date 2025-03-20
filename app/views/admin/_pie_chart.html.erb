@@ -1,0 +1,36 @@
+<%
+  # Generate colors for the pie chart
+  colors = [
+    '#4CAF50', '#2196F3', '#FFC107', '#FF5722', '#9C27B0',
+    '#673AB7', '#3F51B5', '#03A9F4', '#009688', '#8BC34A',
+    '#CDDC39', '#FFEB3B', '#FF9800', '#795548', '#9E9E9E'
+  ]
+  
+  # Calculate percentages
+  total = data.values.sum
+  percentages = data.transform_values { |v| ((v.to_f / total) * 100).round(1) }
+  
+  # Sort data by value (descending)
+  sorted_data = data.sort_by { |_, v| -v }
+%>
+
+<!-- We'll use a simple bar chart instead of a pie chart for better display -->
+<div style="margin: 20px 0;">
+  <div style="display: flex; flex-direction: column; width: 100%;">
+    <% sorted_data.each_with_index do |(key, value), index| %>
+      <% color = colors[index % colors.length] %>
+      <div style="display: flex; align-items: center; margin-bottom: 10px;">
+        <div style="width: 100px; min-width: 100px; text-align: right; padding-right: 10px;">
+          <strong><%= key %></strong>
+        </div>
+        <div style="flex-grow: 1;">
+          <div style="background: #eee; width: 100%; height: 25px; border-radius: 4px;">
+            <div style="background: <%= color %>; width: <%= percentages[key] %>%; height: 25px; border-radius: 4px; display: flex; align-items: center; padding-left: 8px; color: white;">
+              <%= value %> (<%= percentages[key] %>%)
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div> 
