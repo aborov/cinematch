@@ -1,0 +1,117 @@
+<!-- Cognitive Profile Tab -->
+<div class="tab-pane fade" id="cognitive" role="tabpanel" aria-labelledby="cognitive-tab">
+  <div class="mb-5">
+    <h3 class="mb-3">Cognitive Profile</h3>
+    <div class="alert alert-light border mb-4">
+      <p class="mb-0" style="font-size: 0.9rem;">Your cognitive profile shows how you process and engage with information, affecting your preferences for different types of narratives and storytelling styles.</p>
+    </div>
+
+    <!-- Chart Section -->
+    <div class="text-center mb-4">
+      <div style="height: 300px; max-width: 600px; margin: 0 auto;">
+        <canvas id="cognitiveChart"></canvas>
+      </div>
+      <p class="text-muted mt-2" style="font-size: 0.8rem;">Your position on each dimension shows your cognitive preferences.</p>
+    </div>
+
+    <!-- Cognitive Dimensions -->
+    <div class="row">
+      <div class="col-12">
+        <% cognitive_dimensions = {
+          visual_verbal: {
+            pair: ["Visual Processing", "Verbal Processing"],
+            description: "How you prefer to process information - through visual imagery or through words and language"
+          },
+          systematic_intuitive: {
+            pair: ["Systematic Thinking", "Intuitive Thinking"],
+            description: "Your approach to problem-solving - through methodical analysis or through gut feelings and instinct"
+          },
+          abstract_concrete: {
+            pair: ["Abstract Concepts", "Concrete Details"],
+            description: "Your preference for dealing with theoretical ideas versus tangible, specific information"
+          },
+          certainty_ambiguity: {
+            pair: ["Need for Certainty", "Comfort with Ambiguity"],
+            description: "How comfortable you are with unclear or open-ended situations versus needing clear answers"
+          },
+          detail_pattern: {
+            pair: ["Detail Focus", "Pattern Recognition"],
+            description: "Whether you tend to focus on specific details or look for broader patterns and connections"
+          }
+        } %>
+
+        <% personality_profile[:extended_traits][:cognitive].except(:primary_style).each do |dimension, data| %>
+          <div class="mb-4">
+            <h6 class="mb-2" data-bs-toggle="tooltip" data-bs-placement="top" title="<%= cognitive_dimensions[dimension][:description] %>">
+              <%= dimension.to_s.titleize.gsub('_', ' vs ') %>
+            </h6>
+            <div class="position-relative">
+              <div class="progress">
+                <% 
+                  normalized_score = ((data[:score] + 100) / 2).round
+                  left_color = "bg-info"
+                  right_color = "bg-primary"
+                %>
+                <div class="progress-bar <%= left_color %>" role="progressbar" 
+                     style="width: <%= normalized_score %>%"
+                     aria-valuenow="<%= normalized_score %>" 
+                     aria-valuemin="0" 
+                     aria-valuemax="100">
+                </div>
+              </div>
+              <div class="d-flex justify-content-between mt-1">
+                <small class="text-muted"><%= cognitive_dimensions[dimension][:pair][0] %></small>
+                <small class="text-muted"><%= cognitive_dimensions[dimension][:pair][1] %></small>
+              </div>
+            </div>
+          </div>
+        <% end %>
+
+        <div class="alert alert-info mt-4">
+          <h5 class="mb-3">Primary Cognitive Style: <%= personality_profile[:extended_traits][:cognitive][:primary_style].to_s.titleize %></h5>
+          <p class="mb-0">
+            <%= case personality_profile[:extended_traits][:cognitive][:primary_style].to_s
+              when 'balanced'
+                "You have a flexible cognitive style, adapting your approach based on the situation."
+              when 'visual_verbal'
+                data = personality_profile[:extended_traits][:cognitive][:visual_verbal]
+                if data[:score] < 0
+                  "You tend to process information visually, preferring movies with strong visual storytelling."
+                else
+                  "You appreciate well-crafted dialogue and narrative exposition in films."
+                end
+              when 'systematic_intuitive'
+                data = personality_profile[:extended_traits][:cognitive][:systematic_intuitive]
+                if data[:score] < 0
+                  "You enjoy movies with logical, well-structured plots and clear progression."
+                else
+                  "You connect well with emotionally-driven narratives and abstract storytelling."
+                end
+              when 'abstract_concrete'
+                data = personality_profile[:extended_traits][:cognitive][:abstract_concrete]
+                if data[:score] < 0
+                  "You appreciate films that explore abstract concepts and metaphorical meanings."
+                else
+                  "You prefer stories grounded in concrete reality and tangible situations."
+                end
+              when 'certainty_ambiguity'
+                data = personality_profile[:extended_traits][:cognitive][:certainty_ambiguity]
+                if data[:score] < 0
+                  "You prefer films with clear resolutions and definitive endings."
+                else
+                  "You enjoy movies that leave room for interpretation and ambiguity."
+                end
+              when 'detail_pattern'
+                data = personality_profile[:extended_traits][:cognitive][:detail_pattern]
+                if data[:score] < 0
+                  "You appreciate attention to detail and nuanced storytelling in films."
+                else
+                  "You enjoy recognizing patterns and connecting threads across narratives."
+                end
+              end %>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

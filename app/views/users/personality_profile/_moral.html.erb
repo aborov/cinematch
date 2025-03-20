@@ -1,0 +1,109 @@
+<!-- Moral Foundations Tab -->
+<div class="tab-pane fade" id="moral" role="tabpanel" aria-labelledby="moral-tab">
+  <div class="mb-5">
+    <h3 class="mb-3">Moral Foundations</h3>
+    <div class="alert alert-light border mb-4">
+      <p class="mb-0" style="font-size: 0.9rem;">Your moral foundations profile shows how you engage with different ethical themes and values in storytelling.</p>
+    </div>
+
+    <!-- Chart Section -->
+    <div class="text-center mb-4">
+      <div style="height: 300px; max-width: 600px; margin: 0 auto;">
+        <canvas id="moralFoundationsChart"></canvas>
+      </div>
+      <p class="text-muted mt-2" style="font-size: 0.8rem;">Higher scores indicate stronger resonance with these moral values.</p>
+    </div>
+
+    <!-- Moral Dimensions -->
+    <div class="row">
+      <div class="col-md-6">
+        <% moral_dimensions = {
+          care: {
+            description: "Sensitivity to others' suffering and the desire to prevent harm",
+            implications: {
+              high: "You strongly connect with stories about protecting the vulnerable and preventing harm",
+              medium: "You appreciate themes of care and protection in balance with other values",
+              low: "You may focus more on other moral themes than on care-based narratives"
+            }
+          },
+          fairness: {
+            description: "Concern for justice, rights, and equality",
+            implications: {
+              high: "You are drawn to stories about justice, equality, and fair treatment",
+              medium: "You value fairness while recognizing practical limitations",
+              low: "You may focus more on other aspects than strict fairness in stories"
+            }
+          },
+          loyalty: {
+            description: "Value placed on group belonging and faithfulness",
+            implications: {
+              high: "You appreciate stories about loyalty, patriotism, and group bonds",
+              medium: "You balance group loyalty with individual principles",
+              low: "You may prefer stories focusing on individual over group dynamics"
+            }
+          },
+          authority: {
+            description: "Respect for tradition and legitimate authority",
+            implications: {
+              high: "You connect with stories about duty, respect, and traditional values",
+              medium: "You appreciate both traditional and questioning perspectives",
+              low: "You may prefer stories that challenge established authority"
+            }
+          },
+          purity: {
+            description: "Concern for sanctity and spiritual/physical cleanliness",
+            implications: {
+              high: "You resonate with themes of spiritual growth and moral elevation",
+              medium: "You appreciate both sacred and secular themes in stories",
+              low: "You may prefer pragmatic over spiritual/moral purity themes"
+            }
+          }
+        } %>
+
+        <% if personality_profile[:extended_traits][:moral_foundations].present? %>
+          <% personality_profile[:extended_traits][:moral_foundations].slice(:care, :fairness, :loyalty, :authority, :purity).each do |foundation, score| %>
+            <div class="mb-3">
+              <div class="trait-score">
+                <div class="d-flex justify-content-between mb-1">
+                  <label>
+                    <span data-bs-toggle="tooltip" data-bs-placement="top" title="<%= moral_dimensions[foundation][:description] %>">
+                      <strong><%= foundation.to_s.titleize %></strong>
+                    </span>
+                  </label>
+                  <span><%= score %>%</span>
+                </div>
+                <div class="progress mb-2">
+                  <div class="progress-bar bg-warning" 
+                       role="progressbar" 
+                       style="width: <%= score %>%"
+                       aria-valuenow="<%= score %>" 
+                       aria-valuemin="0" 
+                       aria-valuemax="100">
+                  </div>
+                </div>
+                <% 
+                  level = if score >= 70
+                    "high"
+                  elsif score <= 30
+                    "low"
+                  else
+                    "medium"
+                  end
+                %>
+                <small class="text-muted"><%= moral_dimensions[foundation][:implications][level.to_sym] %></small>
+              </div>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+
+      <!-- Content Preferences -->
+      <div class="col-md-6">
+        <div class="alert alert-info">
+          <h5 class="mb-3">Content Preferences</h5>
+          <p class="mb-0"><%= personality_profile[:extended_traits][:moral_foundations][:content_preferences] rescue "No content preferences available" %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

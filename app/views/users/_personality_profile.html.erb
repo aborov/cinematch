@@ -1,0 +1,126 @@
+<% if @user.user_preference.present? %>
+  <% 
+    # Check for HEXACO and Attachment Style questions completion using model methods where possible
+    hexaco_questions_count = SurveyQuestion.where("question_type LIKE 'hexaco_%'").where.not(question_type: 'attention_check').count
+    user_hexaco_responses_count = @user.survey_responses.joins(:survey_question).where("survey_questions.question_type LIKE 'hexaco_%'").where.not(survey_questions: { question_type: 'attention_check' }).count
+    @hexaco_completed = user_hexaco_responses_count >= hexaco_questions_count * 0.9
+
+    attachment_questions_count = SurveyQuestion.where("question_type LIKE 'attachment_%'").where.not(question_type: 'attention_check').count
+    user_attachment_responses_count = @user.survey_responses.joins(:survey_question).where("survey_questions.question_type LIKE 'attachment_%'").where.not(survey_questions: { question_type: 'attention_check' }).count
+    @attachment_completed = user_attachment_responses_count >= attachment_questions_count * 0.9
+
+    # Check if we have a personality profile even if survey completion status isn't updated
+    has_profile_data = @personality_profile.present? && @personality_profile[:big_five].present?
+    has_basic_responses = @user.survey_responses.joins(:survey_question)
+                                .where("survey_questions.question_type LIKE 'big5_%' OR survey_questions.question_type LIKE 'ei_%'")
+                                .where.not(survey_questions: { question_type: 'attention_check' }).exists?
+  %>
+  
+  <% if has_profile_data || @user.basic_survey_completed? || has_basic_responses %>
+    <% 
+      # Generate full profile using the service if it's not already set by the controller
+      @personality_profile ||= PersonalityProfileService.generate_profile(@user, true)
+    %>
+    
+    <%= render "users/personality_profile/admin_debug" if @user.admin? %>
+
+    <!-- Tab Navigation and Content -->
+    <div class="row g-4">
+      <!-- Vertical Tabs -->
+      <div class="col-md-3">
+        <div class="nav flex-column nav-pills" id="personalityTabs" role="tablist" aria-orientation="vertical">
+          <button class="nav-link active mb-2" id="overview-tab" data-bs-toggle="pill" data-bs-target="#overview" type="button" role="tab" aria-controls="overview" aria-selected="true">
+            <i class="fas fa-home me-2"></i>Overview
+          </button>
+          <button class="nav-link mb-2" id="big5-tab" data-bs-toggle="pill" data-bs-target="#big5" type="button" role="tab" aria-controls="big5" aria-selected="false">
+            <i class="fas fa-chart-bar me-2"></i>Big Five
+          </button>
+          <button class="nav-link mb-2" id="ei-tab" data-bs-toggle="pill" data-bs-target="#ei" type="button" role="tab" aria-controls="ei" aria-selected="false">
+            <i class="fas fa-heart me-2"></i>Emotional Intelligence
+          </button>
+          <% if @hexaco_completed || @personality_profile[:extended_traits]&.dig(:hexaco).present? %>
+            <button class="nav-link mb-2" id="hexaco-tab" data-bs-toggle="pill" data-bs-target="#hexaco" type="button" role="tab" aria-controls="hexaco" aria-selected="false">
+              <i class="fas fa-balance-scale me-2"></i>HEXACO
+            </button>
+          <% end %>
+          <% if @attachment_completed || @personality_profile[:extended_traits]&.dig(:attachment_style).present? %>
+            <button class="nav-link mb-2" id="attachment-tab" data-bs-toggle="pill" data-bs-target="#attachment" type="button" role="tab" aria-controls="attachment" aria-selected="false">
+              <i class="fas fa-link me-2"></i>Attachment
+            </button>
+          <% end %>
+          <% if @user.extended_survey_completed? %>
+            <button class="nav-link mb-2" id="cognitive-tab" data-bs-toggle="pill" data-bs-target="#cognitive" type="button" role="tab" aria-controls="cognitive" aria-selected="false">
+              <i class="fas fa-brain me-2"></i>Cognitive
+            </button>
+            <button class="nav-link mb-2" id="moral-tab" data-bs-toggle="pill" data-bs-target="#moral" type="button" role="tab" aria-controls="moral" aria-selected="false">
+              <i class="fas fa-compass me-2"></i>Moral
+            </button>
+            <button class="nav-link mb-2" id="narrative-tab" data-bs-toggle="pill" data-bs-target="#narrative" type="button" role="tab" aria-controls="narrative" aria-selected="false">
+              <i class="fas fa-book-reader me-2"></i>Narrative
+            </button>
+            <button class="nav-link mb-2" id="psychological-tab" data-bs-toggle="pill" data-bs-target="#psychological" type="button" role="tab" aria-controls="psychological" aria-selected="false">
+              <i class="fas fa-puzzle-piece me-2"></i>Psychological
+            </button>
+            <button class="nav-link mb-2" id="dark-tab" data-bs-toggle="pill" data-bs-target="#dark" type="button" role="tab" aria-controls="dark" aria-selected="false">
+              <i class="fas fa-mask me-2"></i>Dark Triad
+            </button>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Tab Content -->
+      <div class="col-md-9">
+        <div class="tab-content" id="personalityTabContent">
+          <%= render "users/personality_profile/overview", personality_profile: @personality_profile %>
+          <%= render "users/personality_profile/big_five", personality_profile: @personality_profile %>
+          <%= render "users/personality_profile/emotional_intelligence", personality_profile: @personality_profile %>
+          
+          <% if @personality_profile[:extended_traits].present? %>
+            <% if @personality_profile[:extended_traits][:hexaco].present? %>
+              <%= render "users/personality_profile/hexaco", personality_profile: @personality_profile %>
+            <% end %>
+            
+            <% if @personality_profile[:extended_traits][:attachment_style].present? %>
+              <%= render "users/personality_profile/attachment", personality_profile: @personality_profile %>
+            <% end %>
+            
+            <% if @user.extended_survey_completed? %>
+              <%= render "users/personality_profile/cognitive", personality_profile: @personality_profile %>
+              <%= render "users/personality_profile/moral", personality_profile: @personality_profile %>
+              <%= render "users/personality_profile/narrative", personality_profile: @personality_profile %>
+              <%= render "users/personality_profile/psychological", personality_profile: @personality_profile %>
+              <%= render "users/personality_profile/dark_triad", personality_profile: @personality_profile %>
+            <% end %>
+          <% end %>
+        </div>
+        
+        <!-- Survey Action Buttons (follow requirements for different user states) -->
+        <div class="mt-4 d-flex gap-2">
+          <% if @user.basic_survey_completed? && @user.extended_survey_completed? %>
+            <%= link_to "Retake Basic Survey", surveys_path(type: 'basic'), class: "btn btn-outline-primary" %>
+            <%= link_to "Retake Extended Survey", surveys_path(type: 'extended'), class: "btn btn-outline-primary" %>
+          <% elsif @user.basic_survey_completed? && @user.extended_survey_in_progress? %>
+            <%= link_to "Retake Basic Survey", surveys_path(type: 'basic'), class: "btn btn-outline-primary" %>
+            <%= link_to "Continue Extended Survey", surveys_path(type: 'extended'), class: "btn btn-primary" %>
+          <% elsif @user.basic_survey_completed? || has_basic_responses %>
+            <%= link_to "Retake Basic Survey", surveys_path(type: 'basic'), class: "btn btn-outline-primary" %>
+            <%= link_to "Take Extended Survey", surveys_path(type: 'extended'), class: "btn btn-primary" %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% else %>
+    <div class="alert alert-info" role="alert">
+      <h4 class="alert-heading">Welcome to Your Personality Profile!</h4>
+      <p>To get personalized movie recommendations, we need to understand your preferences better. Please complete our personality survey to unlock your profile.</p>
+      <hr>
+      <p class="mb-0">
+        <%= link_to "Take Basic Survey", surveys_path(type: 'basic'), class: "btn btn-primary" %>
+      </p>
+    </div>
+  <% end %>
+<% else %>
+  <div class="alert alert-warning" role="alert">
+    No preferences found. Please complete the <%= link_to "survey", surveys_path, class: "alert-link" %> to receive recommendations.
+  </div>
+<% end %>

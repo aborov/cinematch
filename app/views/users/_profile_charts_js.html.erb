@@ -1,0 +1,310 @@
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize tooltips with specific configuration
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl, {
+      html: true,
+      delay: { show: 50, hide: 50 },
+      animation: true,
+      placement: 'top'
+    });
+  });
+
+  // Chart initialization functions
+  function initializeRadarChart(canvasId, data, label, colorSet) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+  new Chart(ctx, {
+    type: 'radar',
+    data: {
+        labels: Object.keys(data).map(key => key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')),
+      datasets: [{
+          label: label,
+        data: Object.values(data),
+          backgroundColor: colorSet.bgColor,
+          borderColor: colorSet.borderColor,
+          pointBackgroundColor: colorSet.borderColor,
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: colorSet.borderColor
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        r: {
+            angleLines: { display: true },
+            suggestedMin: 0,
+            suggestedMax: 100
+          }
+        },
+        plugins: {
+          legend: { display: false }
+        }
+      }
+    });
+  }
+
+  function initializePolarAreaChart(canvasId, data, colors) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    new Chart(ctx, {
+      type: 'polarArea',
+      data: {
+        labels: Object.keys(data).map(key => key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')),
+        datasets: [{
+          data: Object.values(data),
+          backgroundColor: colors.bgColors,
+          borderColor: colors.borderColors,
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          r: {
+            beginAtZero: true,
+            suggestedMax: 100
+          }
+        },
+        plugins: {
+          legend: { position: 'bottom' }
+        }
+      }
+    });
+  }
+
+  // Initialize Big Five Chart
+  const bigFiveData = <%= raw (@personality_profile&.dig(:big_five)&.except(:personality_type) || {}).to_json %>;
+  initializeRadarChart('bigFiveChart', bigFiveData, 'Big Five Personality Traits', {
+    bgColor: 'rgba(26, 143, 227, 0.2)',
+    borderColor: 'rgb(26, 143, 227)'
+  });
+
+  // Initialize Emotional Intelligence Chart
+  const eiData = <%= raw (@personality_profile&.dig(:emotional_intelligence)&.except(:composite_score, :ei_level) || {}).to_json %>;
+  initializePolarAreaChart('emotionalIntelligenceChart', eiData, {
+    bgColors: [
+      'rgba(255, 206, 86, 0.5)',
+      'rgba(255, 159, 64, 0.5)',
+      'rgba(255, 99, 132, 0.5)',
+      'rgba(54, 162, 235, 0.5)'
+    ],
+    borderColors: [
+      'rgb(255, 206, 86)',
+      'rgb(255, 159, 64)',
+      'rgb(255, 99, 132)',
+      'rgb(54, 162, 235)'
+    ]
+  });
+
+  // Initialize Moral Foundations Chart
+  const moralData = <%= raw (@personality_profile&.dig(:extended_traits, :moral_foundations)&.slice(:care, :fairness, :loyalty, :authority, :purity) || {}).to_json %>;
+  initializeRadarChart('moralFoundationsChart', moralData, 'Moral Foundations', {
+    bgColor: 'rgba(255, 159, 64, 0.2)',
+    borderColor: 'rgb(255, 159, 64)'
+  });
+
+  // Initialize Narrative Profile Chart
+  const narrativeData = <%= raw (@personality_profile&.dig(:extended_traits, :narrative)&.slice(:immersion, :character_identification, :complexity_preference, :mental_imagery) || {}).to_json %>;
+  initializeRadarChart('narrativeChart', narrativeData, 'Narrative Engagement', {
+    bgColor: 'rgba(75, 192, 192, 0.2)',
+    borderColor: 'rgb(75, 192, 192)'
+  });
+
+  // Initialize Psychological Needs Chart
+  const psychData = <%= raw (@personality_profile&.dig(:extended_traits, :psychological_needs)&.slice(:autonomy, :competence, :relatedness, :escapism, :inspiration) || {}).to_json %>;
+  initializeRadarChart('psychologicalChart', psychData, 'Psychological Needs', {
+    bgColor: 'rgba(54, 162, 235, 0.2)',
+    borderColor: 'rgb(54, 162, 235)'
+  });
+
+  // Initialize Dark Triad Chart
+  const darkData = <%= raw (@personality_profile&.dig(:extended_traits, :dark_triad)&.slice(:machiavellianism_appeal, :narcissism_appeal, :psychopathy_appeal) || {}).to_json %>;
+  new Chart(document.getElementById('darkChart')?.getContext('2d'), {
+    type: 'radar',
+    data: {
+      labels: Object.keys(darkData).map(key => key.replace('_appeal', '').split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')),
+      datasets: [{
+        label: 'Dark Triad Dimensions',
+        data: Object.values(darkData),
+        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+        borderColor: 'rgb(255, 99, 132)',
+        pointBackgroundColor: 'rgb(255, 99, 132)',
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: 'rgb(255, 99, 132)'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        r: {
+          angleLines: { display: true },
+          suggestedMin: 0,
+          suggestedMax: 100,
+          ticks: {
+            stepSize: 20
+          }
+        }
+      },
+      plugins: {
+        legend: { display: false }
+      }
+    }
+  });
+
+  // Initialize HEXACO Chart
+  const hexacoData = <%= raw (@personality_profile&.dig(:extended_traits, :hexaco, :honesty_humility)&.except(:overall) || {}).to_json %>;
+  new Chart(document.getElementById('hexacoChart')?.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: Object.keys(hexacoData).map(trait => trait.charAt(0).toUpperCase() + trait.slice(1)),
+      datasets: [{
+        label: 'HEXACO Facets',
+        data: Object.values(hexacoData),
+        backgroundColor: 'rgba(26, 143, 227, 0.2)',
+        borderColor: 'rgb(26, 143, 227)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100,
+          ticks: {
+            color: 'rgb(26, 143, 227)'
+          },
+          grid: {
+            color: 'rgba(26, 143, 227, 0.1)'
+          }
+        },
+        x: {
+          ticks: {
+            color: 'rgb(26, 143, 227)'
+          },
+          grid: {
+            display: false
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          display: false
+        }
+      }
+    }
+  });
+
+  // Initialize Attachment Style Chart
+  const attachmentData = {
+    anxiety: <%= raw @personality_profile&.dig(:extended_traits, :attachment_style, :anxiety) || 0 %>,
+    avoidance: <%= raw @personality_profile&.dig(:extended_traits, :attachment_style, :avoidance) || 0 %>
+  };
+  new Chart(document.getElementById('attachmentStyleChart')?.getContext('2d'), {
+    type: 'scatter',
+    data: {
+      datasets: [{
+        label: 'Your Attachment Style',
+        data: [{
+          x: attachmentData.avoidance,
+          y: attachmentData.anxiety
+        }],
+        backgroundColor: 'rgb(255, 99, 132)',
+        borderColor: 'rgb(255, 99, 132)',
+        pointRadius: 8,
+        pointHoverRadius: 10
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Avoidance'
+          },
+          min: 0,
+          max: 100
+        },
+        y: {
+          title: {
+            display: true,
+            text: 'Anxiety'
+          },
+          min: 0,
+          max: 100
+        }
+      },
+      plugins: {
+        legend: {
+          display: false
+        }
+      }
+    }
+  });
+
+  // Initialize Cognitive Profile Chart
+  const cognitiveData = <%= raw (@personality_profile&.dig(:extended_traits, :cognitive)&.except(:primary_style) || {}).to_json %>;
+  new Chart(document.getElementById('cognitiveChart')?.getContext('2d'), {
+    type: 'radar',
+    data: {
+      labels: Object.keys(cognitiveData).map(value => value.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' vs ')),
+      datasets: [{
+        label: 'Cognitive Style',
+        data: Object.values(cognitiveData).map(value => value.score),
+        backgroundColor: 'rgba(153, 102, 255, 0.2)',
+        borderColor: 'rgb(153, 102, 255)',
+        pointBackgroundColor: 'rgb(153, 102, 255)',
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: 'rgb(153, 102, 255)'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        r: {
+          angleLines: {
+            display: true
+          },
+          suggestedMin: -100,
+          suggestedMax: 100,
+          ticks: {
+            stepSize: 50
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const score = context.raw;
+              const dimension = context.label.split(' vs ');
+              return score < 0 ? 
+                `${dimension[0]}: ${Math.abs(score)}%` : 
+                `${dimension[1]}: ${score}%`;
+            }
+          }
+        }
+      }
+    }
+  });
+});
+</script> 

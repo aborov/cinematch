@@ -1,0 +1,50 @@
+<h3>Edit Content Preferences</h3>
+<%= form_with model: @user_preference, local: true do |form| %>
+  <div class="mb-3">
+    <%= form.label :favorite_genres, "Select your favorite genres", class: "form-label" %><br>
+    <div class="btn-group-toggle d-flex flex-wrap" data-toggle="buttons">
+      <% @genres.each do |genre| %>
+        <%= form.check_box :favorite_genres, { multiple: true, class: "btn-check", id: genre["name"].parameterize }, genre["name"], nil %>
+        <%= label_tag genre["name"].parameterize, genre["name"], class: "btn btn-outline-primary m-1" %>
+      <% end %>
+    </div>
+  </div>
+  <div class="form-group mb-3">
+    <label for="disable_adult_content" class="form-label">Adult Content</label>
+    <div class="form-check form-switch">
+      <input class="form-check-input" type="checkbox" id="disable_adult_content" name="user_preference[disable_adult_content]" value="1" <%= @user_preference.disable_adult_content ? 'checked' : '' %> />
+      <label class="form-check-label" for="disable_adult_content">
+        <span>Exclude adult content from recommendations</span>
+      </label>
+    </div>
+  </div>
+  <div class="form-group mb-1">
+    <label for="use_ai" class="form-label">Recommendation System</label>
+    <div class="form-check form-switch">
+      <input class="form-check-input" type="checkbox" id="use_ai" name="user_preference[use_ai]" value="1" <%= @user_preference.use_ai ? 'checked' : '' %> data-action="change->preferences#toggleAiOptions" />
+      <label class="form-check-label" for="use_ai">
+        <span>Use AI-powered recommendations</span>
+      </label>
+      <small class="form-text text-muted d-block">
+        Switch between traditional matching and AI-powered content recommendations
+      </small>
+    </div>
+  </div>
+  <div id="ai-options" class="mb-3 ms-5" data-preferences-target="aiOptions" style="display: <%= @user_preference.use_ai ? 'block' : 'none' %>">
+    <div class="form-group">
+      <label for="ai_model" class="form-label">AI Model</label>
+      <%= select_tag "user_preference[ai_model]",
+          options_for_select(
+            @available_models.map { |key, config| 
+              ["#{config[:name]} - #{config[:description]}", key]
+            },
+            @user_preference.ai_model
+          ),
+          class: "form-select"
+      %>
+    </div>
+  </div>
+  <div>
+    <%= form.submit "Save Preferences", class: "btn btn-primary" %>
+  </div>
+<% end %> 

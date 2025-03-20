@@ -1,0 +1,78 @@
+<!-- HEXACO Tab -->
+<div class="tab-pane fade" id="hexaco" role="tabpanel" aria-labelledby="hexaco-tab">
+  <div class="mb-5">
+    <h3 class="mb-3">HEXACO Assessment</h3>
+    <div class="alert alert-light border mb-4">
+      <p class="mb-0" style="font-size: 0.9rem;">The HEXACO model extends personality assessment with a focus on Honesty-Humility, measuring traits like sincerity, fairness, and modesty. This helps understand how you engage with moral themes in stories.</p>
+    </div>
+
+    <!-- Chart Section -->
+    <div class="text-center mb-4">
+      <div style="height: 300px; max-width: 600px; margin: 0 auto;">
+        <canvas id="hexacoChart"></canvas>
+      </div>
+      <p class="text-muted mt-2" style="font-size: 0.8rem;">Higher scores indicate stronger presence of these personality aspects.</p>
+    </div>
+
+    <!-- Metrics Section -->
+    <div class="row">
+      <!-- HEXACO Dimensions -->
+      <div class="col-md-5">
+        <% hexaco_descriptions = {
+          honesty: "Tendency toward truthfulness and authenticity",
+          sincerity: "Genuineness in interpersonal relations",
+          fairness: "Commitment to ethical principles",
+          modesty: "Being unassuming and humble",
+          greedavoidance: "Moderation in material desires",
+          faithfulness: "Loyalty in relationships"
+        } %>
+        <% personality_profile[:extended_traits][:hexaco][:honesty_humility].except(:overall).each do |facet, score| %>
+          <div class="mb-3">
+            <div class="trait-score">
+              <div class="d-flex justify-content-between mb-1">
+                <label>
+                  <span data-bs-toggle="tooltip" data-bs-placement="top" title="<%= hexaco_descriptions[facet] %>">
+                    <strong><%= facet.to_s.titleize %></strong>
+                  </span>
+                </label>
+                <span><%= score %>%</span>
+              </div>
+              <div class="progress mb-2">
+                <div class="progress-bar bg-info" 
+                     role="progressbar" 
+                     style="width: <%= score %>%"
+                     aria-valuenow="<%= score %>" 
+                     aria-valuemin="0" 
+                     aria-valuemax="100">
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Composite Score -->
+      <div class="col-md-7">
+        <div class="alert alert-info p-3 rounded">
+          <h5 class="mb-3">Overall Integrity Profile</h5>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <span>Honesty-Humility Score</span>
+            <span class="badge bg-info"><%= personality_profile[:extended_traits][:hexaco][:honesty_humility][:overall] %>%</span>
+          </div>
+          <div class="mb-2">
+            Level: <strong><%= personality_profile[:extended_traits][:hexaco][:integrity_level].to_s.titleize %></strong>
+          </div>
+          <% 
+            integrity_descriptions = {
+              "opportunistic" => "You take a practical approach to ethics, adapting to circumstances. You may enjoy morally complex characters and strategic narratives.",
+              "pragmatic" => "You balance principles with practicality. You appreciate stories that explore ethical dilemmas and moral trade-offs.",
+              "principled" => "You value ethical behavior highly. You connect with characters who maintain their integrity despite challenges.",
+              "highly_principled" => "You have strong ethical convictions. You resonate with stories about moral courage and justice."
+            }
+          %>
+          <p class="mb-0"><%= integrity_descriptions[personality_profile[:extended_traits][:hexaco][:integrity_level]] %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

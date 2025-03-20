@@ -1,0 +1,99 @@
+<!-- Narrative Profile Tab -->
+<div class="tab-pane fade" id="narrative" role="tabpanel" aria-labelledby="narrative-tab">
+  <div class="mb-5">
+    <h3 class="mb-3">Narrative Profile</h3>
+    <div class="alert alert-light border mb-4">
+      <p class="mb-0" style="font-size: 0.9rem;">Your narrative profile reveals how you engage with stories and what types of storytelling resonate with you most.</p>
+    </div>
+
+    <!-- Chart Section -->
+    <div class="text-center mb-4">
+      <div style="height: 300px; max-width: 600px; margin: 0 auto;">
+        <canvas id="narrativeChart"></canvas>
+      </div>
+      <p class="text-muted mt-2" style="font-size: 0.8rem;">Higher scores indicate stronger engagement with these narrative aspects.</p>
+    </div>
+
+    <!-- Narrative Dimensions -->
+    <div class="row">
+      <div class="col-md-6">
+        <% narrative_dimensions = {
+          immersion: {
+            description: "Your ability to become deeply absorbed in a story, losing track of time and surroundings",
+            implications: {
+              high: "You easily become fully immersed in stories, making them feel vivid and real",
+              medium: "You can become immersed while maintaining awareness of your surroundings",
+              low: "You tend to maintain emotional distance from stories"
+            }
+          },
+          character_identification: {
+            description: "How strongly you identify with and relate to characters in stories",
+            implications: {
+              high: "You form strong emotional connections with characters and their journeys",
+              medium: "You can relate to characters while maintaining perspective",
+              low: "You focus more on plot and themes than character relationships"
+            }
+          },
+          complexity_preference: {
+            description: "Your comfort with and enjoyment of complex, multilayered narratives",
+            implications: {
+              high: "You enjoy intricate plots with multiple storylines and deep themes",
+              medium: "You appreciate both simple and complex narratives",
+              low: "You prefer straightforward, focused storytelling"
+            }
+          },
+          mental_imagery: {
+            description: "Your ability to create vivid mental images from narrative descriptions",
+            implications: {
+              high: "You easily visualize scenes and create rich mental imagery",
+              medium: "You can form mental images while following the story",
+              low: "You focus more on dialogue and action than visual details"
+            }
+          }
+        } %>
+
+        <% personality_profile[:extended_traits][:narrative].slice(:immersion, :character_identification, :complexity_preference, :mental_imagery).each do |dimension, score| %>
+          <div class="mb-3">
+            <div class="trait-score">
+              <div class="d-flex justify-content-between mb-1">
+                <label>
+                  <span data-bs-toggle="tooltip" data-bs-placement="top" title="<%= narrative_dimensions[dimension][:description] %>">
+                    <strong><%= dimension.to_s.titleize.gsub('_', ' ') %></strong>
+                  </span>
+                </label>
+                <span><%= score %>%</span>
+              </div>
+              <div class="progress mb-2">
+                <div class="progress-bar bg-info" 
+                     role="progressbar" 
+                     style="width: <%= score %>%"
+                     aria-valuenow="<%= score %>" 
+                     aria-valuemin="0" 
+                     aria-valuemax="100">
+                </div>
+              </div>
+              <% 
+                level = if score >= 70
+                  "high"
+                elsif score <= 30
+                  "low"
+                else
+                  "medium"
+                end
+              %>
+              <small class="text-muted"><%= narrative_dimensions[dimension][:implications][level.to_sym] %></small>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Style Preference -->
+      <div class="col-md-6">
+        <div class="alert alert-info">
+          <h5 class="mb-3">Narrative Style: <%= personality_profile[:extended_traits][:narrative][:narrative_style_preference].to_s.titleize.gsub('_', ' ') %></h5>
+          <p class="mb-0"><%= personality_profile[:extended_traits][:narrative][:film_recommendations] %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

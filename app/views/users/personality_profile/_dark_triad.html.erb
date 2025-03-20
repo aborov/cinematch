@@ -1,0 +1,98 @@
+<!-- Dark Triad Tab -->
+<div class="tab-pane fade" id="dark" role="tabpanel" aria-labelledby="dark-tab">
+  <div class="mb-5">
+    <h3 class="mb-3">Dark Triad</h3>
+    <div class="alert alert-light border mb-4">
+      <p class="mb-0" style="font-size: 0.9rem;">Your Dark Triad profile indicates how you engage with complex character motivations and psychological themes in media.</p>
+    </div>
+
+    <% if personality_profile[:extended_traits]&.dig(:dark_triad).present? %>
+      <!-- Chart Section -->
+      <div class="text-center mb-4">
+        <div style="height: 300px; max-width: 600px; margin: 0 auto;">
+          <canvas id="darkChart"></canvas>
+        </div>
+        <p class="text-muted mt-2" style="font-size: 0.8rem;">Higher scores indicate greater resonance with these psychological themes.</p>
+      </div>
+
+      <!-- Dark Triad Dimensions -->
+      <div class="row">
+        <div class="col-md-6">
+          <% dark_dimensions = {
+            machiavellianism_appeal: {
+              description: "Comfort with themes of manipulation and strategic deception",
+              implications: {
+                high: "Strong interest in complex power dynamics and strategic manipulation in stories",
+                medium: "Moderate engagement with themes of social maneuvering",
+                low: "Preference for straightforward narratives with clear moral positions"
+              }
+            },
+            narcissism_appeal: {
+              description: "Interest in themes of grandiosity and self-importance",
+              implications: {
+                high: "Drawn to stories about exceptional individuals and dramatic personal achievement",
+                medium: "Balanced interest in both personal achievement and collective stories",
+                low: "Preference for humble characters and community-focused narratives"
+              }
+            },
+            psychopathy_appeal: {
+              description: "Tolerance for intense or disturbing content",
+              implications: {
+                high: "Can handle intense psychological thrillers and dark themes",
+                medium: "Moderate tolerance for challenging content",
+                low: "Preference for lighter content with less psychological intensity"
+              }
+            }
+          } %>
+
+          <% dark_dimensions.each do |dimension, info| %>
+            <% score = personality_profile[:extended_traits][:dark_triad][dimension] %>
+            <div class="mb-3">
+              <div class="trait-score">
+                <div class="d-flex justify-content-between mb-1">
+                  <label>
+                    <span data-bs-toggle="tooltip" data-bs-placement="top" title="<%= info[:description] %>">
+                      <strong><%= dimension.to_s.gsub('_appeal', '').titleize %></strong>
+                    </span>
+                  </label>
+                  <span><%= score %>%</span>
+                </div>
+                <div class="progress mb-2">
+                  <div class="progress-bar bg-danger" 
+                       role="progressbar" 
+                       style="width: <%= score %>%"
+                       aria-valuenow="<%= score %>" 
+                       aria-valuemin="0" 
+                       aria-valuemax="100">
+                  </div>
+                </div>
+                <% 
+                  level = if score >= 70
+                    "high"
+                  elsif score <= 30
+                    "low"
+                  else
+                    "medium"
+                  end
+                %>
+                <small class="text-muted"><%= info[:implications][level.to_sym] %></small>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <!-- Content Recommendations -->
+        <div class="col-md-6">
+          <div class="alert alert-info">
+            <h5 class="mb-3">Content Recommendations</h5>
+            <p class="mb-0"><%= personality_profile[:extended_traits][:dark_triad][:content_recommendations] rescue "No content recommendations available" %></p>
+          </div>
+        </div>
+      </div>
+    <% else %>
+      <div class="alert alert-info">
+        <p class="mb-0">Dark Triad data is not available. Please complete the extended survey to see this information.</p>
+      </div>
+    <% end %>
+  </div>
+</div> 

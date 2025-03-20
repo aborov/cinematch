@@ -1,0 +1,109 @@
+<!-- Psychological Needs Tab -->
+<div class="tab-pane fade" id="psychological" role="tabpanel" aria-labelledby="psychological-tab">
+  <div class="mb-5">
+    <h3 class="mb-3">Psychological Needs</h3>
+    <div class="alert alert-light border mb-4">
+      <p class="mb-0" style="font-size: 0.9rem;">Your psychological needs profile shows what motivates you and what you seek in media experiences.</p>
+    </div>
+
+    <!-- Chart Section -->
+    <div class="text-center mb-4">
+      <div style="height: 300px; max-width: 600px; margin: 0 auto;">
+        <canvas id="psychologicalChart"></canvas>
+      </div>
+      <p class="text-muted mt-2" style="font-size: 0.8rem;">Higher scores indicate stronger psychological needs in these areas.</p>
+    </div>
+
+    <!-- Psychological Dimensions -->
+    <div class="row">
+      <div class="col-md-6">
+        <% psych_dimensions = {
+          autonomy: {
+            description: "Your need for independence and self-directed choice in experiences",
+            implications: {
+              high: "You strongly connect with stories about personal freedom and self-determination",
+              medium: "You appreciate both independent and guided narratives",
+              low: "You may focus less on themes of personal autonomy"
+            }
+          },
+          competence: {
+            description: "Your desire to feel effective and capable in your actions",
+            implications: {
+              high: "You enjoy stories about mastery, achievement, and overcoming challenges",
+              medium: "You appreciate both growth and established competence",
+              low: "You may focus less on achievement-oriented narratives"
+            }
+          },
+          relatedness: {
+            description: "Your need for meaningful connections and belonging",
+            implications: {
+              high: "You strongly resonate with stories about relationships and community",
+              medium: "You value both connection and independence in stories",
+              low: "You may prefer stories focusing on individual journeys"
+            }
+          },
+          escapism: {
+            description: "Your desire to temporarily disengage from daily concerns",
+            implications: {
+              high: "You seek immersive experiences that provide relief from reality",
+              medium: "You balance escapist entertainment with grounded content",
+              low: "You prefer content that connects to real-world experiences"
+            }
+          },
+          inspiration: {
+            description: "Your need for uplifting and motivating experiences",
+            implications: {
+              high: "You strongly connect with inspiring and transformative stories",
+              medium: "You appreciate both inspiring and realistic narratives",
+              low: "You may prefer more grounded or pragmatic content"
+            }
+          }
+        } %>
+
+        <% if personality_profile[:extended_traits][:psychological_needs].present? %>
+          <% personality_profile[:extended_traits][:psychological_needs].slice(:autonomy, :competence, :relatedness, :escapism, :inspiration).each do |need, score| %>
+            <div class="mb-3">
+              <div class="trait-score">
+                <div class="d-flex justify-content-between mb-1">
+                  <label>
+                    <span data-bs-toggle="tooltip" data-bs-placement="top" title="<%= psych_dimensions[need][:description] %>">
+                      <strong><%= need.to_s.titleize %></strong>
+                    </span>
+                  </label>
+                  <span><%= score %>%</span>
+                </div>
+                <div class="progress mb-2">
+                  <div class="progress-bar bg-primary" 
+                       role="progressbar" 
+                       style="width: <%= score %>%"
+                       aria-valuenow="<%= score %>" 
+                       aria-valuemin="0" 
+                       aria-valuemax="100">
+                  </div>
+                </div>
+                <% 
+                  level = if score >= 70
+                    "high"
+                  elsif score <= 30
+                    "low"
+                  else
+                    "medium"
+                  end
+                %>
+                <small class="text-muted"><%= psych_dimensions[need][:implications][level.to_sym] %></small>
+              </div>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+
+      <!-- Content Alignment -->
+      <div class="col-md-6">
+        <div class="alert alert-info">
+          <h5 class="mb-3">Media Function: <%= personality_profile[:extended_traits][:psychological_needs][:media_function].to_s.titleize.gsub('_', ' ') rescue "Unknown" %></h5>
+          <p class="mb-0"><%= personality_profile[:extended_traits][:psychological_needs][:content_alignment] rescue "No content alignment available" %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

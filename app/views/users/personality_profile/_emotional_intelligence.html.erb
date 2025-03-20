@@ -1,0 +1,112 @@
+<!-- Emotional Intelligence Tab -->
+<div class="tab-pane fade" id="ei" role="tabpanel" aria-labelledby="ei-tab">
+  <% if personality_profile[:emotional_intelligence].present? %>
+    <div class="mb-5">
+      <h3 class="mb-3">Emotional Intelligence</h3>
+      <div class="alert alert-light border mb-4">
+        <p class="mb-0" style="font-size: 0.9rem;">Emotional intelligence is the ability to understand and manage emotions effectively. Your profile shows your strengths across four key dimensions of emotional intelligence.</p>
+      </div>
+
+      <!-- Chart Section -->
+      <div class="text-center mb-4">
+        <div style="height: 300px; max-width: 600px; margin: 0 auto;">
+          <canvas id="emotionalIntelligenceChart"></canvas>
+        </div>
+        <p class="text-muted mt-2" style="font-size: 0.8rem;">Larger segments represent stronger abilities in those emotional dimensions.</p>
+      </div>
+
+      <!-- Metrics Section -->
+      <div class="row">
+        <!-- EI Dimensions -->
+        <div class="col-md-6">
+          <% ei_descriptions = {
+            emotional_recognition: "The ability to identify and name emotions in yourself and others. High scorers are adept at recognizing emotional cues in facial expressions, body language, and tone of voice.",
+            emotional_management: "The ability to regulate emotions effectively and respond appropriately to different situations. High scorers can manage strong emotions without being overwhelmed and can calm themselves when upset.",
+            emotional_understanding: "The ability to understand complex emotions, how they evolve, and how they influence behavior. High scorers comprehend emotional causes and consequences and can predict emotional reactions.",
+            emotional_adaptation: "The ability to adapt emotions to different situations and use them to facilitate thinking and behavior. High scorers can adjust their emotional responses appropriately to changing circumstances."
+          } %>
+          <% ei_implications = {
+            emotional_recognition: {
+              high: "You likely pick up on subtle emotional cues in films and connect deeply with character emotions.",
+              medium: "You can generally recognize important emotional elements in stories and characters.",
+              low: "You might focus more on plot and action than on emotional subtleties in films."
+            },
+            emotional_management: {
+              high: "You can engage with emotionally intense content without becoming overwhelmed.",
+              medium: "You can handle moderate emotional content but might need breaks during intense films.",
+              low: "You might prefer films with less emotional intensity or clear emotional resolution."
+            },
+            emotional_understanding: {
+              high: "You likely appreciate complex emotional narratives and character development.",
+              medium: "You can follow emotional storylines but might miss some deeper emotional themes.",
+              low: "You might prefer straightforward emotional arcs and clear character motivations."
+            },
+            emotional_adaptation: {
+              high: "You can shift between different emotional tones in films and appreciate emotional complexity.",
+              medium: "You can adapt to changing emotional tones but might prefer consistent emotional themes.",
+              low: "You might prefer films with consistent emotional tones rather than emotional shifts."
+            }
+          } %>
+          <% personality_profile[:emotional_intelligence].except(:composite_score, :ei_level).each do |trait, score| %>
+            <div class="mb-4">
+              <div class="trait-score">
+                <div class="d-flex justify-content-between mb-1">
+                  <label>
+                    <span data-bs-toggle="tooltip" data-bs-placement="top" title="<%= ei_descriptions[trait.to_sym] %>">
+                      <strong><%= trait.to_s.gsub('_', ' ').titleize %></strong>
+                    </span>
+                  </label>
+                  <span><%= score %>%</span>
+                </div>
+                <div class="progress mb-2">
+                  <div class="progress-bar bg-warning" 
+                       role="progressbar" 
+                       style="width: <%= score %>%"
+                       aria-valuenow="<%= score %>" 
+                       aria-valuemin="0" 
+                       aria-valuemax="100">
+                  </div>
+                </div>
+                <% 
+                  level = if score >= 70
+                    "high"
+                  elsif score <= 30
+                    "low"
+                  else
+                    "medium"
+                  end
+                %>
+                <small class="text-muted"><%= ei_implications[trait.to_sym][level.to_sym] %></small>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <!-- Composite Score -->
+        <div class="col-md-6">
+          <% if personality_profile[:emotional_intelligence][:composite_score].present? && personality_profile[:emotional_intelligence][:ei_level].present? %>
+            <div class="alert alert-info p-3 rounded">
+              <h5 class="mb-3">Overall Emotional Intelligence</h5>
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span>Composite Score</span>
+                <span class="badge bg-warning text-dark"><%= personality_profile[:emotional_intelligence][:composite_score] %>%</span>
+              </div>
+              <div class="mb-2">
+                Level: <strong><%= personality_profile[:emotional_intelligence][:ei_level].to_s.titleize %></strong>
+              </div>
+              <% 
+                ei_level_descriptions = {
+                  "developing" => "You're building your emotional intelligence skills. You may benefit from content that helps you recognize and understand emotions more clearly.",
+                  "moderate" => "You have a balanced emotional intelligence profile. You can engage with emotionally complex content while still enjoying more straightforward narratives.",
+                  "strong" => "You have well-developed emotional intelligence. You likely appreciate nuanced emotional storytelling and complex character development.",
+                  "exceptional" => "You have highly developed emotional intelligence. You can deeply engage with emotionally complex narratives and subtle character dynamics."
+                }
+              %>
+              <p class="mb-0"><%= ei_level_descriptions[personality_profile[:emotional_intelligence][:ei_level]] %></p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div> 

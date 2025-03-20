@@ -1,0 +1,86 @@
+<!-- Attachment Style Tab -->
+<div class="tab-pane fade" id="attachment" role="tabpanel" aria-labelledby="attachment-tab">
+  <div class="mb-5">
+    <h3 class="mb-3">Attachment Style</h3>
+    <div class="alert alert-light border mb-4">
+      <p class="mb-0" style="font-size: 0.9rem;">Your attachment style reflects how you form emotional bonds and engage with relationships. This influences your connection with character dynamics and relationship narratives in movies.</p>
+    </div>
+
+    <!-- Chart Section -->
+    <div class="text-center mb-4">
+      <div style="height: 300px; max-width: 600px; margin: 0 auto;">
+        <canvas id="attachmentStyleChart"></canvas>
+      </div>
+      <p class="text-muted mt-2" style="font-size: 0.8rem;">Your position on the chart indicates your attachment style based on anxiety and avoidance levels.</p>
+    </div>
+
+    <!-- Metrics Section -->
+    <div class="row">
+      <!-- Attachment Dimensions -->
+      <div class="col-md-5">
+        <div class="mb-3">
+          <div class="trait-score">
+            <div class="d-flex justify-content-between mb-1">
+              <label>
+                <span data-bs-toggle="tooltip" data-bs-placement="top" title="Level of worry about rejection or abandonment in relationships">
+                  <strong>Attachment Anxiety</strong>
+                </span>
+              </label>
+              <span><%= personality_profile[:extended_traits][:attachment_style][:anxiety] %>%</span>
+            </div>
+            <div class="progress mb-2">
+              <div class="progress-bar bg-danger" 
+                   role="progressbar" 
+                   style="width: <%= personality_profile[:extended_traits][:attachment_style][:anxiety] %>%"
+                   aria-valuenow="<%= personality_profile[:extended_traits][:attachment_style][:anxiety] %>" 
+                   aria-valuemin="0" 
+                   aria-valuemax="100">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <div class="trait-score">
+            <div class="d-flex justify-content-between mb-1">
+              <label>
+                <span data-bs-toggle="tooltip" data-bs-placement="top" title="Level of comfort with emotional closeness and dependency in relationships">
+                  <strong>Attachment Avoidance</strong>
+                </span>
+              </label>
+              <span><%= personality_profile[:extended_traits][:attachment_style][:avoidance] %>%</span>
+            </div>
+            <div class="progress mb-2">
+              <div class="progress-bar bg-secondary" 
+                   role="progressbar" 
+                   style="width: <%= personality_profile[:extended_traits][:attachment_style][:avoidance] %>%"
+                   aria-valuenow="<%= personality_profile[:extended_traits][:attachment_style][:avoidance] %>" 
+                   aria-valuemin="0" 
+                   aria-valuemax="100">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Style Description -->
+      <div class="col-md-7">
+        <div class="alert alert-info p-3 rounded">
+          <h5 class="mb-3">Your Attachment Style</h5>
+          <div class="mb-2">
+            Style: <strong><%= personality_profile[:extended_traits][:attachment_style][:attachment_style].to_s.titleize.gsub('_', '-') %></strong>
+          </div>
+          <% 
+            attachment_descriptions = {
+              "secure" => "You're comfortable with both independence and emotional connection. You can enjoy various relationship narratives without becoming overwhelmed.",
+              "anxious" => "You value emotional closeness highly. You likely connect deeply with relationship-focused stories and character development.",
+              "avoidant" => "You prefer emotional independence. You might favor action or plot-driven content over relationship-focused narratives.",
+              "fearful_avoidant" => "You have complex feelings about relationships. You may appreciate stories that explore both connection and independence."
+            }
+          %>
+          <p class="mb-0"><%= attachment_descriptions[personality_profile[:extended_traits][:attachment_style][:attachment_style]] %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

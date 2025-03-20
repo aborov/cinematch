@@ -1,0 +1,21 @@
+<!-- Debug Section (only visible to admins) -->
+<div class="alert alert-secondary">
+  <h4>Debug Information (Admin Only)</h4>
+  <p>Basic Survey Completed: <%= @user.basic_survey_completed? %></p>
+  <p>Extended Survey Completed: <%= @user.extended_survey_completed? %></p>
+  <p>HEXACO Completed: <%= @hexaco_completed %></p>
+  <p>Attachment Style Completed: <%= @attachment_completed %></p>
+  <p>Profile Structure:</p>
+  <ul>
+    <li>Big Five: <%= @personality_profile[:big_five].keys.join(', ') %></li>
+    <li>Emotional Intelligence: <%= @personality_profile[:emotional_intelligence].keys.join(', ') %></li>
+    <li>Extended Traits Present: <%= @personality_profile[:extended_traits].present? %></li>
+    <% if @personality_profile[:extended_traits].present? %>
+      <li>HEXACO Present: <%= @personality_profile[:extended_traits][:hexaco].present? %></li>
+      <% if @personality_profile[:extended_traits][:hexaco].present? %>
+        <li>HEXACO Honesty-Humility Present: <%= @personality_profile[:extended_traits][:hexaco][:honesty_humility].present? %></li>
+      <% end %>
+      <li>Attachment Style Present: <%= @personality_profile[:extended_traits][:attachment_style].present? %></li>
+    <% end %>
+  </ul>
+</div> 

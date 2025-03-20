@@ -1,0 +1,108 @@
+<!-- Overview Tab -->
+<div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+  <div class="d-flex align-items-center gap-4 mb-4">
+    <img src="/assets/silhouettes.png" alt="Personality Assessment Illustration" class="img-fluid" style="width: 150px;">
+    <p class="mb-0 flex-grow-1" style="font-size: 0.9rem;">Cinematch combines the Big Five Personality Model, HEXACO Integrity Assessment, Attachment Style Analysis, and Emotional Intelligence measures to provide movie recommendations that match your unique traits and preferences.</p>
+  </div>
+
+  <% 
+    # Check if we have data to display even if survey completion status isn't updated
+    has_profile_data = personality_profile.present? && personality_profile[:big_five].present?
+    survey_considered_complete = @user.basic_survey_completed? || has_profile_data
+  %>
+
+  <% if @user.user_preference.personality_summary.blank? && survey_considered_complete %>
+    <% 
+      # Generate summary if it doesn't exist
+      @user.user_preference.personality_summary = PersonalitySummaryService.generate_summary(@user)
+      @user.user_preference.save if @user.user_preference.changed?
+    %>
+  <% end %>
+
+  <% if @user.user_preference.personality_summary.present? %>
+    <div class="alert alert-info bg-space-cadet rounded p-3 mb-4">
+      <div class="row g-0">
+        <div class="col-12">
+          <h5 class="mb-2 text-jonquil">Your Personality Summary</h5>
+          <p class="mb-0 text-mint-green"><%= @user.user_preference.personality_summary %></p>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="mb-4">
+    <h5>Key Metrics</h5>
+    <div class="row g-3">
+      <!-- Big Five Highest Trait -->
+      <% if personality_profile[:big_five].present? %>
+        <% 
+          highest_trait = personality_profile[:big_five].except(:personality_type).max_by{|k,v| v}
+          trait_descriptions = {
+            openness: "Openness reflects curiosity, creativity, and preference for variety. High scorers tend to be imaginative and adventurous.",
+            conscientiousness: "Conscientiousness indicates organization, dependability, and self-discipline. High scorers are typically careful and diligent.",
+            extraversion: "Extraversion relates to sociability, assertiveness, and emotional expressiveness. High scorers tend to be outgoing and energetic.",
+            agreeableness: "Agreeableness represents traits like trust, altruism, and cooperation. High scorers are typically friendly and compassionate.",
+            neuroticism: "Neuroticism reflects emotional stability and anxiety levels. High scorers may experience more stress and emotional reactivity."
+          }
+        %>
+        <div class="col-md-6">
+          <div class="p-3 border rounded h-100" data-bs-toggle="tooltip" data-bs-placement="top" title="<%= trait_descriptions[highest_trait[0].to_sym] %>">
+            <div class="d-flex justify-content-between align-items-start">
+              <h6 class="mb-3">
+                Dominant Trait
+              </h6>
+              <span class="badge" style="background-color: var(--tufts-blue); color: var(--mint-green);"><%= highest_trait[1] %>%</span>
+            </div>
+            <p class="mb-0 text-capitalize"><%= highest_trait[0] %></p>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Emotional Intelligence Level -->
+      <% if personality_profile[:emotional_intelligence].present? && personality_profile[:emotional_intelligence][:ei_level].present? %>
+        <div class="col-md-6">
+          <div class="p-3 border rounded h-100" data-bs-toggle="tooltip" data-bs-placement="top" title="Your composite emotional intelligence score, measuring recognition, management, understanding, and adaptation of emotions. This influences how you connect with characters and emotional narratives.">
+            <div class="d-flex justify-content-between align-items-start">
+              <h6 class="mb-3">
+                Emotional Intelligence
+              </h6>
+              <span class="badge" style="background-color: var(--jonquil); color: var(--space-cadet);"><%= personality_profile[:emotional_intelligence][:composite_score] %>%</span>
+            </div>
+            <p class="mb-0"><%= personality_profile[:emotional_intelligence][:ei_level].to_s.titleize %></p>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- HEXACO Integrity Level -->
+      <% if personality_profile[:extended_traits].present? && personality_profile[:extended_traits][:hexaco].present? %>
+        <div class="col-md-6">
+          <div class="p-3 border rounded h-100" data-bs-toggle="tooltip" data-bs-placement="top" title="Your HEXACO Honesty-Humility score measures sincerity, fairness, and ethical principles. This influences your appreciation of moral themes and character motivations in stories.">
+            <div class="d-flex justify-content-between align-items-start">
+              <h6 class="mb-3">
+                Integrity Level
+              </h6>
+              <span class="badge" style="background-color: var(--engineering-orange); color: var(--mint-green);">
+                <%= personality_profile[:extended_traits][:hexaco][:honesty_humility][:overall] %>%
+              </span>
+            </div>
+            <p class="mb-0"><%= personality_profile[:extended_traits][:hexaco][:integrity_level].to_s.titleize %></p>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Attachment Style -->
+      <% if personality_profile[:extended_traits].present? && personality_profile[:extended_traits][:attachment_style].present? %>
+        <div class="col-md-6">
+          <div class="p-3 border rounded h-100" data-bs-toggle="tooltip" data-bs-placement="top" title="Your attachment style reflects how you form emotional bonds and engage with relationships. This influences how you connect with character dynamics and relationship narratives in movies.">
+            <div class="d-flex justify-content-between align-items-start">
+              <h6 class="mb-3">
+                Attachment Style
+              </h6>
+            </div>
+            <p class="mb-0"><%= personality_profile[:extended_traits][:attachment_style][:attachment_style].to_s.titleize.gsub('_', '-') %></p>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div> 
