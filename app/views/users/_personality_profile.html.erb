@@ -97,13 +97,13 @@
         <!-- Survey Action Buttons (follow requirements for different user states) -->
         <div class="mt-4 d-flex gap-2">
           <% if @user.basic_survey_completed? && @user.extended_survey_completed? %>
-            <%= link_to "Retake Basic Survey", surveys_path(type: 'basic'), class: "btn btn-outline-primary" %>
-            <%= link_to "Retake Extended Survey", surveys_path(type: 'extended'), class: "btn btn-outline-primary" %>
+            <%= link_to "Retake Basic Survey", surveys_path(type: 'basic', retake: 'true'), class: "btn btn-outline-primary" %>
+            <%= link_to "Retake Extended Survey", surveys_path(type: 'extended', retake: 'true'), class: "btn btn-outline-primary" %>
           <% elsif @user.basic_survey_completed? && @user.extended_survey_in_progress? %>
-            <%= link_to "Retake Basic Survey", surveys_path(type: 'basic'), class: "btn btn-outline-primary" %>
+            <%= link_to "Retake Basic Survey", surveys_path(type: 'basic', retake: 'true'), class: "btn btn-outline-primary" %>
             <%= link_to "Continue Extended Survey", surveys_path(type: 'extended'), class: "btn btn-primary" %>
           <% elsif @user.basic_survey_completed? || has_basic_responses %>
-            <%= link_to "Retake Basic Survey", surveys_path(type: 'basic'), class: "btn btn-outline-primary" %>
+            <%= link_to "Retake Basic Survey", surveys_path(type: 'basic', retake: 'true'), class: "btn btn-outline-primary" %>
             <%= link_to "Take Extended Survey", surveys_path(type: 'extended'), class: "btn btn-primary" %>
           <% end %>
         </div>

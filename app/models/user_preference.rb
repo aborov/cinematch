@@ -45,50 +45,6 @@ class UserPreference < ApplicationRecord
     allow_nil: true 
   }
 
-  def generate_recommendations
-    if personality_profiles.blank?
-      Rails.logger.error "Cannot generate recommendations: personality_profiles is blank"
-      return []
-    end
-    
-    if favorite_genres.blank?
-      Rails.logger.error "Cannot generate recommendations: favorite_genres is blank"
-      return []
-    end
-
-    begin
-      if use_ai
-        recommended_ids, reasons, match_scores = AiRecommendationService.generate_recommendations(self)
-        update(
-          recommended_content_ids: recommended_ids,
-          recommendation_reasons: reasons,
-          recommendation_scores: match_scores,
-          recommendations_generated_at: Time.current,
-          processing: false
-        )
-      else
-        recommended_ids = generate_internal_recommendations
-        update(
-          recommended_content_ids: recommended_ids,
-          recommendation_reasons: {},
-          recommendation_scores: {},
-          recommendations_generated_at: Time.current,
-          processing: false
-        )
-      end
-      
-    Rails.cache.delete_matched("user_#{user_id}_recommendations_*")
-    Rails.cache.delete("user_#{user_id}_recommendations_page_1")
-      
-      recommended_ids
-    rescue StandardError => e
-      update(processing: false)
-      Rails.logger.error "Failed to generate recommendations: #{e.message}"
-      Rails.logger.error e.backtrace.join("\n")
-      []
-    end
-  end
-
   def calculate_match_score(genre_ids)
     genre_names = Genre.where(tmdb_id: genre_ids).pluck(:name)
     
@@ -167,8 +123,6 @@ class UserPreference < ApplicationRecord
       "user_id", 
       "favorite_genres", 
       "personality_profiles", 
-      "recommended_content_ids",
-      "recommendations_generated_at",
       "disable_adult_content",
       "use_ai",
       "ai_model",
@@ -182,11 +136,11 @@ class UserPreference < ApplicationRecord
   end
   
   def recommendations_outdated?
-    Rails.cache.fetch("user_#{user_id}_recommendations_outdated", expires_in: 5.minutes) do
-      recommended_content_ids.empty? ||
-        recommendations_generated_at.nil? ||
-        updated_at > recommendations_generated_at ||
-        Content.where("updated_at > ?", recommendations_generated_at).exists?
+    # Delegate to user_recommendation if it exists
+    if user&.user_recommendation.present?
+      user.user_recommendation.recommendations_outdated?
+    else
+      true # If there's no recommendation object, consider recommendations outdated
     end
   end
 
@@ -195,16 +149,11 @@ class UserPreference < ApplicationRecord
   end
 
   def ensure_recommendations
-    if recommendations_outdated? || recommended_content_ids.blank?
-      Rails.logger.info("Ensuring recommendations for user #{user_id}")
-      # Avoid queueing multiple jobs by checking if already processing
-      unless processing?
-        update(processing: true)
-        GenerateRecommendationsJob.perform_later(id)
-      end
-      return false
-    end
-    true
+    # Create user_recommendation if it doesn't exist
+    user_rec = user.ensure_user_recommendation
+    
+    # Delegate to the user_recommendation object
+    user_rec.ensure_recommendations
   end
 
   private
@@ -267,22 +216,6 @@ class UserPreference < ApplicationRecord
     Rails.logger.info("Score: #{score}")
     
     score
-  end
-
-  def generate_internal_recommendations
-    base_content = Content.all
-    base_content = base_content.where(adult: [false, nil]) if disable_adult_content
-
-    content_with_scores = base_content.map do |content|
-      {
-        id: content.id,
-        match_score: calculate_match_score(content.genre_ids_array)
-      }
-    end
-
-    content_with_scores.sort_by { |r| -r[:match_score] }
-                       .first(100)
-                       .map { |r| r[:id] }
   end
 
   def determine_score_weights(profile)

@@ -70,6 +70,14 @@ class SurveyQuestion < ApplicationRecord
   # Add scope for attention check questions
   scope :attention_checks, -> { where(question_type: 'attention_check') }
 
+  def self.basic_survey_questions_with_answers
+    basic_survey.where.not(question_type: 'attention_check').to_a
+  end
+
+  def self.extended_survey_questions_with_answers
+    extended_survey.where.not(question_type: 'attention_check').to_a
+  end
+
   def self.ransackable_attributes(auth_object = nil)
     ["created_at", "id", "question_text", "question_type", "updated_at"]
   end

@@ -11,6 +11,25 @@ class UsersController < ApplicationController
     @user_preference = @user.user_preference || @user.build_user_preference
     @genres = TmdbService.fetch_genres[:user_facing_genres]
     @available_models = AiModelsConfig.available_models
+    
+    # Generate personality profile regardless of survey status
+    # This ensures the profile is displayed even if the survey was just completed
+    @personality_profile = PersonalityProfileService.generate_profile(@user, true)
+    
+    # Ensure the user has a personality summary if they've completed at least the basic survey
+    if @user.basic_survey_completed? && @user.user_preference.personality_summary.blank?
+      @user.user_preference.personality_summary = PersonalitySummaryService.generate_summary(@user)
+      @user.user_preference.save
+    end
+    
+    # Log status for debugging
+    Rails.logger.info "User #{@user.id} Profile View"
+    Rails.logger.info "Basic Survey Completed: #{@user.basic_survey_completed?}"
+    Rails.logger.info "Extended Survey Completed: #{@user.extended_survey_completed?}"
+    Rails.logger.info "Extended Survey In Progress: #{@user.extended_survey_in_progress?}"
+    Rails.logger.info "Personality Profile Generated: #{@personality_profile.present?}"
+    Rails.logger.info "Big Five Present: #{@personality_profile[:big_five].present?}" if @personality_profile.present?
+    
     render :show
   end
 

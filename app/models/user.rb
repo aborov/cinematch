@@ -94,7 +94,22 @@ class User < ApplicationRecord
   end
 
   def ensure_user_recommendation
-    user_recommendation || create_user_recommendation!
+    return user_recommendation if user_recommendation.present?
+    
+    Rails.logger.info "Creating user_recommendation for user #{id}"
+    begin
+      create_user_recommendation!
+    rescue => e
+      Rails.logger.error "Error creating user_recommendation: #{e.message}"
+      # Try a second time with explicit parameters in case the first attempt failed
+      UserRecommendation.create!(
+        user_id: id,
+        processing: false,
+        recommended_content_ids: nil,
+        recommendation_reasons: nil,
+        recommendation_scores: nil
+      )
+    end
   end
 
   def validate_age
@@ -132,6 +147,229 @@ class User < ApplicationRecord
 
   def touch_last_active
     update_column(:last_active_at, Time.current)
+  end
+
+  def basic_survey_completed?
+    # First check if we have the cached value
+    Rails.logger.debug "Checking basic_survey_completed for user #{id}"
+    Rails.logger.debug "User preference: #{user_preference.inspect}"
+    Rails.logger.debug "Cached basic_survey_completed: #{user_preference&.basic_survey_completed}"
+    
+    if user_preference&.basic_survey_completed.present?
+      Rails.logger.debug "Using cached value: #{user_preference.basic_survey_completed}"
+      return user_preference.basic_survey_completed 
+    end
+    
+    # Fall back to calculating from responses if needed
+    basic_questions_count = SurveyQuestion.where(survey_type: 'basic')
+                                        .where.not(question_type: 'attention_check').count
+    Rails.logger.debug "Basic questions count: #{basic_questions_count}"
+    
+    return false if basic_questions_count == 0
+    
+    user_basic_responses_count = survey_responses.joins(:survey_question)
+                                               .where(survey_questions: { survey_type: 'basic' })
+                                               .where.not(survey_questions: { question_type: 'attention_check' }).count
+    Rails.logger.debug "User basic responses count: #{user_basic_responses_count}"
+    
+    # Lower threshold to 70% to account for attention check questions
+    completion_threshold = 0.7 
+    completed = user_basic_responses_count >= basic_questions_count * completion_threshold
+    Rails.logger.debug "Basic survey completed? #{completed} (threshold: #{completion_threshold * 100}%)"
+    
+    # Cache the result if we have a user preference (using update_column to avoid callbacks)
+    user_preference.update_column(:basic_survey_completed, completed) if user_preference
+    Rails.logger.debug "Updated user_preference.basic_survey_completed to #{completed}"
+    
+    completed
+  end
+  
+  def basic_survey_in_progress?
+    # If basic is completed, it's not in progress
+    return false if basic_survey_completed?
+    
+    # Check for any basic survey responses
+    user_basic_responses_count = survey_responses.joins(:survey_question)
+                                               .where("survey_questions.question_type LIKE 'big5_%' OR survey_questions.question_type LIKE 'ei_%'")
+                                               .where.not(survey_questions: { question_type: 'attention_check' }).count
+    in_progress = user_basic_responses_count > 0
+    
+    # Don't try to cache the result since there's no column for it
+    in_progress
+  end
+  
+  def extended_survey_completed?
+    # First check if we have the cached value
+    if user_preference&.extended_survey_completed.present?
+      Rails.logger.debug "Using cached extended_survey_completed value: #{user_preference.extended_survey_completed}"
+      return user_preference.extended_survey_completed 
+    end
+    
+    # Fall back to calculating from responses if needed
+    extended_questions_count = SurveyQuestion.where(survey_type: 'extended')
+                                           .where.not(question_type: 'attention_check').count
+    Rails.logger.debug "Extended questions count: #{extended_questions_count}"
+    
+    return false if extended_questions_count == 0
+    
+    user_extended_responses_count = survey_responses.joins(:survey_question)
+                                                  .where(survey_questions: { survey_type: 'extended' })
+                                                  .where.not(survey_questions: { question_type: 'attention_check' }).count
+    Rails.logger.debug "User extended responses count: #{user_extended_responses_count}"
+    
+    # Lower threshold to 70% to account for attention check questions
+    completion_threshold = 0.7
+    completed = user_extended_responses_count >= extended_questions_count * completion_threshold
+    Rails.logger.debug "Extended survey completed? #{completed} (threshold: #{completion_threshold * 100}%, ratio: #{user_extended_responses_count}/#{extended_questions_count})"
+    
+    # Cache the result if we have a user preference (using update_column to avoid callbacks)
+    user_preference.update_column(:extended_survey_completed, completed) if user_preference
+    Rails.logger.debug "Updated user_preference.extended_survey_completed to #{completed}"
+    
+    completed
+  end
+  
+  def extended_survey_in_progress?
+    # First check if we have the cached value
+    if user_preference&.extended_survey_in_progress.present?
+      Rails.logger.debug "Using cached extended_survey_in_progress value: #{user_preference.extended_survey_in_progress}"
+      return user_preference.extended_survey_in_progress
+    end
+    
+    # If extended is completed, it's not in progress
+    return false if extended_survey_completed?
+    
+    # If basic survey isn't completed, extended survey can't be in progress
+    return false if !basic_survey_completed?
+    
+    # Check for any extended survey responses
+    user_extended_responses_count = survey_responses.joins(:survey_question)
+                                                  .where(survey_questions: { survey_type: 'extended' })
+                                                  .where.not(survey_questions: { question_type: 'attention_check' })
+                                                  .count
+    in_progress = user_extended_responses_count > 0
+    Rails.logger.debug "Extended survey in progress? #{in_progress} (responses: #{user_extended_responses_count})"
+    
+    # Cache the result if we have a user preference (using update_column to avoid callbacks)
+    user_preference.update_column(:extended_survey_in_progress, in_progress) if user_preference
+    Rails.logger.debug "Updated user_preference.extended_survey_in_progress to #{in_progress}"
+    
+    in_progress
+  end
+
+  # Force refresh survey completion status for both surveys
+  def refresh_survey_completion_status!
+    # Clear cached values to force recalculation
+    if user_preference
+      user_preference.update_columns(
+        basic_survey_completed: nil,
+        extended_survey_completed: nil,
+        extended_survey_in_progress: nil
+      )
+      
+      Rails.logger.debug "Cleared survey completion status for user #{id}"
+    end
+    
+    # Call methods to recalculate and store results
+    basic_completed = basic_survey_completed?
+    extended_completed = extended_survey_completed?
+    basic_in_progress = basic_survey_in_progress?
+    extended_in_progress = extended_survey_in_progress?
+    
+    Rails.logger.debug "Recalculated status: Basic completed: #{basic_completed}, Extended completed: #{extended_completed}"
+    
+    # Return the new status for convenience
+    {
+      basic_completed: basic_completed,
+      extended_completed: extended_completed,
+      basic_in_progress: basic_in_progress,
+      extended_in_progress: extended_in_progress
+    }
+  end
+
+  def responses_for_survey(survey_type)
+    survey_responses.joins(:survey_question)
+                    .where(survey_questions: { survey_type: survey_type.to_s })
+                    .pluck(:survey_question_id, :response)
+                    .to_h
+  end
+
+  def basic_survey_progress
+    calculate_survey_progress('basic')
+  end
+
+  def extended_survey_progress
+    calculate_survey_progress('extended')
+  end
+
+  def calculate_survey_progress(survey_type)
+    # Get total number of questions for this survey type (excluding attention checks)
+    total_questions = SurveyQuestion.where(survey_type: survey_type)
+                                   .where.not(question_type: 'attention_check')
+                                   .count
+    
+    # Get number of questions user has answered
+    answered_questions = survey_responses.joins(:survey_question)
+                                       .where(survey_questions: { survey_type: survey_type })
+                                       .where.not(survey_questions: { question_type: 'attention_check' })
+                                       .count
+    
+    return 0 if total_questions == 0
+    (answered_questions.to_f / total_questions * 100).round
+  end
+
+  # Reset extended survey responses but keep basic ones
+  def reset_extended_survey_responses!
+    Rails.logger.info "Resetting extended survey responses for user #{id}"
+    
+    # Find extended survey questions
+    extended_question_ids = SurveyQuestion.where(survey_type: 'extended').pluck(:id)
+    
+    # Delete only extended survey responses
+    extended_responses = survey_responses.where(survey_question_id: extended_question_ids)
+    deleted_count = extended_responses.destroy_all.count
+    
+    # Update cached flags
+    if user_preference
+      user_preference.update_columns(
+        extended_survey_completed: false,
+        extended_survey_in_progress: false
+      )
+    end
+    
+    Rails.logger.info "Deleted #{deleted_count} extended survey responses for user #{id}"
+    
+    # Return number of deleted responses
+    deleted_count
+  end
+  
+  # Reset basic survey responses and also extended ones
+  def reset_basic_survey_responses!
+    Rails.logger.info "Resetting basic survey responses for user #{id}"
+    
+    # First reset extended survey as they depend on basic
+    reset_extended_survey_responses!
+    
+    # Find basic survey questions
+    basic_question_ids = SurveyQuestion.where(survey_type: 'basic').pluck(:id)
+    
+    # Delete basic survey responses
+    basic_responses = survey_responses.where(survey_question_id: basic_question_ids)
+    deleted_count = basic_responses.destroy_all.count
+    
+    # Update cached flags
+    if user_preference
+      user_preference.update_columns(
+        basic_survey_completed: false,
+        extended_survey_completed: false,
+        extended_survey_in_progress: false
+      )
+    end
+    
+    Rails.logger.info "Deleted #{deleted_count} basic survey responses for user #{id}"
+    
+    # Return number of deleted responses
+    deleted_count
   end
 
   private
