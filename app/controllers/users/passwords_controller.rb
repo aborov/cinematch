@@ -2,6 +2,8 @@
 
 module Users
   class PasswordsController < Devise::PasswordsController
+    before_action :configure_permitted_parameters, only: [:create]
+
     def update
       self.resource = resource_class.reset_password_by_token(resource_params)
       resource.skip_age_validation = true
@@ -27,6 +29,10 @@ module Users
     end
 
     protected
+
+    def configure_permitted_parameters
+      devise_parameter_sanitizer.permit(:reset_password, keys: [:email])
+    end
 
     def after_resetting_password_path_for(_resource)
       root_path
