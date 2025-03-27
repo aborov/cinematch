@@ -9,7 +9,7 @@ class UsersController < ApplicationController
     @user = current_user
     authorize @user
     @user_preference = @user.user_preference || @user.build_user_preference
-    @genres = TmdbService.fetch_genres[:user_facing_genres]
+    @genres = Genre.user_facing_genres
     @available_models = AiModelsConfig.available_models
     
     # Generate personality profile regardless of survey status

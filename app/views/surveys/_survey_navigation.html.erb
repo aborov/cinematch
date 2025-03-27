@@ -21,7 +21,8 @@
   <button type="button" 
           id="complete-survey" 
           class="btn nav-button complete-button" 
-          style="display: none;">
+          style="display: none;"
+          data-retake="<%= local_assigns[:retake] || false %>">
     Complete Survey<i class="fas fa-check ms-2"></i>
   </button>
 </div>

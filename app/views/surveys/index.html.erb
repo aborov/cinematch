@@ -1,6 +1,7 @@
 <% content_for :title, "Personalization Survey" %>
 <% content_for :head do %>
   <meta name="survey-type" content="<%= @survey_type %>">
+  <meta name="retake" content="<%= @retake %>">
 <% end %>
 
 <div class="container-fluid p-0">
@@ -10,7 +11,7 @@
     <div class="card shadow survey-card">
       <div class="card-header">
         <h3 class="mb-0">
-          <%= @survey_type == 'basic' ? 'Personalization Survey' : 'Extended Personalization Survey' %>
+          <%= @survey_type.to_s == 'basic' ? 'Personalization Survey' : 'Extended Personalization Survey' %>
         </h3>
       </div>
 
@@ -38,7 +39,7 @@
             <%= render 'question_section', form: form, questions: @questions %>
             <%= render 'genre_selection', form: form, genres: @genres if @survey_type == 'basic' %>
           </div>
-          <%= render 'survey_navigation', survey_type: @survey_type %>
+          <%= render 'survey_navigation', survey_type: @survey_type, retake: @retake %>
         <% end %>
       </div>
     </div>

@@ -28,6 +28,7 @@ Rails.application.routes.draw do
   resources :surveys, only: [:index, :create] do
     collection do
       post :save_progress
+      post :responses, to: 'survey_responses#create'
     end
   end
   
