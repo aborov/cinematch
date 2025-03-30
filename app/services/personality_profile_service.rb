@@ -20,17 +20,33 @@ class PersonalityProfileService
     
     Rails.logger.info("Calculating personality profile for user #{@user.id}")
     
-    profile = {
-      big_five: calculate_big_five_scores,
-      emotional_intelligence: calculate_emotional_intelligence_scores,
-      extended_traits: calculate_extended_traits_scores
-    }
+    # Check if user has any survey responses first
+    responses_count = @user.survey_responses.joins(:survey_question)
+                          .where.not(survey_questions: { question_type: 'attention_check' })
+                          .count
     
-    # Store the profile in the user_preference
-    user_preference.update(personality_profiles: profile)
-    Rails.logger.info("Stored personality profile for user #{@user.id}")
+    if responses_count == 0
+      Rails.logger.warn("User #{@user.id} has no survey responses, cannot generate profile")
+      return nil
+    end
     
-    profile
+    begin
+      profile = {
+        big_five: calculate_big_five_scores,
+        emotional_intelligence: calculate_emotional_intelligence_scores,
+        extended_traits: calculate_extended_traits_scores
+      }
+      
+      # Store the profile in the user_preference
+      user_preference.update(personality_profiles: profile)
+      Rails.logger.info("Stored personality profile for user #{@user.id}")
+      
+      profile
+    rescue => e
+      Rails.logger.error("Error generating personality profile for user #{@user.id}: #{e.message}")
+      Rails.logger.error(e.backtrace.join("\n"))
+      nil
+    end
   end
 
   private

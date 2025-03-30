@@ -18,11 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Initialize survey form if it exists
   initializeSurvey();
-  
-  // Check if we need to immediately show the genre selection screen
-  setTimeout(() => {
-    checkInitialGenreSelectionState();
-  }, 200);
 });
 
 function initializeSurvey() {
@@ -190,11 +185,11 @@ function initializeSurvey() {
     
     const totalQuestionsFromData = parseInt(questionContainer.dataset.totalQuestions, 10);
     const isBasicSurvey = document.querySelector('meta[name="survey-type"]')?.getAttribute('content') === 'basic';
-    let genreSelection = document.getElementById('genre-selection');
-    let completeBtn = document.getElementById('complete-survey');
-    let nextButton = document.getElementById('next-button');
-    let prevButton = document.getElementById('prev-button');
-    let saveProgressButton = document.getElementById('save-progress');
+    genreSelection = document.getElementById('genre-selection');
+    completeBtn = document.getElementById('complete-survey');
+    nextButton = document.getElementById('next-button');
+    prevButton = document.getElementById('prev-button');
+    saveProgressButton = document.getElementById('save-progress');
     const atGenreSelection = isBasicSurvey && currentQuestionIndex >= totalQuestionsFromData;
     const isLastQuestion = currentQuestionIndex === totalQuestionsFromData - 1;
 
@@ -245,22 +240,6 @@ function initializeSurvey() {
       return;
     }
 
-    // Create complete button if it doesn't exist
-    if (!completeBtn) {
-      console.log('Complete button not found in showCurrentQuestion, creating it');
-      completeBtn = document.createElement('button');
-      completeBtn.type = 'button';
-      completeBtn.id = 'complete-survey';
-      completeBtn.className = 'btn nav-button complete-button';
-      completeBtn.innerHTML = 'Complete Survey<i class="fas fa-check ms-2"></i>';
-      completeBtn.dataset.retake = document.querySelector('meta[name="retake"]')?.getAttribute('content') || 'false';
-      completeBtn.style.display = 'none'; // Hidden by default
-      
-      // Add to navigation container
-      navContainer.appendChild(completeBtn);
-      console.log('Created complete button and added to navigation container in showCurrentQuestion');
-    }
-
     // For genre selection
     if (atGenreSelection && isBasicSurvey) {
       console.log('Showing genre selection');
@@ -290,7 +269,8 @@ function initializeSurvey() {
         completeBtn.innerHTML = 'Complete Survey<i class="fas fa-check ms-2"></i>';
         console.log('Complete button displayed for genre selection in showCurrentQuestion');
       } else {
-        console.error('Complete button still not found after creation attempt in showCurrentQuestion!');
+        // This error should ideally not happen now as the button exists in HTML
+        console.error('Complete button reference not found in showCurrentQuestion!');
       }
       if (saveProgressButton) {
         saveProgressButton.style.display = 'none';
@@ -300,261 +280,129 @@ function initializeSurvey() {
       navContainer.style.display = 'flex';
       console.log('Navigation container displayed in showCurrentQuestion');
       
-      // Make sure the complete button has an event handler for genre selection
-      if (completeBtn) {
-        // Remove any existing event listeners by cloning
-        const newCompleteBtn = completeBtn.cloneNode(true);
-        completeBtn.parentNode.replaceChild(newCompleteBtn, completeBtn);
-        completeBtn = newCompleteBtn;
+      return; // Return after handling genre selection display
+    } else { // Regular question handling (non-genre selection)
+      // Hide all questions first
+      document.querySelectorAll('.question-card').forEach(card => {
+        card.style.display = 'none';
+      });
+
+      // Hide genre selection by default (will show it if needed)
+      if (genreSelection) {
+        genreSelection.style.display = 'none';
+      }
+
+      // Specifically check for the Save Progress button existence
+      if (!saveProgressButton && !isBasicSurvey) {
+        console.error('Save Progress button not found for extended survey');
+        // Try to find it with a broader selector just in case
+        const possibleSaveBtn = document.querySelector('.save-progress-button');
+        if (possibleSaveBtn) {
+          console.log('Found Save Progress button with class selector');
+          saveProgressButton = possibleSaveBtn;
+        }
+      }
+
+      // Always display the save progress button for extended survey
+      if (saveProgressButton) {
+        if (!isBasicSurvey) {
+          saveProgressButton.style.display = 'block';
+          console.log('Save Progress button shown for extended survey');
+        } else {
+          saveProgressButton.style.display = 'none';
+          console.log('Save Progress button hidden for basic survey');
+        }
+      }
+
+      // Show current question
+      const currentQuestion = document.querySelector(`.question-card[data-question-index="${currentQuestionIndex}"]`);
+      if (currentQuestion) {
+        currentQuestion.style.display = 'block';
         
-        completeBtn.addEventListener('click', async function(event) {
-          event.preventDefault();
-          console.log('Complete button clicked from genre selection (attached in showCurrentQuestion)');
-          
-          // Check if genre selection exists
-          if (!genreSelection) {
-            console.error('Genre selection not found when Complete button clicked!');
-            return;
-          }
-          
-          const genreCheckboxes = genreSelection.querySelectorAll('input[name="favorite_genres[]"]:checked');
-          console.log('Selected genres:', Array.from(genreCheckboxes).map(cb => cb.value));
-          
-          if (genreCheckboxes.length === 0) {
-            showError('Please select at least one favorite genre before completing the survey.');
-            return;
-          }
-          
-          // Get retake status from meta tag
-          const isRetake = document.querySelector('meta[name="retake"]')?.getAttribute('content') === 'true';
-          console.log('Retaking survey:', isRetake);
-          
-          // Collect selected genres
-          const selectedGenres = [];
-          genreCheckboxes.forEach(checkbox => {
-            selectedGenres.push(checkbox.value);
-          });
-          
-          // Convert responses Map to an array of objects for API submission
-          const responsesArray = [];
-          responses.forEach((value, key) => {
-            // Convert text values to integers for submission
-            let numericValue = value;
-            if (typeof value === 'string') {
-              const valueMap = {
-                'Strongly_Disagree': 1,
-                'Disagree': 2,
-                'Neutral': 3,
-                'Agree': 4,
-                'Strongly_Agree': 5
-              };
-              numericValue = valueMap[value] || value;
-            }
-            
-            responsesArray.push({
-              question_id: key,
-              response: numericValue
-            });
-          });
-          
-          try {
-            // Show a loading indicator
-            const loadingIndicator = document.createElement('div');
-            loadingIndicator.className = 'position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center';
-            loadingIndicator.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-            loadingIndicator.style.zIndex = '9999';
-            loadingIndicator.innerHTML = `
-              <div class="spinner-border text-light" role="status">
-                <span class="visually-hidden">Loading...</span>
-              </div>
-            `;
-            document.body.appendChild(loadingIndicator);
-            
-            // Log data being sent
-            console.log('Sending survey data for complete submission:', {
-              survey_responses: responsesArray,
-              favorite_genres: selectedGenres,
-              submit_survey: 'true',
-              type: isBasicSurvey ? 'basic' : 'extended',
-              debug_info: debugInfo,
-              send_debug_email: true,
-              retake: isRetake
-            });
-            
-            // Submit all responses at once
-            const token = document.querySelector('meta[name="csrf-token"]').content;
-            const saveResult = await fetch('/surveys', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CSRF-Token': token
-              },
-              body: JSON.stringify({
-                survey_responses: responsesArray,
-                favorite_genres: selectedGenres,
-                submit_survey: 'true',
-                type: isBasicSurvey ? 'basic' : 'extended',
-                debug_info: debugInfo,
-                send_debug_email: true,
-                retake: isRetake
-              })
-            });
-            
-            // Remove loading indicator
-            document.body.removeChild(loadingIndicator);
-            
-            if (!saveResult.ok) {
-              throw new Error(`Failed to save responses: ${saveResult.status}`);
-            }
-            
-            console.log('Survey saved successfully');
-            
-            // Try to parse the response as JSON
-            const responseData = await saveResult.json();
-            console.log('Server response:', responseData);
-            
-            if (responseData.redirect_url) {
-              // Follow the server's redirect
-              window.location.href = responseData.redirect_url;
-            } else {
-              // Fallback redirect
-              window.location.href = '/survey_results?type=basic';
-            }
-          } catch (error) {
-            console.error('Error completing survey:', error);
-            showError('Failed to complete the survey. Please try again.');
-          }
-        });
-      }
-      
-      return;
-    }
-
-    // Hide all questions first
-    document.querySelectorAll('.question-card').forEach(card => {
-      card.style.display = 'none';
-    });
-
-    // Hide genre selection by default (will show it if needed)
-    if (genreSelection) {
-      genreSelection.style.display = 'none';
-    }
-
-    // Specifically check for the Save Progress button existence
-    if (!saveProgressButton && !isBasicSurvey) {
-      console.error('Save Progress button not found for extended survey');
-      // Try to find it with a broader selector just in case
-      const possibleSaveBtn = document.querySelector('.save-progress-button');
-      if (possibleSaveBtn) {
-        console.log('Found Save Progress button with class selector');
-        saveProgressButton = possibleSaveBtn;
-      }
-    }
-
-    // Always display the save progress button for extended survey
-    if (saveProgressButton) {
-      if (!isBasicSurvey) {
-        saveProgressButton.style.display = 'block';
-        console.log('Save Progress button shown for extended survey');
-      } else {
-        saveProgressButton.style.display = 'none';
-        console.log('Save Progress button hidden for basic survey');
-      }
-    }
-
-    // Show current question
-    const currentQuestion = document.querySelector(`.question-card[data-question-index="${currentQuestionIndex}"]`);
-    if (currentQuestion) {
-      currentQuestion.style.display = 'block';
-      
-      // Update navigation buttons
-      if (prevButton) {
-        prevButton.style.display = currentQuestionIndex > 0 ? 'block' : 'none';
-      }
-      
-      // For basic survey, on last question show both Next and Complete buttons
-      if (isBasicSurvey && isLastQuestion) {
-        // On last question of basic survey, show Next (to genre selection) 
-        if (nextButton) {
-          nextButton.style.display = 'block';
-          console.log('Next button shown on last question of basic survey');
-        }
-        
-        // Hide complete button on last question (will show on genre selection)
-        if (completeBtn) {
-          completeBtn.style.display = 'none';
-          console.log('Complete button hidden on last question of basic survey');
-        }
-      } 
-      // For extended survey, on last question show Complete button instead of Next
-      else if (!isBasicSurvey && isLastQuestion) {
-        if (completeBtn) {
-          completeBtn.style.display = 'block';
-          completeBtn.textContent = 'Complete Extended Survey';
-          console.log('Complete button shown for last question of extended survey');
-        }
-        
-        if (nextButton) {
-          nextButton.style.display = 'none';
-          console.log('Next button hidden for last question of extended survey');
-        }
-      }
-      // For all other cases (not last question)
-      else {
-        if (completeBtn) {
-          completeBtn.style.display = 'none';
-        }
-        
-        if (nextButton) {
-          nextButton.style.display = 'block';
-          console.log('Next button shown for non-last question');
-        }
-      }
-      
-      // Ensure proper button order in the DOM
-      const navButtonsContainer = document.querySelector('.navigation-buttons');
-      if (navButtonsContainer) {
-        // For any survey, ensure proper button order
+        // Update navigation buttons
         if (prevButton) {
-          // First ensure all buttons are in the DOM
-          const allButtons = [prevButton];
-          
-          // For extended survey, add Save Progress button
-          if (!isBasicSurvey && saveProgressButton) {
-            if (!navButtonsContainer.contains(saveProgressButton)) {
-              console.log('Save Progress button not in DOM, attempting to add it');
-              navButtonsContainer.appendChild(saveProgressButton);
-            }
-            allButtons.push(saveProgressButton);
-          }
-          
-          // Add appropriate final button (next or complete)
-          if (isLastQuestion && !isBasicSurvey && completeBtn) {
-            // Extended survey last question: complete button
-            allButtons.push(completeBtn);
-          } else if (nextButton) {
-            // Either non-last question or basic survey last question: next button
-            allButtons.push(nextButton);
-          }
-          
-          // Ensure proper visible order
-          navButtonsContainer.innerHTML = '';
-          allButtons.forEach(button => {
-            navButtonsContainer.appendChild(button);
-          });
-          
-          console.log('Reordered navigation buttons');
+          prevButton.style.display = currentQuestionIndex > 0 ? 'block' : 'none';
         }
-      } else {
-        console.error('Navigation buttons container not found');
-      }
-      
-      // Show question counter
-      const questionCounter = document.querySelector('.text-muted');
-      if (questionCounter) {
-        questionCounter.style.display = 'block';
-        questionCounter.textContent = `Question ${currentQuestionIndex + 1} of ${totalQuestionsFromData}`;
+        
+        // For basic survey, on last question show both Next and Complete buttons
+        if (isBasicSurvey && isLastQuestion) {
+          // On last question of basic survey, show Next (to genre selection) 
+          if (nextButton) {
+            nextButton.style.display = 'block';
+            console.log('Next button shown on last question of basic survey');
+          }
+          
+          // Hide complete button on last question (will show on genre selection)
+          if (completeBtn) {
+            completeBtn.style.display = 'none';
+            console.log('Complete button hidden on last question of basic survey');
+          }
+        } 
+        // For extended survey, on last question show Complete button instead of Next
+        else if (!isBasicSurvey && isLastQuestion) {
+          if (completeBtn) {
+            completeBtn.style.display = 'block';
+            completeBtn.innerHTML = 'Complete Survey<i class="fas fa-check ms-2"></i>';
+            console.log('Complete button shown for last question of extended survey');
+          }
+          
+          if (nextButton) {
+            nextButton.style.display = 'none';
+            console.log('Next button hidden for last question of extended survey');
+          }
+        }
+        // For all other cases (not last question)
+        else {
+          if (completeBtn) {
+            completeBtn.style.display = 'none';
+          }
+          
+          if (nextButton) {
+            nextButton.style.display = 'block';
+            console.log('Next button shown for non-last question');
+          }
+        }
+        
+        // Ensure proper button order in the DOM
+        const navButtonsContainer = document.querySelector('.navigation-buttons');
+        if (navButtonsContainer) {
+          // Build the desired order array, always including all buttons
+          const orderedButtons = [];
+          if (prevButton) orderedButtons.push(prevButton);
+          if (saveProgressButton) orderedButtons.push(saveProgressButton);
+          if (nextButton) orderedButtons.push(nextButton);
+          if (completeBtn) orderedButtons.push(completeBtn);
+          
+          // Check if reordering is needed (different elements or different order)
+          const currentButtons = Array.from(navButtonsContainer.children);
+          let needsReorder = orderedButtons.length !== currentButtons.length;
+          if (!needsReorder) {
+            for (let i = 0; i < orderedButtons.length; i++) {
+              if (orderedButtons[i] !== currentButtons[i]) {
+                needsReorder = true;
+                break;
+              }
+            }
+          }
+
+          // If reordering is needed, append buttons in the correct order
+          if (needsReorder) {
+            console.log('Reordering navigation buttons in DOM');
+            orderedButtons.forEach(button => {
+              // AppendChild moves the element if it's already in the DOM
+              navButtonsContainer.appendChild(button); 
+            });
+          }
+        } else {
+          console.error('Navigation buttons container not found');
+        }
+        
+        // Show question counter
+        const questionCounter = document.querySelector('.text-muted');
+        if (questionCounter) {
+          questionCounter.style.display = 'block';
+          questionCounter.textContent = `Question ${currentQuestionIndex + 1} of ${totalQuestionsFromData}`;
+        }
       }
     }
   }
@@ -568,15 +416,15 @@ function initializeSurvey() {
     
     const totalQuestionsFromData = parseInt(questionContainer.dataset.totalQuestions, 10);
     const isBasicSurvey = document.querySelector('meta[name="survey-type"]')?.getAttribute('content') === 'basic';
-    const shouldShowGenreSelection = isBasicSurvey && currentQuestionIndex >= totalQuestionsFromData - 1;
-    const isLastQuestion = currentQuestionIndex >= totalQuestionsFromData - 1;
+    const isCurrentlyLastQuestion = currentQuestionIndex === totalQuestionsFromData - 1; 
+    const shouldShowGenreSelection = isBasicSurvey && isCurrentlyLastQuestion; 
     
     console.log('moveToNextQuestion debug:', {
       currentQuestionIndex,
       totalQuestionsFromData,
       isBasicSurvey,
-      shouldShowGenreSelection,
-      isLastQuestion
+      isCurrentlyLastQuestion,
+      shouldShowGenreSelection
     });
     
     // For basic survey, check if we should move to genre selection
@@ -585,7 +433,7 @@ function initializeSurvey() {
       currentQuestionIndex = totalQuestionsFromData; // This will trigger genre selection display
       
       // Check if genre selection element exists
-      let genreSelection = document.getElementById('genre-selection');
+      genreSelection = document.getElementById('genre-selection');
       console.log('Genre selection element:', !!genreSelection);
       
       // If the genre selection element doesn't exist, create it
@@ -613,9 +461,9 @@ function initializeSurvey() {
         }
         
         // Get navigation buttons
-        let prevButton = document.getElementById('prev-button');
-        let nextButton = document.getElementById('next-button');
-        let completeBtn = document.getElementById('complete-survey');
+        prevButton = document.getElementById('prev-button');
+        nextButton = document.getElementById('next-button');
+        completeBtn = document.getElementById('complete-survey');
         
         // Create complete button if it doesn't exist
         if (!completeBtn) {
@@ -668,8 +516,13 @@ function initializeSurvey() {
         if (completeBtn) {
           // Remove existing listeners by cloning
           const newCompleteBtn = completeBtn.cloneNode(true);
-          completeBtn.parentNode.replaceChild(newCompleteBtn, completeBtn);
-          completeBtn = newCompleteBtn;
+          if (completeBtn.parentNode) {
+            completeBtn.parentNode.replaceChild(newCompleteBtn, completeBtn);
+            completeBtn = newCompleteBtn;
+          } else {
+            console.warn('Cannot replace Complete button - no parent node found');
+            completeBtn = newCompleteBtn;
+          }
           
           completeBtn.addEventListener('click', async function(event) {
             event.preventDefault();
@@ -766,35 +619,39 @@ function initializeSurvey() {
               console.log('Survey saved successfully');
               
               try {
-                // Try to parse the response as JSON
-                const responseData = await saveResult.json();
-                console.log('Server response:', responseData);
-                
-                if (responseData.redirect_url) {
-                  // For basic survey, follow the server's redirect
-                  console.log(`Redirecting to ${responseData.redirect_url}`);
-                  window.location.href = responseData.redirect_url;
-                  return;
+                // First check if the response is likely to be JSON based on content-type
+                const contentType = saveResult.headers.get('content-type');
+                let responseData = null;
+                let redirectUrl = null;
+                if (contentType && contentType.includes('application/json')) {
+                  // Try to parse the response as JSON
+                  responseData = await saveResult.json();
+                  console.log('Server response:', responseData);
+                  redirectUrl = responseData.redirect_url;
+                } else {
+                  console.warn('Response is not JSON, checking Location header', contentType);
+                  const locationHeader = saveResult.headers.get('location');
+                  if (locationHeader) { redirectUrl = locationHeader; }
                 }
+
+                // Handle extended vs basic survey completion flow
+                if (!isBasicSurvey) {
+                  // === MODIFIED: Redirect immediately for extended survey ===
+                  const targetUrl = redirectUrl || '/survey_results?type=extended'; // Use redirectUrl if available
+                  console.log(`Extended survey complete, redirecting to ${targetUrl}`);
+                  window.location.href = targetUrl;
+                } else {
+                  // Basic Survey: Redirect immediately if URL is available
+                  const targetUrl = redirectUrl || '/survey_results?type=basic'; // Use redirectUrl if available
+                  console.log(`Basic survey complete, redirecting to ${targetUrl}`);
+                  window.location.href = targetUrl;
+                }
+                
               } catch (jsonError) {
-                console.warn('Could not parse response as JSON, proceeding with default behavior', jsonError);
+                console.warn('Post-processing/JSON parsing error, proceeding with fallback redirect', jsonError);
+                window.location.href = isBasicSurvey ? '/survey_results?type=basic' : '/survey_results?type=extended';
               }
 
-              // Show completion modal for extended survey only if no redirect was provided
-              if (!isBasicSurvey) {
-                const surveyCompletionModal = new bootstrap.Modal(document.getElementById('surveyCompletionModal'));
-                surveyCompletionModal.show();
-                
-                // Add event listener to redirect to results page when modal is closed
-                const modalElement = document.getElementById('surveyCompletionModal');
-                modalElement.addEventListener('hidden.bs.modal', () => {
-                  window.location.href = '/survey_results?type=extended';
-                });
-              } else {
-                // For basic survey fallback, redirect directly to results page
-                window.location.href = '/survey_results?type=basic';
-              }
-              
             } catch (error) {
               console.error('Error completing survey:', error);
               showError('Failed to complete the survey. Please try again.');
@@ -982,7 +839,7 @@ function initializeSurvey() {
         // If attention check is correct, move to next question after a delay
         setTimeout(() => {
           moveToNextQuestion();
-        }, 500);
+        }, 750);
         return;
       }
       
@@ -1142,46 +999,47 @@ function initializeSurvey() {
   function ensureSaveProgressButton() {
     // For extended survey only
     const isBasicSurvey = document.querySelector('meta[name="survey-type"]')?.getAttribute('content') === 'basic';
-    if (isBasicSurvey) return;
+    if (isBasicSurvey) {
+      console.log('Skipping save progress button setup for basic survey.');
+      return; 
+    }
     
     if (!saveProgressButton) {
-      console.log('Save Progress button not initialized, attempting to find it');
-      saveProgressButton = document.getElementById('save-progress');
+      console.log('Save Progress button not found, creating it');
+      saveProgressButton = document.createElement('button');
+      saveProgressButton.id = 'save-progress';
+      saveProgressButton.className = 'btn nav-button save-progress-button';
+      saveProgressButton.innerHTML = '<i class="fas fa-save me-2"></i>Save Progress';
       
-      if (!saveProgressButton) {
-        console.log('Still not found with ID, trying class selector');
-        saveProgressButton = document.querySelector('.save-progress-button');
-      }
-      
-      if (!saveProgressButton) {
-        console.log('Save Progress button not found, creating it');
-        saveProgressButton = document.createElement('button');
-        saveProgressButton.id = 'save-progress';
-        saveProgressButton.className = 'btn nav-button save-progress-button';
-        saveProgressButton.innerHTML = '<i class="fas fa-save me-2"></i>Save Progress';
-        
-        // Add it to the navigation container
-        const navContainer = document.querySelector('.navigation-buttons');
-        if (navContainer) {
-          const nextButton = document.getElementById('next-button');
-          if (nextButton && nextButton.parentNode) {
-            navContainer.insertBefore(saveProgressButton, nextButton);
-            console.log('Created and added Save Progress button');
-          }
+      // Add it to the navigation container
+      const navContainer = document.querySelector('.navigation-buttons');
+      if (navContainer) {
+        const nextButton = document.getElementById('next-button');
+        if (nextButton && nextButton.parentNode) {
+          navContainer.insertBefore(saveProgressButton, nextButton);
+          console.log('Created and added Save Progress button');
+        } else {
+          // If next button doesn't exist or has no parent, just append to navigation container
+          navContainer.appendChild(saveProgressButton);
+          console.log('Added Save Progress button to navigation container');
         }
+      } else {
+        console.warn('Navigation container not found, cannot add Save Progress button');
+        return; // Don't continue if we can't add the button
       }
-      
-      // Make sure it's visible
-      if (saveProgressButton) {
-        saveProgressButton.style.display = 'block';
-        
-        // Add event listener if needed
-        if (!saveProgressButton.hasEventListener) {
-          saveProgressButton.addEventListener('click', handleSaveProgress);
-          saveProgressButton.hasEventListener = true;
-          console.log('Added event listener to Save Progress button');
-        }
+    }
+    
+    // Make sure it's visible and add listener if needed
+    if (saveProgressButton) {
+      saveProgressButton.style.display = 'block';
+
+      // === RESTORED: Add event listener if needed ===
+      if (!saveProgressButton.hasEventListener) { // Check if listener already added
+        saveProgressButton.addEventListener('click', handleSaveProgress);
+        saveProgressButton.hasEventListener = true; // Mark as added
+        console.log('Added event listener to Save Progress button');
       }
+      // === END RESTORED BLOCK ===
     }
   }
 
@@ -1213,26 +1071,8 @@ function initializeSurvey() {
         });
       });
       
-      // Create debug info for email
-      const questions = document.querySelectorAll('.question-card:not([data-attention-check="true"])');
-      const questionIds = Array.from(questions).map(q => q.dataset.questionId);
-      const respondedIds = Array.from(responses.keys());
-      const missingIds = questionIds.filter(id => !respondedIds.includes(id));
-      
-      const debugInfo = {
-        total_questions: questions.length,
-        total_responses: responses.size,
-        missing_count: missingIds.length,
-        missing_ids: missingIds,
-        completion_percentage: Math.round((responses.size / questions.length) * 100),
-        current_question_index: currentQuestionIndex,
-        responses: Object.fromEntries(responses)
-      };
-      
-      console.log('Saving progress with survey responses:', {
-        survey_responses: responsesArray,
-        debug_info: debugInfo
-      });
+      // Log the responses being saved
+      console.log('Saving progress with survey responses:', responsesArray);
       
       // Save all accumulated responses at once
       const token = document.querySelector('meta[name="csrf-token"]').content;
@@ -1249,8 +1089,6 @@ function initializeSurvey() {
           survey_responses: responsesArray,
           save_progress: true,
           type: isBasicSurvey ? 'basic' : 'extended',
-          debug_info: debugInfo, // Include debug info
-          send_debug_email: true // Flag to send debug email
         })
       });
 
@@ -1272,223 +1110,6 @@ function initializeSurvey() {
 
   // Call this at initialization
   ensureSaveProgressButton();
-
-  // Add event listener for save progress button
-  if (saveProgressButton) {
-    saveProgressButton.addEventListener('click', handleSaveProgress);
-  } else {
-    console.error('Save Progress button not found during event listener setup');
-  }
-
-  // Make sure the Complete button has an event listener
-  if (completeBtn) {
-    // First remove any existing listeners to avoid duplicates
-    const newCompleteBtn = completeBtn.cloneNode(true);
-    completeBtn.parentNode.replaceChild(newCompleteBtn, completeBtn);
-    completeBtn = newCompleteBtn;
-    
-    completeBtn.addEventListener('click', async function(event) {
-      console.log('Complete Survey button click detected');
-      event.preventDefault();
-      console.log('Complete Survey button clicked');
-      
-      try {
-        // Debug the question state
-        debugQuestionSummary();
-        
-        // Check if we need to collect genre preferences for basic survey
-        const isBasicSurvey = document.querySelector('meta[name="survey-type"]')?.getAttribute('content') === 'basic';
-        const genreSelection = document.getElementById('genre-selection');
-        const isAtGenreSelection = isBasicSurvey && genreSelection && genreSelection.style.display === 'block';
-        
-        // Get retake status from button data attribute
-        const isRetake = completeBtn.dataset.retake === 'true';
-        
-        // Log the state when Complete Survey is clicked
-        console.log('Complete Survey button state:', {
-          isBasicSurvey,
-          hasGenreSelection: !!genreSelection,
-          isAtGenreSelection,
-          genreSelectionDisplay: genreSelection ? genreSelection.style.display : 'N/A',
-          isRetake
-        });
-        
-        // Check if we're on the genre selection screen for basic survey
-        if (isAtGenreSelection) {
-          const genreCheckboxes = document.querySelectorAll('input[name="favorite_genres[]"]:checked');
-          console.log('Selected genres:', Array.from(genreCheckboxes).map(cb => cb.value));
-          
-          if (genreCheckboxes.length === 0) {
-            showError('Please select at least one favorite genre before completing the survey.');
-            return;
-          }
-        }
-        
-        // For basic survey, skip question checking when at genre selection screen
-        if (isBasicSurvey && currentQuestionIndex >= parseInt(document.querySelector('.question-container').dataset.totalQuestions, 10)) {
-          // At genre selection stage, proceed without checking questions
-          console.log('At genre selection - proceeding with submission');
-        } else {
-          // Find all missing questions
-          const questions = document.querySelectorAll('.question-card:not([data-attention-check="true"])');
-          const questionIds = Array.from(questions).map(q => q.dataset.questionId);
-          const respondedIds = Array.from(responses.keys());
-          const missingIds = questionIds.filter(id => !respondedIds.includes(id));
-          
-          console.log(`Checking responses completeness: ${responses.size} responses vs ${questions.length} questions`);
-          console.log('Missing responses for question IDs:', missingIds);
-          
-          // For extended survey, allow submission with 90% completion
-          const requiredCompletionRatio = isBasicSurvey ? 1.0 : 0.9;
-          const completionRatio = responses.size / questions.length;
-          
-          if (completionRatio < requiredCompletionRatio) {
-            showError(`Please answer ${isBasicSurvey ? 'all' : 'more'} questions before completing the survey.`);
-            return;
-          }
-        }
-        
-        // Collect selected genres
-        const selectedGenres = [];
-        if (isBasicSurvey && genreSelection) {
-          const genreCheckboxes = document.querySelectorAll('input[name="favorite_genres[]"]:checked');
-          genreCheckboxes.forEach(checkbox => {
-            selectedGenres.push(checkbox.value);
-          });
-        }
-        
-        // Convert responses Map to an array of objects for API submission
-        const responsesArray = [];
-        responses.forEach((value, key) => {
-          // Convert text values to integers for submission
-          let numericValue = value;
-          if (typeof value === 'string') {
-            const valueMap = {
-              'Strongly_Disagree': 1,
-              'Disagree': 2,
-              'Neutral': 3,
-              'Agree': 4,
-              'Strongly_Agree': 5
-            };
-            numericValue = valueMap[value] || value;
-          }
-          
-          responsesArray.push({
-            question_id: key,
-            response: numericValue
-          });
-        });
-        
-        // Create debug info for email
-        const questions = document.querySelectorAll('.question-card:not([data-attention-check="true"])');
-        const questionIds = Array.from(questions).map(q => q.dataset.questionId);
-        const respondedIds = Array.from(responses.keys());
-        const missingIds = questionIds.filter(id => !respondedIds.includes(id));
-        
-        const debugInfo = {
-          total_questions: questions.length,
-          total_responses: responses.size,
-          missing_count: missingIds.length,
-          missing_ids: missingIds,
-          completion_percentage: Math.round((responses.size / questions.length) * 100),
-          current_question_index: currentQuestionIndex,
-          responses: Object.fromEntries(responses)
-        };
-        
-        console.log('Submitting survey with selected genres:', selectedGenres);
-        console.log('Submitting responses:', responsesArray);
-        
-        // Show a loading indicator
-        const loadingIndicator = document.createElement('div');
-        loadingIndicator.className = 'position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center';
-        loadingIndicator.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-        loadingIndicator.style.zIndex = '9999';
-        loadingIndicator.innerHTML = `
-          <div class="spinner-border text-light" role="status">
-            <span class="visually-hidden">Loading...</span>
-          </div>
-        `;
-        document.body.appendChild(loadingIndicator);
-        
-        // Submit all responses at once
-        const token = document.querySelector('meta[name="csrf-token"]').content;
-        
-        // Log data being sent
-        console.log('Sending survey data for complete submission:', {
-          survey_responses: responsesArray,
-          favorite_genres: selectedGenres,
-          submit_survey: 'true',
-          type: isBasicSurvey ? 'basic' : 'extended',
-          debug_info: debugInfo,
-          send_debug_email: true,
-          retake: isRetake
-        });
-        
-        const saveResult = await fetch('/surveys', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-CSRF-Token': token
-          },
-          body: JSON.stringify({
-            survey_responses: responsesArray,
-            favorite_genres: selectedGenres,
-            submit_survey: 'true',
-            type: isBasicSurvey ? 'basic' : 'extended',
-            debug_info: debugInfo,
-            send_debug_email: true,
-            retake: isRetake
-          })
-        });
-
-        // Remove loading indicator
-        document.body.removeChild(loadingIndicator);
-
-        if (!saveResult.ok) {
-          const errorText = await saveResult.text();
-          console.error('Error response:', errorText);
-          throw new Error(`Failed to save responses: ${saveResult.status} ${errorText}`);
-        }
-        
-        console.log('Survey saved successfully');
-        
-        try {
-          // Try to parse the response as JSON
-          const responseData = await saveResult.json();
-          console.log('Server response:', responseData);
-          
-          if (responseData.redirect_url) {
-            // For basic survey, follow the server's redirect
-            console.log(`Redirecting to ${responseData.redirect_url}`);
-            window.location.href = responseData.redirect_url;
-            return;
-          }
-        } catch (jsonError) {
-          console.warn('Could not parse response as JSON, proceeding with default behavior', jsonError);
-        }
-
-        // Show completion modal for extended survey only if no redirect was provided
-        if (!isBasicSurvey) {
-          const surveyCompletionModal = new bootstrap.Modal(document.getElementById('surveyCompletionModal'));
-          surveyCompletionModal.show();
-          
-          // Add event listener to redirect to results page when modal is closed
-          const modalElement = document.getElementById('surveyCompletionModal');
-          modalElement.addEventListener('hidden.bs.modal', () => {
-            window.location.href = '/survey_results?type=extended';
-          });
-        } else {
-          // For basic survey fallback, redirect directly to results page
-          window.location.href = '/survey_results?type=basic';
-        }
-        
-      } catch (error) {
-        console.error('Error completing survey:', error);
-        showError('Failed to complete the survey. Please try again.');
-      }
-    });
-  }
 
   // Create a success message function
   function showSuccessMessage(message) {
@@ -1556,12 +1177,8 @@ function updateNavigationButtonsForCompletion() {
     completeButton.style.display = 'block';
     completeButton.disabled = false;
     
-    // Update button text based on survey type
-    if (surveyType === 'basic') {
-      completeButton.textContent = 'Complete Survey';
-    } else {
-      completeButton.textContent = 'Complete Extended Survey';
-    }
+    // Use "Complete Survey" for both survey types
+    completeButton.innerHTML = 'Complete Survey<i class="fas fa-check ms-2"></i>';
   }
   
   // Update progress bar to 100%
@@ -1727,242 +1344,380 @@ function debugQuestionSummary() {
 // Add this new function
 function ensureCompleteButtonFunctionality() {
   console.log('Ensuring Complete button functionality');
-  completeBtn = document.getElementById('complete-survey');
+  let completeBtn = document.getElementById('complete-survey'); 
   
   if (!completeBtn) {
-    console.error('Complete button not found in the DOM!');
-    
-    // Try to find it with a broader selector
-    completeBtn = document.querySelector('.complete-button');
+    console.error('Complete button not found in the DOM by ID!');
+    completeBtn = document.querySelector('.complete-button'); // Fallback
     if (completeBtn) {
       console.log('Found Complete button with class selector');
+      if (!completeBtn.id) completeBtn.id = 'complete-survey'; 
     } else {
       console.error('Cannot find Complete button with any selector');
-      return;
+      return; 
     }
   }
-  
-  // Initialize Complete button with correct visibility
-  console.log('Initializing Complete button with correct styles and event handlers');
-  
-  // Remove any existing handlers by cloning
-  const newCompleteBtn = completeBtn.cloneNode(true);
-  completeBtn.parentNode.replaceChild(newCompleteBtn, completeBtn);
-  completeBtn = newCompleteBtn;
-  
-  // Style the button correctly
-  completeBtn.className = 'btn nav-button complete-button';
-  completeBtn.id = 'complete-survey';
-  
-  // Check if we're at genre selection
-  const questionContainer = document.querySelector('.question-container');
-  const totalQuestionsFromData = questionContainer ? parseInt(questionContainer.dataset.totalQuestions, 10) : 0;
-  const isBasicSurvey = document.querySelector('meta[name="survey-type"]')?.getAttribute('content') === 'basic';
-  const genreSelection = document.getElementById('genre-selection');
-  const isAtGenreSelection = isBasicSurvey && genreSelection && genreSelection.style.display === 'block';
-  
-  // Set initial visibility based on position
-  if (isAtGenreSelection) {
-    completeBtn.style.display = 'block';
-    console.log('Complete button shown for genre selection during initialization');
-  } else {
-    completeBtn.style.display = 'none';
-    console.log('Complete button hidden during initialization (not at genre selection)');
-  }
-  
-  console.log('Complete button initialized successfully');
-}
 
-// Function to check if we need to jump to genre selection on page load
-function checkInitialGenreSelectionState() {
-  // Get survey type
-  const isBasicSurvey = document.querySelector('meta[name="survey-type"]')?.getAttribute('content') === 'basic';
-  if (!isBasicSurvey) return;
+  // Check if the listener is already attached
+  if (completeBtn.dataset.listenerAttached === 'true') {
+    console.log('Complete button listener already attached.');
+    // Ensure correct initial visibility based on current state
+    const isBasicSurveyInitCheck = document.querySelector('meta[name="survey-type"]')?.getAttribute('content') === 'basic';
+    const questionContainerInitCheck = document.querySelector('.question-container');
+    const totalQuestionsFromDataInitCheck = questionContainerInitCheck ? parseInt(questionContainerInitCheck.dataset.totalQuestions, 10) : 0;
+    const isLastQuestionInitCheck = !isBasicSurveyInitCheck && currentQuestionIndex === totalQuestionsFromDataInitCheck - 1;
+    const genreSelectionElemInitCheck = document.getElementById('genre-selection');
+    const isAtGenreSelectionInitCheck = isBasicSurveyInitCheck && genreSelectionElemInitCheck && genreSelectionElemInitCheck.style.display === 'block';
+    completeBtn.style.display = (isLastQuestionInitCheck || isAtGenreSelectionInitCheck) ? 'block' : 'none';
+    console.log(`Initial visibility check (listener already attached): display=${completeBtn.style.display}`);
+    return; // Don't re-attach listener
+  }
   
-  // Check if initial URL has genre_selection parameter
-  const urlParams = new URLSearchParams(window.location.search);
-  const showGenreSelection = urlParams.get('genre_selection') === 'true';
+  // Style the button correctly (ensure it has the right classes)
+  completeBtn.className = 'btn nav-button complete-button';
   
-  // Check for genre selection in DOM
-  const genreSelection = document.getElementById('genre-selection');
-  if (!genreSelection) return;
-  
-  // Check if we should show genre selection
-  if (showGenreSelection) {
-    console.log('URL parameter indicates we should show genre selection');
+  console.log('Attaching click listener to Complete button.');
+  completeBtn.addEventListener('click', async function(event) {
+    event.preventDefault();
+    console.log('Complete Survey button click detected'); // <-- CLICK HANDLER ENTRY LOG
     
-    // Hide all question cards
-    document.querySelectorAll('.question-card').forEach(card => {
-      card.style.display = 'none';
-    });
-    
-    // Show genre selection
-    genreSelection.style.display = 'block';
-    
-    // Get navigation container
-    const navContainer = document.querySelector('.navigation-buttons');
-    if (!navContainer) {
-      console.error('Navigation container not found in checkInitialGenreSelectionState');
-      return;
-    }
-    
-    // Update navigation buttons
-    let prevButton = document.getElementById('prev-button');
-    let nextButton = document.getElementById('next-button');
-    let completeBtn = document.getElementById('complete-survey');
-    
-    // Create complete button if it doesn't exist
-    if (!completeBtn) {
-      console.log('Complete button not found in checkInitialGenreSelectionState, creating it');
-      completeBtn = document.createElement('button');
-      completeBtn.type = 'button';
-      completeBtn.id = 'complete-survey';
-      completeBtn.className = 'btn nav-button complete-button';
-      completeBtn.innerHTML = 'Complete Survey<i class="fas fa-check ms-2"></i>';
-      completeBtn.dataset.retake = document.querySelector('meta[name="retake"]')?.getAttribute('content') || 'false';
+    try {
+      debugQuestionSummary();
+      const isBasicSurvey = document.querySelector('meta[name="survey-type"]')?.getAttribute('content') === 'basic';
+      const genreSelectionElem = document.getElementById('genre-selection'); // Use local name
+      const isAtGenreSelection = isBasicSurvey && genreSelectionElem && genreSelectionElem.style.display === 'block';
+      const isRetake = completeBtn.dataset.retake === 'true';
       
-      // Add to navigation container
-      navContainer.appendChild(completeBtn);
-      console.log('Created complete button and added to navigation container in checkInitialGenreSelectionState');
-    }
-    
-    if (prevButton) prevButton.style.display = 'block';
-    if (nextButton) nextButton.style.display = 'none';
-    if (completeBtn) {
-      completeBtn.style.display = 'block';
-      completeBtn.innerHTML = 'Complete Survey<i class="fas fa-check ms-2"></i>';
-      console.log('Complete button displayed for initial genre selection');
+      console.log('Complete Survey button state:', {
+        isBasicSurvey, hasGenreSelection: !!genreSelectionElem, isAtGenreSelection, 
+        genreSelectionDisplay: genreSelectionElem ? genreSelectionElem.style.display : 'N/A', isRetake
+      });
       
-      // Ensure the complete button has an event handler
-      const newCompleteBtn = completeBtn.cloneNode(true);
-      completeBtn.parentNode.replaceChild(newCompleteBtn, completeBtn);
-      completeBtn = newCompleteBtn;
-      
-      // Add event handler (similar to the one in showCurrentQuestion)
-      completeBtn.addEventListener('click', async function(event) {
-        event.preventDefault();
-        console.log('Complete button clicked from initial genre selection');
-        
-        const genreCheckboxes = genreSelection.querySelectorAll('input[name="favorite_genres[]"]:checked');
-        console.log('Selected genres:', Array.from(genreCheckboxes).map(cb => cb.value));
-        
+      if (isAtGenreSelection) {
+        const genreCheckboxes = genreSelectionElem.querySelectorAll('input[name="favorite_genres[]"]:checked');
         if (genreCheckboxes.length === 0) {
           showError('Please select at least one favorite genre before completing the survey.');
           return;
         }
-        
-        // Get retake status from meta tag
-        const isRetake = document.querySelector('meta[name="retake"]')?.getAttribute('content') === 'true';
-        console.log('Retaking survey:', isRetake);
-        
-        // Collect selected genres
-        const selectedGenres = [];
-        genreCheckboxes.forEach(checkbox => {
-          selectedGenres.push(checkbox.value);
-        });
-        
-        // Convert responses Map to an array of objects for API submission
-        const responsesArray = [];
-        responses.forEach((value, key) => {
-          // Convert text values to integers for submission
-          let numericValue = value;
-          if (typeof value === 'string') {
-            const valueMap = {
-              'Strongly_Disagree': 1,
-              'Disagree': 2,
-              'Neutral': 3,
-              'Agree': 4,
-              'Strongly_Agree': 5
-            };
-            numericValue = valueMap[value] || value;
+      }
+      
+      const questionContainer = document.querySelector('.question-container');
+      const totalQuestionsFromData = questionContainer ? parseInt(questionContainer.dataset.totalQuestions, 10) : 0;
+
+      if (!(isBasicSurvey && currentQuestionIndex >= totalQuestionsFromData)) {
+          const questions = document.querySelectorAll('.question-card:not([data-attention-check="true"])');
+          const questionIds = Array.from(questions).map(q => q.dataset.questionId);
+          const respondedIds = Array.from(responses.keys());
+          const missingIds = questionIds.filter(id => !respondedIds.includes(id));
+          console.log(`Checking responses completeness: ${responses.size} responses vs ${questions.length} questions`);
+          console.log('Missing responses for question IDs:', missingIds);
+          
+          const requiredCompletionRatio = isBasicSurvey ? 1.0 : 0.9;
+          const actualCompletionRatio = questions.length > 0 ? (responses.size / questions.length) : 1.0;
+          console.log(`Completion ratio: ${actualCompletionRatio.toFixed(2)} (Required: ${requiredCompletionRatio})`);
+          if (actualCompletionRatio < requiredCompletionRatio) {
+            showError(`Please answer ${isBasicSurvey ? 'all' : 'at least 90% of the'} questions before completing the survey.`);
+            return;
           }
-          
-          responsesArray.push({
-            question_id: key,
-            response: numericValue
-          });
-        });
-        
-        try {
-          // Show a loading indicator
-          const loadingIndicator = document.createElement('div');
-          loadingIndicator.className = 'position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center';
-          loadingIndicator.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-          loadingIndicator.style.zIndex = '9999';
-          loadingIndicator.innerHTML = `
-            <div class="spinner-border text-light" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-          `;
-          document.body.appendChild(loadingIndicator);
-          
-          // Log data being sent
-          console.log('Sending survey data from checkInitialGenreSelectionState handler:', {
-            survey_responses: responsesArray,
-            favorite_genres: selectedGenres,
-            submit_survey: 'true',
-            type: 'basic',
-            retake: isRetake
-          });
-          
-          // Submit all responses at once
-          const token = document.querySelector('meta[name="csrf-token"]').content;
-          const saveResult = await fetch('/surveys', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-              'X-CSRF-Token': token
-            },
-            body: JSON.stringify({
-              survey_responses: responsesArray,
-              favorite_genres: selectedGenres,
-              submit_survey: 'true',
-              type: 'basic',
-              retake: isRetake
-            })
-          });
-          
-          // Remove loading indicator
-          document.body.removeChild(loadingIndicator);
-          
-          if (!saveResult.ok) {
-            throw new Error(`Failed to save responses: ${saveResult.status}`);
-          }
-          
-          console.log('Survey saved successfully');
-          
-          // Try to parse the response as JSON
-          const responseData = await saveResult.json();
-          console.log('Server response:', responseData);
-          
-          if (responseData.redirect_url) {
-            // Follow the server's redirect
-            window.location.href = responseData.redirect_url;
-          } else {
-            // Fallback redirect
-            window.location.href = '/survey_results?type=basic';
-          }
-        } catch (error) {
-          console.error('Error completing survey:', error);
-          showError('Failed to complete the survey. Please try again.');
+      }
+      
+      const selectedGenres = [];
+      if (isAtGenreSelection) { 
+        const genreCheckboxes = genreSelectionElem.querySelectorAll('input[name="favorite_genres[]"]:checked');
+        genreCheckboxes.forEach(checkbox => { selectedGenres.push(checkbox.value); });
+      }
+      
+      const responsesArray = [];
+      responses.forEach((value, key) => {
+        let numericValue = value;
+        if (typeof value === 'string') {
+          const valueMap = {'Strongly_Disagree': 1, 'Disagree': 2, 'Neutral': 3, 'Agree': 4, 'Strongly_Agree': 5};
+          numericValue = valueMap[value] || value; 
         }
+        responsesArray.push({ question_id: key, response: numericValue });
       });
+      
+      console.log('Submitting survey with selected genres:', selectedGenres);
+      console.log('Submitting responses:', responsesArray);
+      
+      const loadingIndicator = document.createElement('div');
+      loadingIndicator.className = 'position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center';
+      loadingIndicator.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+      loadingIndicator.style.zIndex = '9999';
+      loadingIndicator.innerHTML = `<div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div>`;
+      document.body.appendChild(loadingIndicator);
+      
+      const token = document.querySelector('meta[name="csrf-token"]').content;
+      console.log('Sending survey data for complete submission:', { survey_responses: responsesArray, favorite_genres: selectedGenres, submit_survey: 'true', type: isBasicSurvey ? 'basic' : 'extended', retake: isRetake });
+      
+      const saveResult = await fetch('/surveys', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-Token': token },
+        body: JSON.stringify({ survey_responses: responsesArray, favorite_genres: selectedGenres, submit_survey: 'true', type: isBasicSurvey ? 'basic' : 'extended', retake: isRetake })
+      });
+
+      document.body.removeChild(loadingIndicator);
+
+      if (!saveResult.ok) {
+        const errorText = await saveResult.text();
+        console.error('Error response:', errorText);
+        throw new Error(`Failed to save responses: ${saveResult.status} ${errorText}`);
+      }
+      
+      console.log('Survey saved successfully');
+      
+      try {
+        const contentType = saveResult.headers.get('content-type');
+        let responseData = null;
+        let redirectUrl = null;
+        if (contentType && contentType.includes('application/json')) {
+          responseData = await saveResult.json();
+          console.log('Server response:', responseData);
+          redirectUrl = responseData.redirect_url;
+        } else {
+          console.warn('Response is not JSON, checking Location header', contentType);
+          const locationHeader = saveResult.headers.get('location');
+          if (locationHeader) { redirectUrl = locationHeader; }
+        }
+
+        // Handle extended vs basic survey completion flow
+        if (!isBasicSurvey) {
+          // === MODIFIED: Redirect immediately for extended survey ===
+          const targetUrl = redirectUrl || '/survey_results?type=extended'; // Use redirectUrl if available
+          console.log(`Extended survey complete, redirecting to ${targetUrl}`);
+          window.location.href = targetUrl;
+        } else {
+          // Basic Survey: Redirect immediately if URL is available
+          const targetUrl = redirectUrl || '/survey_results?type=basic'; // Use redirectUrl if available
+          console.log(`Basic survey complete, redirecting to ${targetUrl}`);
+          window.location.href = targetUrl;
+        }
+        
+      } catch (jsonError) {
+        console.warn('Post-processing/JSON parsing error, proceeding with fallback redirect', jsonError);
+        window.location.href = isBasicSurvey ? '/survey_results?type=basic' : '/survey_results?type=extended';
+      }
+      
+    } catch (error) {
+      console.error('Error in Complete Survey handler:', error);
+      const loadingIndicator = document.querySelector('.spinner-border')?.closest('div[style*="background-color: rgba(0, 0, 0, 0.5)"]');
+      if (loadingIndicator && loadingIndicator.parentNode) document.body.removeChild(loadingIndicator);
+      showError('Failed to complete the survey. Please try again.');
     }
-    
-    // Hide question counter
-    const questionCounter = document.querySelector('.text-muted');
-    if (questionCounter) {
-      questionCounter.style.display = 'none';
-    }
-    
-    // Set current question index to trigger genre selection in the JS model
-    const questionContainer = document.querySelector('.question-container');
-    if (questionContainer) {
-      const totalQuestionsFromData = parseInt(questionContainer.dataset.totalQuestions, 10);
-      currentQuestionIndex = totalQuestionsFromData;
-    }
-    
-    console.log('Genre selection screen initialized on page load');
+  });
+  
+  // Mark the listener as attached
+  completeBtn.dataset.listenerAttached = 'true';
+  console.log('Complete button listener attached successfully.');
+  
+  // Set initial visibility after attaching listener
+  const isBasicSurveyInit = document.querySelector('meta[name="survey-type"]')?.getAttribute('content') === 'basic';
+  const questionContainerInit = document.querySelector('.question-container');
+  const totalQuestionsFromDataInit = questionContainerInit ? parseInt(questionContainerInit.dataset.totalQuestions, 10) : 0;
+  const isLastQuestionInit = !isBasicSurveyInit && currentQuestionIndex === totalQuestionsFromDataInit - 1;
+  const genreSelectionElemInit = document.getElementById('genre-selection');
+  const isAtGenreSelectionInit = isBasicSurveyInit && genreSelectionElemInit && genreSelectionElemInit.style.display === 'block';
+
+  completeBtn.style.display = (isLastQuestionInit || isAtGenreSelectionInit) ? 'block' : 'none';
+  console.log(`Initial visibility set in ensureCompleteButtonFunctionality: display=${completeBtn.style.display}`);
+}
+
+
+function showCurrentQuestion() {
+  const questionContainer = document.querySelector('.question-container');
+  if (!questionContainer) {
+    console.error('Question container not found in showCurrentQuestion');
+    return;
   }
-} 
+  
+  const totalQuestionsFromData = parseInt(questionContainer.dataset.totalQuestions, 10);
+  const isBasicSurvey = document.querySelector('meta[name="survey-type"]')?.getAttribute('content') === 'basic';
+  genreSelection = document.getElementById('genre-selection');
+  completeBtn = document.getElementById('complete-survey');
+  nextButton = document.getElementById('next-button');
+  prevButton = document.getElementById('prev-button');
+  saveProgressButton = document.getElementById('save-progress');
+  const atGenreSelection = isBasicSurvey && currentQuestionIndex >= totalQuestionsFromData;
+  const isLastQuestion = currentQuestionIndex === totalQuestionsFromData - 1;
+
+  console.log('Button Elements in showCurrentQuestion:', {
+    completeBtn: completeBtn ? { id: completeBtn.id, display: completeBtn.style.display, listener: completeBtn.dataset.listenerAttached } : 'Not found',
+    nextButton: nextButton ? { id: nextButton.id, display: nextButton.style.display } : 'Not found',
+    prevButton: prevButton ? { id: prevButton.id, display: prevButton.style.display } : 'Not found',
+    saveProgressButton: saveProgressButton ? { id: saveProgressButton.id, display: saveProgressButton.style.display } : 'Not found'
+  });
+
+  // Create genre selection if needed for basic survey
+  if (isBasicSurvey && !genreSelection && atGenreSelection) { 
+    console.log('Creating genre selection element in showCurrentQuestion');
+    createGenreSelectionElement();
+    genreSelection = document.getElementById('genre-selection'); 
+  }
+
+  console.log('showCurrentQuestion debug:', {
+    currentQuestionIndex, totalQuestionsFromData, isBasicSurvey, atGenreSelection, isLastQuestion,
+    hasGenreSelection: !!genreSelection, genreSelectionDisplay: genreSelection ? genreSelection.style.display : 'N/A', completeButtonExists: !!completeBtn,
+  });
+
+  const navContainer = document.querySelector('.navigation-buttons');
+  if (!navContainer) {
+    console.error('Navigation container not found in showCurrentQuestion');
+    return; 
+  }
+  if (!completeBtn) {
+      console.error('FATAL: Complete button element not found in showCurrentQuestion!');
+      // Cannot reliably continue if the main action button is missing
+      return; 
+  }
+
+  // --- Genre Selection View ---
+  if (atGenreSelection && isBasicSurvey) {
+    console.log('Showing genre selection screen');
+    document.querySelectorAll('.question-card').forEach(card => card.style.display = 'none');
+    if (genreSelection) genreSelection.style.display = 'block';
+    else console.error("Genre selection element not found when trying to display!");
+    
+    const questionCounterEl = document.querySelector('.text-muted');
+    if (questionCounterEl) questionCounterEl.style.display = 'none';
+    
+    // Button Visibility
+    if (prevButton) prevButton.style.display = 'block';
+    if (nextButton) nextButton.style.display = 'none';
+    completeBtn.style.display = 'block'; // Show complete button
+    console.log('Complete button displayed for genre selection.');
+    if (saveProgressButton) saveProgressButton.style.display = 'none';
+    
+    navContainer.style.display = 'flex';
+
+    // Reset previous button listener for genre navigation
+    if (prevButton) {
+      const newPrevBtn = prevButton.cloneNode(true); 
+      if (prevButton.parentNode) {
+          prevButton.parentNode.replaceChild(newPrevBtn, prevButton);
+          prevButton = newPrevBtn;
+          prevButton.addEventListener('click', () => {
+              currentQuestionIndex = totalQuestionsFromData - 1;
+              console.log('Going back from genre selection to last question');
+              showCurrentQuestion();
+              updateProgress();
+          });
+      } else {
+          console.error('Cannot replace previous button - no parent found');
+      }
+    }
+    return; // End here for genre selection
+  }
+
+  // --- Regular Question View ---
+  document.querySelectorAll('.question-card').forEach(card => card.style.display = 'none');
+  if (genreSelection) genreSelection.style.display = 'none';
+  if (saveProgressButton) saveProgressButton.style.display = isBasicSurvey ? 'none' : 'block';
+
+  const currentQuestionCard = document.querySelector(`.question-card[data-question-index="${currentQuestionIndex}"]`);
+  if (currentQuestionCard) {
+    currentQuestionCard.style.display = 'block';
+    
+    // Prev Button Visibility
+    if (prevButton) {
+      prevButton.style.display = currentQuestionIndex > 0 ? 'block' : 'none';
+    }
+    
+    // Next vs Complete Button Visibility
+    if (isBasicSurvey) {
+      if (nextButton) nextButton.style.display = 'block';
+      completeBtn.style.display = 'none'; 
+    } else { // Extended Survey
+      if (isLastQuestion) {
+        if (nextButton) nextButton.style.display = 'none';
+        completeBtn.style.display = 'block';
+        console.log('Extended survey, last question: showing Complete button'); // Specific log
+      } else {
+        if (nextButton) nextButton.style.display = 'block';
+        completeBtn.style.display = 'none';
+      }
+    }
+    
+    // Button DOM Order (using appendChild for safety)
+    const buttonsToOrder = [];
+    if (prevButton && prevButton.style.display !== 'none') buttonsToOrder.push(prevButton);
+    if (saveProgressButton && saveProgressButton.style.display !== 'none') buttonsToOrder.push(saveProgressButton);
+    if (nextButton && nextButton.style.display !== 'none') buttonsToOrder.push(nextButton);
+    if (completeBtn && completeBtn.style.display !== 'none') buttonsToOrder.push(completeBtn);
+
+    if (navContainer) {
+        const currentOrder = Array.from(navContainer.children);
+        let needsReorder = buttonsToOrder.length !== currentOrder.length;
+        if (!needsReorder) {
+            for(let i = 0; i < buttonsToOrder.length; i++) {
+                if (buttonsToOrder[i] !== currentOrder[i]) { needsReorder = true; break; }
+            }
+        }
+        if (needsReorder) {
+            console.log('Reordering navigation buttons in DOM');
+            // Use appendChild which moves elements if already in DOM
+            buttonsToOrder.forEach(btn => navContainer.appendChild(btn));
+        }
+    } else {
+      console.warn('Could not reorder buttons - nav container missing');
+    }
+    
+    // Question Counter
+    const questionCounterEl = document.querySelector('.text-muted');
+    if (questionCounterEl) {
+      questionCounterEl.style.display = 'block';
+      questionCounterEl.textContent = `Question ${currentQuestionIndex + 1} of ${totalQuestionsFromData}`;
+    }
+  } else {
+    console.error(`Could not find question card for index: ${currentQuestionIndex}`);
+  }
+}
+
+
+function moveToNextQuestion() {
+  const questionContainer = document.querySelector('.question-container');
+  if (!questionContainer) {
+    console.error('Question container not found in moveToNextQuestion');
+    return;
+  }
+  
+  const totalQuestionsFromData = parseInt(questionContainer.dataset.totalQuestions, 10);
+  const isBasicSurvey = document.querySelector('meta[name="survey-type"]')?.getAttribute('content') === 'basic';
+  const isCurrentlyLastQuestion = currentQuestionIndex === totalQuestionsFromData - 1; 
+  const shouldShowGenreSelection = isBasicSurvey && isCurrentlyLastQuestion; 
+  
+  console.log('moveToNextQuestion debug:', {
+    currentQuestionIndex, totalQuestionsFromData, isBasicSurvey, isCurrentlyLastQuestion, shouldShowGenreSelection
+  });
+  
+  // Basic Survey: Moving from last question to genre selection?
+  if (shouldShowGenreSelection) { 
+    console.log('Moving from last basic question to genre selection step');
+    currentQuestionIndex = totalQuestionsFromData; // Genre state index
+    
+    genreSelection = document.getElementById('genre-selection');
+    console.log('Genre selection element:', !!genreSelection);
+    
+    showCurrentQuestion(); 
+    updateProgress(); 
+    return; 
+  }
+  
+  // Moving to next question (not genre step)
+  if (currentQuestionIndex < totalQuestionsFromData - 1) {
+    currentQuestionIndex++;
+    console.log(`Moving to question index: ${currentQuestionIndex}`);
+    showCurrentQuestion(); 
+    updateProgress();
+  } else if (currentQuestionIndex === totalQuestionsFromData - 1) {
+    // Already at last question (e.g., extended survey done answering)
+    console.log('Already at last question index, ensuring UI state for completion.');
+    showCurrentQuestion(); // Ensure Complete button shows
+    updateProgress(); 
+  } else {
+    // Index is >= totalQuestions (should be genre selection state)
+    console.warn(`moveToNextQuestion called with index >= total questions: ${currentQuestionIndex}. Assuming genre selection.`);
+    showCurrentQuestion(); // Ensure genre view is displayed
+    updateProgress();
+  }
+}
+
+// ... existing code ...

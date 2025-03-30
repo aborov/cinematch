@@ -2,10 +2,7 @@ require "active_support/core_ext/integer/time"
 
 Rails.application.configure do
   # Allow server to be hosted on any URL
-  config.hosts.clear
-  config.hosts << "cinematch.net"
-  config.hosts << "localhost:3000"
-  # Allow better_errors to work in online IDE
+  config.hosts = nil # Allow all hosts in development
   config.web_console.allowed_ips = "0.0.0.0/0.0.0.0"
   BetterErrors::Middleware.allow_ip! "0.0.0.0/0.0.0.0"
   # Auto-connect to database when rails console opens
