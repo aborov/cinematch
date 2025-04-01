@@ -12,16 +12,10 @@
     
     <%= render "shared/cdn" %>
     <%= stylesheet_link_tag "application", media: "all" %>
-    <%= javascript_include_tag "application", defer: true %>
-    <%= javascript_include_tag "https://cdn.jsdelivr.net/npm/chart.js" %>
-    <%= javascript_include_tag "https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation" %>
+    <%= javascript_importmap_tags %>
+    <%= javascript_include_tag "application", type: "module", defer: true %>
     <%= javascript_include_tag 'watchlist_navbar' %>
     <%= javascript_include_tag 'recommendations_refresh' %>
-    <script>
-      document.addEventListener('DOMContentLoaded', () => {
-        console.log('DOM loaded, survey.js initialized')
-      })
-    </script>
     
     <%= yield(:javascript) if content_for?(:javascript) %>
   </head>
