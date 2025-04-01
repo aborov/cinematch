@@ -10,10 +10,10 @@ Rails.application.configure do
     policy.font_src    :self, :https, :data
     policy.img_src     :self, :https, :data
     policy.object_src  :none
-    policy.script_src  :self, :https, "'unsafe-inline'", "'unsafe-eval'"
-    policy.style_src   :self, :https, "'unsafe-inline'"
-    policy.connect_src :self
-    policy.frame_src   :self
+    policy.script_src  :self, :https, "'unsafe-inline'", "'unsafe-eval'", 'https://cdn.jsdelivr.net'
+    policy.style_src   :self, :https, "'unsafe-inline'", 'https://cdn.jsdelivr.net'
+    policy.connect_src :self, 'https://cdn.jsdelivr.net'
+    policy.frame_src   :self, 'https://www.youtube.com'
     policy.frame_ancestors :none
     policy.form_action :self
     policy.base_uri    :self
@@ -24,5 +24,5 @@ Rails.application.configure do
   # config.content_security_policy_nonce_directives = %w(script-src style-src)
 
   # Enable CSP reporting
-  config.content_security_policy_report_only = true
+  # config.content_security_policy_report_only = true
 end
