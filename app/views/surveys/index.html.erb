@@ -47,5 +47,4 @@
 </div>
 
 <%= render 'survey_completion_modal' %>
-<%= render 'save_progress_modal' if @survey_type == 'extended' %>
-<%= javascript_include_tag "survey", "data-turbo-track": "reload" %>
+<%= render 'save_progress_modal' if @survey_type.to_s == 'extended' %>

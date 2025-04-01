@@ -96,12 +96,15 @@
         
         <!-- Survey Action Buttons (follow requirements for different user states) -->
         <div class="mt-4 d-flex gap-2">
-          <% if @user.basic_survey_completed? && @user.extended_survey_completed? %>
-            <%= link_to "Retake Basic Survey", surveys_path(type: 'basic', retake: 'true'), class: "btn btn-outline-primary" %>
-            <%= link_to "Retake Extended Survey", surveys_path(type: 'extended', retake: 'true'), class: "btn btn-outline-primary" %>
-          <% elsif @user.basic_survey_completed? && @user.extended_survey_in_progress? %>
+          <%# Check for in-progress extended survey FIRST %>
+          <% if @user.basic_survey_completed? && @user.extended_survey_in_progress? %>
             <%= link_to "Retake Basic Survey", surveys_path(type: 'basic', retake: 'true'), class: "btn btn-outline-primary" %>
             <%= link_to "Continue Extended Survey", surveys_path(type: 'extended'), class: "btn btn-primary" %>
+          <%# Then check if both are completed %>
+          <% elsif @user.basic_survey_completed? && @user.extended_survey_completed? %>
+            <%= link_to "Retake Basic Survey", surveys_path(type: 'basic', retake: 'true'), class: "btn btn-outline-primary" %>
+            <%= link_to "Retake Extended Survey", surveys_path(type: 'extended', retake: 'true'), class: "btn btn-outline-primary" %>
+          <%# Finally, check if only basic is done (and extended is not in progress) %>
           <% elsif @user.basic_survey_completed? || has_basic_responses %>
             <%= link_to "Retake Basic Survey", surveys_path(type: 'basic', retake: 'true'), class: "btn btn-outline-primary" %>
             <%= link_to "Take Extended Survey", surveys_path(type: 'extended'), class: "btn btn-primary" %>

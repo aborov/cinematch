@@ -6,12 +6,20 @@ const RESPONSE_VALUES = {
   'Strongly_Agree': 5
 };
 
+// Add the reverse mapping
+const RESPONSE_VALUE_STRINGS = Object.fromEntries(
+  Object.entries(RESPONSE_VALUES).map(([key, value]) => [value, key])
+);
+// RESPONSE_VALUE_STRINGS will be: { '1': 'Strongly_Disagree', '2': 'Disagree', ... }
+
 // Global variables and helper functions
 let currentQuestionIndex = 0;
 let progressBar, prevButton, nextButton, genreSelection, completeBtn, responses, saveProgressButton;
 
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('DOM loaded, initializing survey components');
+// Use turbo:load for Turbo Drive compatibility
+document.addEventListener('turbo:load', () => {
+  // Remove setTimeout wrapper
+  console.log('turbo:load event fired, initializing survey components');
   
   // Initialize welcome modal independently
   initializeWelcomeModal();
@@ -72,6 +80,11 @@ function initializeSurvey() {
   completeBtn = document.getElementById('complete-survey');
   saveProgressButton = document.getElementById('save-progress');
   
+  // New Debugging Log
+  const initialModalCheck = document.getElementById('saveProgressModal');
+  console.log('Modal element check during initializeSurvey:', initialModalCheck);
+  // End New Debugging Log
+  
   // Initialize the save progress button for extended survey
   if (saveProgressButton) {
     if (!isBasicSurvey) {
@@ -90,23 +103,35 @@ function initializeSurvey() {
   let hasResumableProgress = false;
   questions.forEach(questionCard => {
     const questionId = questionCard.dataset.questionId;
-    const savedResponse = questionCard.dataset.savedResponse;
-    
-    if (savedResponse) {
-      // Add to responses Map
-      responses.set(questionId, savedResponse);
-      
-      // Find and highlight the button
-      const button = questionCard.querySelector(`.response-button[data-value="${savedResponse}"]`);
-      if (button) {
-        markQuestionAsAnswered(questionCard, button);
-        hasResumableProgress = true;
+    const savedResponseNumeric = questionCard.dataset.savedResponse; // e.g., "3"
+
+    if (savedResponseNumeric) {
+      // Find the string representation (e.g., "Neutral") from the numeric value
+      const savedResponseString = RESPONSE_VALUE_STRINGS[savedResponseNumeric];
+
+      if (savedResponseString) {
+        // Store the numeric response in the map (consistent with how answers are saved)
+        // Store as string to match button values during handling
+        responses.set(questionId, savedResponseString); 
+        console.log(`Processing saved response: questionId=${questionId}, numeric=${savedResponseNumeric}, string=${savedResponseString}`);
+
+        // Find and highlight the button using the string value
+        const button = questionCard.querySelector(`.response-button[data-value="${savedResponseString}"]`);
+        if (button) {
+          markQuestionAsAnswered(questionCard, button);
+          hasResumableProgress = true;
+        } else {
+           console.log(`Could not find button for saved response string: questionId=${questionId}, savedResponseString=${savedResponseString}`);
+        }
+      } else {
+        console.warn(`Could not find string representation for saved response: questionId=${questionId}, numeric=${savedResponseNumeric}`);
       }
     }
   });
   
   // If there are saved responses, initialize to the next unanswered question
   if (hasResumableProgress) {
+    console.log('Resumable progress detected, initializing with saved responses.'); // Added log
     initializeWithSavedResponses();
   } else {
     // Validate attention check questions
@@ -185,11 +210,12 @@ function initializeSurvey() {
     
     const totalQuestionsFromData = parseInt(questionContainer.dataset.totalQuestions, 10);
     const isBasicSurvey = document.querySelector('meta[name="survey-type"]')?.getAttribute('content') === 'basic';
-    genreSelection = document.getElementById('genre-selection');
-    completeBtn = document.getElementById('complete-survey');
-    nextButton = document.getElementById('next-button');
-    prevButton = document.getElementById('prev-button');
-    saveProgressButton = document.getElementById('save-progress');
+    // Remove redundant DOM queries, use global variables assigned in initializeSurvey
+    // genreSelection = document.getElementById('genre-selection');
+    // completeBtn = document.getElementById('complete-survey');
+    // nextButton = document.getElementById('next-button');
+    // prevButton = document.getElementById('prev-button');
+    // saveProgressButton = document.getElementById('save-progress');
     const atGenreSelection = isBasicSurvey && currentQuestionIndex >= totalQuestionsFromData;
     const isLastQuestion = currentQuestionIndex === totalQuestionsFromData - 1;
 
@@ -1004,47 +1030,35 @@ function initializeSurvey() {
       return; 
     }
     
+    // Find the existing button rendered by Rails
+    saveProgressButton = document.getElementById('save-progress');
+    
     if (!saveProgressButton) {
-      console.log('Save Progress button not found, creating it');
-      saveProgressButton = document.createElement('button');
-      saveProgressButton.id = 'save-progress';
-      saveProgressButton.className = 'btn nav-button save-progress-button';
-      saveProgressButton.innerHTML = '<i class="fas fa-save me-2"></i>Save Progress';
-      
-      // Add it to the navigation container
-      const navContainer = document.querySelector('.navigation-buttons');
-      if (navContainer) {
-        const nextButton = document.getElementById('next-button');
-        if (nextButton && nextButton.parentNode) {
-          navContainer.insertBefore(saveProgressButton, nextButton);
-          console.log('Created and added Save Progress button');
-        } else {
-          // If next button doesn't exist or has no parent, just append to navigation container
-          navContainer.appendChild(saveProgressButton);
-          console.log('Added Save Progress button to navigation container');
-        }
-      } else {
-        console.warn('Navigation container not found, cannot add Save Progress button');
-        return; // Don't continue if we can't add the button
-      }
+      // Log an error if the button IS NOT found - it should be rendered by the view
+      console.error('Save Progress button (#save-progress) not found in the DOM! Ensure it is rendered by the Rails view for extended surveys.');
+      return; // Stop if the essential button is missing
+    } else {
+      console.log('Found existing Save Progress button');
     }
     
     // Make sure it's visible and add listener if needed
     if (saveProgressButton) {
-      saveProgressButton.style.display = 'block';
+      // Button visibility is handled in showCurrentQuestion now, just ensure listener is attached
 
-      // === RESTORED: Add event listener if needed ===
-      if (!saveProgressButton.hasEventListener) { // Check if listener already added
+      // Check if listener already added (using a custom attribute)
+      if (saveProgressButton.dataset.listenerAttached !== 'true') { 
         saveProgressButton.addEventListener('click', handleSaveProgress);
-        saveProgressButton.hasEventListener = true; // Mark as added
+        saveProgressButton.dataset.listenerAttached = 'true'; // Mark as added
         console.log('Added event listener to Save Progress button');
+      } else {
+        console.log('Event listener already attached to Save Progress button.');
       }
-      // === END RESTORED BLOCK ===
     }
   }
 
   // Save progress handler function
-  async function handleSaveProgress() {
+  async function handleSaveProgress(event) {
+    event.preventDefault();
     try {
       // Call debugQuestionSummary first to log state
       debugQuestionSummary();
@@ -1099,9 +1113,25 @@ function initializeSurvey() {
       
       console.log('Progress saved successfully');
       
-      // Show the save progress modal
-      const saveProgressModal = new bootstrap.Modal(document.getElementById('saveProgressModal'));
-      saveProgressModal.show();
+      // Debugging Bootstrap and Modal Element
+      console.log('Bootstrap object on window:', window.bootstrap);
+      const modalElement = document.getElementById('saveProgressModal');
+      console.log('Modal element found:', modalElement);
+
+      if (window.bootstrap && modalElement) {
+        try {
+          // Show the save progress modal using window.bootstrap
+          const saveProgressModal = new window.bootstrap.Modal(modalElement);
+          saveProgressModal.show();
+          console.log('Modal show() called.');
+        } catch (modalError) {
+          console.error('Error showing Bootstrap modal:', modalError);
+          showError("Progress saved, but couldn't show confirmation."); // Show error but acknowledge save
+        }
+      } else {
+        console.error('Bootstrap object or modal element not found!');
+        showError("Progress saved, but confirmation couldn't be displayed."); // Fallback message
+      }
     } catch (error) {
       console.error('Error saving progress:', error);
       showError("Failed to save progress. Please try again.");
@@ -1142,6 +1172,45 @@ function initializeSurvey() {
         successContainer.parentNode.removeChild(successContainer);
       }
     }, 10000);
+  }
+
+  function initializeWithSavedResponses() {
+    const questionsNodeList = document.querySelectorAll('.question-card'); // Use local variable
+    const totalQuestions = questionsNodeList.length; // Use length from nodelist
+    let answeredQuestions = 0;
+  
+    // Count answered questions (based on class added during initial processing)
+    questionsNodeList.forEach(questionCard => {
+      if (questionCard.classList.contains('answered')) {
+        answeredQuestions++;
+      }
+    });
+
+    // Get the actual number of non-attention-check questions
+    const questionContainer = document.querySelector('.question-container');
+    const totalRegularQuestions = questionContainer ? parseInt(questionContainer.dataset.totalQuestions, 10) : totalQuestions;
+    
+    // Set current question index
+    if (answeredQuestions >= totalRegularQuestions) {
+      // If all regular questions are answered, go to the last question index
+      currentQuestionIndex = totalRegularQuestions - 1;
+      console.log(`All ${totalRegularQuestions} questions answered. Setting index to last question: ${currentQuestionIndex}`);
+    } else if (answeredQuestions > 0) {
+      // Otherwise, start at the first unanswered question (index = count of answered)
+      currentQuestionIndex = answeredQuestions;
+      console.log(`Starting at question index ${currentQuestionIndex} based on ${answeredQuestions} answered questions`);
+    } else {
+      // No answered questions found, start at 0 (shouldn't happen if hasResumableProgress was true)
+      currentQuestionIndex = 0;
+       console.log(`No answered questions found, starting at index 0`);
+    }
+    
+    // Debug questions and responses
+    debugQuestionSummary();
+    
+    // Now these functions are accessible because we are inside initializeSurvey
+    showCurrentQuestion(); 
+    updateProgress(); 
   }
 
   showCurrentQuestion();
@@ -1284,31 +1353,6 @@ function createGenreSelectionElement() {
   } else {
     console.error('Survey container not found, cannot add genre selection');
   }
-}
-
-// Function to initialize survey with saved responses
-function initializeWithSavedResponses() {
-  const questions = document.querySelectorAll('.question-card');
-  let answeredQuestions = 0;
-  
-  // Count answered questions to determine the starting position
-  questions.forEach(questionCard => {
-    if (questionCard.classList.contains('answered')) {
-      answeredQuestions++;
-    }
-  });
-  
-  // Set current question index to the first unanswered question
-  if (answeredQuestions > 0) {
-    currentQuestionIndex = answeredQuestions;
-    console.log(`Starting at question ${currentQuestionIndex + 1} based on ${answeredQuestions} answered questions`);
-  }
-  
-  // Debug questions and responses
-  debugQuestionSummary();
-  
-  showCurrentQuestion();
-  updateProgress();
 }
 
 // Add debug function to show questions summary
@@ -1522,154 +1566,7 @@ function ensureCompleteButtonFunctionality() {
 }
 
 
-function showCurrentQuestion() {
-  const questionContainer = document.querySelector('.question-container');
-  if (!questionContainer) {
-    console.error('Question container not found in showCurrentQuestion');
-    return;
-  }
-  
-  const totalQuestionsFromData = parseInt(questionContainer.dataset.totalQuestions, 10);
-  const isBasicSurvey = document.querySelector('meta[name="survey-type"]')?.getAttribute('content') === 'basic';
-  genreSelection = document.getElementById('genre-selection');
-  completeBtn = document.getElementById('complete-survey');
-  nextButton = document.getElementById('next-button');
-  prevButton = document.getElementById('prev-button');
-  saveProgressButton = document.getElementById('save-progress');
-  const atGenreSelection = isBasicSurvey && currentQuestionIndex >= totalQuestionsFromData;
-  const isLastQuestion = currentQuestionIndex === totalQuestionsFromData - 1;
 
-  console.log('Button Elements in showCurrentQuestion:', {
-    completeBtn: completeBtn ? { id: completeBtn.id, display: completeBtn.style.display, listener: completeBtn.dataset.listenerAttached } : 'Not found',
-    nextButton: nextButton ? { id: nextButton.id, display: nextButton.style.display } : 'Not found',
-    prevButton: prevButton ? { id: prevButton.id, display: prevButton.style.display } : 'Not found',
-    saveProgressButton: saveProgressButton ? { id: saveProgressButton.id, display: saveProgressButton.style.display } : 'Not found'
-  });
-
-  // Create genre selection if needed for basic survey
-  if (isBasicSurvey && !genreSelection && atGenreSelection) { 
-    console.log('Creating genre selection element in showCurrentQuestion');
-    createGenreSelectionElement();
-    genreSelection = document.getElementById('genre-selection'); 
-  }
-
-  console.log('showCurrentQuestion debug:', {
-    currentQuestionIndex, totalQuestionsFromData, isBasicSurvey, atGenreSelection, isLastQuestion,
-    hasGenreSelection: !!genreSelection, genreSelectionDisplay: genreSelection ? genreSelection.style.display : 'N/A', completeButtonExists: !!completeBtn,
-  });
-
-  const navContainer = document.querySelector('.navigation-buttons');
-  if (!navContainer) {
-    console.error('Navigation container not found in showCurrentQuestion');
-    return; 
-  }
-  if (!completeBtn) {
-      console.error('FATAL: Complete button element not found in showCurrentQuestion!');
-      // Cannot reliably continue if the main action button is missing
-      return; 
-  }
-
-  // --- Genre Selection View ---
-  if (atGenreSelection && isBasicSurvey) {
-    console.log('Showing genre selection screen');
-    document.querySelectorAll('.question-card').forEach(card => card.style.display = 'none');
-    if (genreSelection) genreSelection.style.display = 'block';
-    else console.error("Genre selection element not found when trying to display!");
-    
-    const questionCounterEl = document.querySelector('.text-muted');
-    if (questionCounterEl) questionCounterEl.style.display = 'none';
-    
-    // Button Visibility
-    if (prevButton) prevButton.style.display = 'block';
-    if (nextButton) nextButton.style.display = 'none';
-    completeBtn.style.display = 'block'; // Show complete button
-    console.log('Complete button displayed for genre selection.');
-    if (saveProgressButton) saveProgressButton.style.display = 'none';
-    
-    navContainer.style.display = 'flex';
-
-    // Reset previous button listener for genre navigation
-    if (prevButton) {
-      const newPrevBtn = prevButton.cloneNode(true); 
-      if (prevButton.parentNode) {
-          prevButton.parentNode.replaceChild(newPrevBtn, prevButton);
-          prevButton = newPrevBtn;
-          prevButton.addEventListener('click', () => {
-              currentQuestionIndex = totalQuestionsFromData - 1;
-              console.log('Going back from genre selection to last question');
-              showCurrentQuestion();
-              updateProgress();
-          });
-      } else {
-          console.error('Cannot replace previous button - no parent found');
-      }
-    }
-    return; // End here for genre selection
-  }
-
-  // --- Regular Question View ---
-  document.querySelectorAll('.question-card').forEach(card => card.style.display = 'none');
-  if (genreSelection) genreSelection.style.display = 'none';
-  if (saveProgressButton) saveProgressButton.style.display = isBasicSurvey ? 'none' : 'block';
-
-  const currentQuestionCard = document.querySelector(`.question-card[data-question-index="${currentQuestionIndex}"]`);
-  if (currentQuestionCard) {
-    currentQuestionCard.style.display = 'block';
-    
-    // Prev Button Visibility
-    if (prevButton) {
-      prevButton.style.display = currentQuestionIndex > 0 ? 'block' : 'none';
-    }
-    
-    // Next vs Complete Button Visibility
-    if (isBasicSurvey) {
-      if (nextButton) nextButton.style.display = 'block';
-      completeBtn.style.display = 'none'; 
-    } else { // Extended Survey
-      if (isLastQuestion) {
-        if (nextButton) nextButton.style.display = 'none';
-        completeBtn.style.display = 'block';
-        console.log('Extended survey, last question: showing Complete button'); // Specific log
-      } else {
-        if (nextButton) nextButton.style.display = 'block';
-        completeBtn.style.display = 'none';
-      }
-    }
-    
-    // Button DOM Order (using appendChild for safety)
-    const buttonsToOrder = [];
-    if (prevButton && prevButton.style.display !== 'none') buttonsToOrder.push(prevButton);
-    if (saveProgressButton && saveProgressButton.style.display !== 'none') buttonsToOrder.push(saveProgressButton);
-    if (nextButton && nextButton.style.display !== 'none') buttonsToOrder.push(nextButton);
-    if (completeBtn && completeBtn.style.display !== 'none') buttonsToOrder.push(completeBtn);
-
-    if (navContainer) {
-        const currentOrder = Array.from(navContainer.children);
-        let needsReorder = buttonsToOrder.length !== currentOrder.length;
-        if (!needsReorder) {
-            for(let i = 0; i < buttonsToOrder.length; i++) {
-                if (buttonsToOrder[i] !== currentOrder[i]) { needsReorder = true; break; }
-            }
-        }
-        if (needsReorder) {
-            console.log('Reordering navigation buttons in DOM');
-            // Use appendChild which moves elements if already in DOM
-            buttonsToOrder.forEach(btn => navContainer.appendChild(btn));
-        }
-    } else {
-      console.warn('Could not reorder buttons - nav container missing');
-    }
-    
-    // Question Counter
-    const questionCounterEl = document.querySelector('.text-muted');
-    if (questionCounterEl) {
-      questionCounterEl.style.display = 'block';
-      questionCounterEl.textContent = `Question ${currentQuestionIndex + 1} of ${totalQuestionsFromData}`;
-    }
-  } else {
-    console.error(`Could not find question card for index: ${currentQuestionIndex}`);
-  }
-}
 
 
 function moveToNextQuestion() {

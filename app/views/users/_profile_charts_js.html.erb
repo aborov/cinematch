@@ -1,4 +1,39 @@
-<script>
+<script type="module">
+import { 
+  Chart, 
+  RadarController, 
+  PolarAreaController, 
+  BarController, 
+  ScatterController, 
+  RadialLinearScale, 
+  LinearScale, 
+  CategoryScale, 
+  PointElement, 
+  LineElement, 
+  ArcElement, 
+  BarElement, 
+  Legend, 
+  Tooltip, 
+  Filler 
+} from 'chart.js';
+
+Chart.register(
+  RadarController, 
+  PolarAreaController, 
+  BarController, 
+  ScatterController, 
+  RadialLinearScale, 
+  LinearScale, 
+  CategoryScale, 
+  PointElement, 
+  LineElement, 
+  ArcElement, 
+  BarElement, 
+  Legend, 
+  Tooltip, 
+  Filler
+);
+
 document.addEventListener('DOMContentLoaded', function() {
   // Initialize tooltips with specific configuration
   var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));

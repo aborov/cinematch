@@ -28,52 +28,55 @@ class SurveysController < ApplicationController
     # Get or create the user preference
     @user_preference = current_user.ensure_user_preference
     
-    # Determine which questions to show
-    if @survey_type == :basic
-      @questions = SurveyQuestion.basic_survey_questions_with_answers
-      @progress_percentage = current_user.basic_survey_progress
-      @user_responses = current_user.responses_for_survey(:basic)
-      logger.debug "Basic survey: #{@questions.size} questions, #{@user_responses.size} responses, #{@progress_percentage}% progress"
-    else
-      @questions = SurveyQuestion.extended_survey_questions_with_answers
-      @progress_percentage = current_user.extended_survey_progress
-      @user_responses = current_user.responses_for_survey(:extended)
-      logger.debug "Extended survey: #{@questions.size} questions, #{@user_responses.size} responses, #{@progress_percentage}% progress"
-      
-      # Log the question IDs of unanswered questions for debugging
-      if @user_responses.size > 0
-        question_ids = @questions.map { |q| q.id.to_s }
-        answered_ids = @user_responses.keys
-        unanswered_ids = question_ids - answered_ids
-        logger.debug "Unanswered questions: #{unanswered_ids.size} questions"
-        logger.debug "First 10 unanswered question IDs: #{unanswered_ids.first(10).inspect}"
-        
-        # Log question ID ranges
-        if @questions.size > 0
-          logger.debug "Question ID range: #{@questions.first.id} to #{@questions.last.id}"
-        end
-      end
-    end
-    
-    # Set saved responses for the view to use
+    # --- START REVISED QUESTION ORDERING LOGIC ---
+    # Fetch all questions and user responses first
+    all_questions = SurveyQuestion.where(survey_type: @survey_type).where.not(question_type: 'attention_check').order(:id) # Consistent base order
+    attention_checks = SurveyQuestion.where(survey_type: @survey_type, question_type: 'attention_check').order(:id)
+    @user_responses = current_user.responses_for_survey(@survey_type)
     @saved_responses = @user_responses
-    logger.debug "Saved responses: #{@saved_responses.inspect}"
-    
-    # If retaking the survey, don't load saved responses
+
+    # Clear saved responses if retaking
     if @retake
       @saved_responses = {}
       logger.debug "Cleared saved responses for retake"
     end
     
-    # Store total questions count before adding attention checks
-    @total_questions = @questions.size
-    logger.debug "Total questions before attention checks: #{@total_questions}"
+    # Partition questions based on saved responses (use string keys for comparison)
+    answered_question_ids = @saved_responses.keys.map(&:to_s)
+    answered_questions = []
+    unanswered_questions = []
+
+    all_questions.each do |q|
+      if answered_question_ids.include?(q.id.to_s)
+        answered_questions << q
+      else
+        unanswered_questions << q
+      end
+    end
+
+    # Shuffle the unanswered questions
+    unanswered_questions.shuffle!
+
+    # Add attention checks randomly into the unanswered portion
+    # (Simple approach: add to end of unanswered and shuffle again)
+    # TODO: Refine insertion logic if specific placement (1/3, 2/3) is strictly needed *within* unanswered
+    unanswered_questions += attention_checks.shuffle 
+    unanswered_questions.shuffle!
+
+    # Combine the lists
+    @questions = answered_questions + unanswered_questions
     
-    # Add attention check questions
-    @questions = add_attention_check_questions(@questions, @survey_type)
-    
-    # Calculate progress for the view
-    @progress = @progress_percentage
+    # Set total regular questions count for JS
+    @total_questions = all_questions.size 
+    logger.debug "Total regular questions: #{@total_questions}"
+    logger.debug "Total questions including attention checks: #{@questions.size}"
+    logger.debug "Answered: #{answered_questions.size}, Unanswered (incl. attention): #{unanswered_questions.size}"
+    # --- END REVISED QUESTION ORDERING LOGIC ---
+
+    # Calculate progress for the view (based on regular questions)
+    completed_count = answered_questions.size
+    @progress = @total_questions > 0 ? (completed_count.to_f / @total_questions * 100).round : 0
+    logger.debug "Calculated progress: #{@progress}% (#{completed_count}/#{@total_questions})"
     
     # Set genres for basic survey
     @genres = Genre.user_facing_genres if @survey_type.to_s == 'basic'
@@ -195,17 +198,31 @@ class SurveysController < ApplicationController
       
       # Check if we're saving a full progress update
       if params[:save_progress] && params[:save_progress] == true
-        Rails.logger.info("Full progress save requested")
+        Rails.logger.info("Full progress save requested for #{survey_type} survey")
+
+        # --- START ADDED LOGIC FOR EXTENDED RETAKE ---
+        if survey_type == "extended" && current_user.user_preference.extended_survey_completed?
+          Rails.logger.info("Detected save progress for a COMPLETED extended survey. Resetting completion status and clearing old responses for user #{current_user.id}.")
+          # This is the first save action since completing the survey, treat as start of retake.
+          current_user.user_preference.update_columns(
+            extended_survey_completed: false,
+            extended_survey_in_progress: true
+          )
+          # Delete all previous responses for this survey type
+          current_user.survey_responses.joins(:survey_question).where(survey_questions: { survey_type: :extended }).destroy_all
+          Rails.logger.info("Cleared previous extended survey responses for user #{current_user.id}.")
+        end
+        # --- END ADDED LOGIC FOR EXTENDED RETAKE ---
         
         # Process multiple responses if provided
         if params[:survey_responses].present?
           process_batch_responses(params[:survey_responses], survey_type)
         end
         
-        # Update in-progress flag for extended survey
+        # Update in-progress flag (safe to call again even if set above)
         if survey_type == "extended"
           current_user.user_preference.update_column(:extended_survey_in_progress, true)
-          Rails.logger.info("Updated extended_survey_in_progress flag for user #{current_user.id}")
+          Rails.logger.info("Ensured extended_survey_in_progress flag is true for user #{current_user.id}")
         end
         
         # Get progress percentage
