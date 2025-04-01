@@ -14,23 +14,50 @@
               Hi, <%= current_user.name %>!
             </span>
           </li>
-          <li class="nav-item">
-            <button id="refresh-recommendations" class="nav-link d-flex align-items-center" title="Refresh Recommendations">
-              <i class="fas fa-sync-alt fa-2x"></i>
-            </button>
+          <li class="nav-item" data-controller="recommendations-refresh">
+              <button 
+                id="refresh-recommendations" 
+                class="nav-link d-flex align-items-center" 
+                title="Refresh Recommendations" 
+                data-action="click->recommendations-refresh#refresh" 
+                data-recommendations-refresh-target="button"
+              >
+                <i class="fas fa-sync-alt fa-2x"></i><span class="sr-only">Refresh Recommendations</span>
+              </button>
           </li>
-          <li class="nav-item dropdown watchlist-group">
+          <li class="nav-item dropdown watchlist-group" data-controller="navbar-watchlist-updater">
             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="watchlistDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               <div class="watchlist-content">
                 <i class="fas fa-bookmark fa-lg"></i>
                 <span class="font-weight-bold">Watchlist</span>
-                <span id="watchlist-count" class="badge bg-warning text-dark rounded-pill ms-2"></span>
+                <span class="badge rounded-pill bg-danger ms-2" id="watchlist-count" data-navbar-watchlist-updater-target="count" style="<%= current_user && current_user.unwatched_items_count > 0 ? '' : 'display: none;' %>">
+                <%= current_user ? current_user.unwatched_items_count : 0 %>
+                </span>
               </div>
             </a>
-            <ul class="dropdown-menu dropdown-menu-end shadow" id="watchlist-dropdown" aria-labelledby="watchlistDropdown">
-              <!-- Dropdown items will be dynamically inserted here by JavaScript -->
-              <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item text-primary" href="/watchlist">View All</a></li>
+            <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="watchlistDropdown" id="watchlist-dropdown" data-navbar-watchlist-updater-target="dropdown">
+              <% if current_user && current_user.unwatched_items_count > 0 %>
+                <% current_user.recent_watchlist_items.each do |item| %>
+                  <% content = item.content %>
+                  <% if content %>
+                    <li>
+                      <a class="dropdown-item d-flex align-items-center" href="/watchlist" title="<%= content.title %>">
+                        <img src="<%= content.poster_url || asset_path('placeholder.png') %>" alt="" class="me-2" style="width: 30px; height: 45px; object-fit: cover; flex-shrink: 0;">
+                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                          <%= content.title %> 
+                          <small class="text-muted">(<%= content.release_year || 'N/A' %>)</small>
+                        </span>
+                      </a>
+                    </li>
+                  <% else %>
+                    <li><span class="dropdown-item text-muted">Item unavailable</span></li>
+                  <% end %>
+                <% end %>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-primary text-center fw-bold" href="/watchlist">View All (<%= current_user.unwatched_items_count %>)</a></li>
+              <% else %>
+                <li><span class="dropdown-item disabled">Watchlist is empty</span></li>
+              <% end %>
             </ul>
           </li>
           <% if current_user.admin? %>
