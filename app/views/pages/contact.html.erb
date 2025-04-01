@@ -44,6 +44,7 @@
             </div>
             <div class="mb-3">
               <% if Rails.env.production? %>
+                <%= javascript_include_tag "recaptcha", "data-turbo-track": "reload" %>
                 <%= recaptcha_tags %>
               <% end %>
             </div>

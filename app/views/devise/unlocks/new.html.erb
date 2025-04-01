@@ -17,6 +17,7 @@
             </div>
 
             <div class="mb-3">
+                <%= javascript_include_tag "recaptcha", "data-turbo-track": "reload" %>
                 <%= recaptcha_tags size: "compact" %>
             </div>
 

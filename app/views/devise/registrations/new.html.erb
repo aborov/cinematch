@@ -115,6 +115,7 @@
             </div>
 
             <div class="mb-3">
+              <%= javascript_include_tag "recaptcha", "data-turbo-track": "reload" %>
               <div class="d-none d-sm-block">
                 <%= recaptcha_tags size: "normal" %>
               </div>
