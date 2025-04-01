@@ -1,12 +1,14 @@
 <div class="card mb-2 watchlist-item" 
-     data-id="<%= item[:id] %>"
-     data-source-id="<%= item[:source_id] %>"
-     data-content-type="<%= item[:content_type] %>"
+     data-watchlist-item-id-value="<%= item[:id] %>"
+     data-watchlist-source-id-value="<%= item[:source_id] %>"
+     data-watchlist-content-type-value="<%= item[:content_type] %>"
+     data-watchlist-rating-value="<%= item[:rating] || 0 %>"
+     data-action="click->watchlist#showDetails"
      role="article" 
      aria-labelledby="title-<%= item[:source_id] %>">
   <div class="row g-1">
     <div class="col-4 col-lg-3">
-      <%= image_tag item[:poster_url], class: "card-img", alt: "#{item[:title]} poster" %>
+      <%= image_tag item[:poster_url], class: "card-img watchlist-poster", alt: "#{item[:title]} poster", loading: "lazy" %>
     </div>
     <div class="col-8 col-lg-9">
       <div class="card-body position-relative p-2">
@@ -15,56 +17,50 @@
         </h5>
         <div class="card-text-small text-muted mb-1">
           <%= [
-            case item[:production_countries]&.size
-            when nil, 0
-              nil
-            when 1
-              item[:production_countries][0]['name'].gsub('United States of America', 'USA')
-            when 2
-              item[:production_countries].map { |c| c['name'].gsub('United States of America', 'USA') }.join(' & ')
-            else
-              "#{item[:production_countries][0]['name'].gsub('United States of America', 'USA')}, #{item[:production_countries][1]['name'].gsub('United States of America', 'USA')} & #{item[:production_countries].size - 2} more"
-            end,
+            (item[:production_countries].present? ? item[:production_countries].map { |c| c['name'].gsub('United States of America', 'USA') }.first(2).join(' & ') : nil),
             item[:release_year],
             item[:content_type].capitalize
-          ].compact.join(", ") %>
+          ].compact.join(" | ") %>
         </div>
         <div class="card-text-small text-muted mb-1">
-          <strong>TMDb:</strong> <%= item[:vote_average] %>
+          <strong>TMDb:</strong> <%= item[:vote_average] ? item[:vote_average].round(1) : 'N/A' %>
         </div>
         <div class="card-text-small text-muted mb-2">
           <%= item[:genres].join(", ") %>
         </div>
-        <div class="d-flex gap-1 mt-auto button-container">
+        <div class="d-flex gap-1 mt-auto button-container justify-content-between">
           <div class="d-flex gap-1 flex-grow-1 action-buttons">
             <button class="btn btn-sm d-inline-flex align-items-center justify-content-center <%= item[:watched] ? 'btn-warning mark-unwatched' : 'btn-success mark-watched' %>"
-                    data-source-id="<%= item[:source_id] %>"
-                    data-content-type="<%= item[:content_type] %>"
+                    data-action="click->watchlist#toggleWatched"
+                    data-watchlist-source-id-value="<%= item[:source_id] %>"
+                    data-watchlist-content-type-value="<%= item[:content_type] %>"
                     aria-label="<%= item[:watched] ? 'Mark as Unwatched' : 'Mark as Watched' %>">
               <i class="fas <%= item[:watched] ? 'fa-eye-slash' : 'fa-eye' %>"></i>
               <span class="button-text d-none d-lg-inline ms-1"><%= item[:watched] ? 'Unwatched' : 'Watched' %></span>
             </button>
             <button class="btn btn-sm d-inline-flex align-items-center justify-content-center flex-grow-1 <%= item[:rating] ? 'btn-warning rated' : 'btn-primary' %> rate-item"
-                    data-source-id="<%= item[:source_id] %>"
-                    data-content-type="<%= item[:content_type] %>"
-                    data-rating="<%= item[:rating] %>"
-                    aria-label="<%= item[:rating] ? 'Rated ' + item[:rating].to_s + '/10' : 'Rate' %>">
+                    data-action="click->watchlist#rateItem"
+                    data-watchlist-source-id-value="<%= item[:source_id] %>"
+                    data-watchlist-content-type-value="<%= item[:content_type] %>"
+                    data-watchlist-rating-value="<%= item[:rating] || 0 %>"
+                    aria-label="<%= item[:rating] ? "Rated #{item[:rating]}/10. Click to change rating." : 'Rate this item' %>">
               <i class="fas fa-star me-1"></i>
               <span class="button-text"><%= item[:rating] ? "#{item[:rating]}/10" : 'Rate' %></span>
             </button>
           </div>
           <button class="btn btn-sm btn-danger d-inline-flex align-items-center justify-content-center remove-item square-button"
-                  data-source-id="<%= item[:source_id] %>"
-                  data-content-type="<%= item[:content_type] %>"
+                  data-action="click->watchlist#removeItem"
+                  data-watchlist-source-id-value="<%= item[:source_id] %>"
+                  data-watchlist-content-type-value="<%= item[:content_type] %>"
                   aria-label="Remove from Watchlist">
             <i class="fas fa-trash-alt"></i>
-            <span class="button-text d-none d-lg-inline ms-1">Remove</span>
+            <span class="button-text d-none d-lg-inline ms-1 d-none">Remove</span>
           </button>
         </div>
       </div>
     </div>
   </div>
-  <div class="drag-handle position-absolute top-0 start-0 p-2">
-    <i class="fas fa-grip-vertical"></i>
+  <div class="drag-handle position-absolute top-0 start-0 p-2" style="cursor: grab;">
+    <i class="fas fa-grip-vertical text-muted"></i>
   </div>
 </div>

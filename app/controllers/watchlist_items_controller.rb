@@ -240,10 +240,24 @@ class WatchlistItemsController < ApplicationController
   end
 
   def set_watchlist_item
-    @watchlist_item = current_user.watchlist_items.find_by!(
-      source_id: params[:id],
-      content_type: params.dig(:watchlist_item, :content_type) || params[:content_type]
-    )
+    if action_name == 'destroy'
+      # For destroy action, find by primary key ID from URL params[:id]
+      @watchlist_item = current_user.watchlist_items.find(params[:id])
+    else
+      # For other member actions (toggle_watched, reposition), find by source_id from URL params[:id]
+      # Ensure content_type is also available for these actions if needed
+      # Note: This assumes toggle_watched/reposition routes also use :id for source_id
+      content_type = params.dig(:watchlist_item, :content_type) || params[:content_type]
+      unless content_type.present?
+         Rails.logger.error "Content type missing for set_watchlist_item on action: #{action_name}"
+         # Raise an error or handle appropriately - finding by source_id alone might be ambiguous
+         raise ActiveRecord::RecordNotFound, "Content type missing for finding watchlist item by source_id"
+      end
+      @watchlist_item = current_user.watchlist_items.find_by!(source_id: params[:id], content_type: content_type)
+    end
+  rescue ActiveRecord::RecordNotFound => e
+     Rails.logger.error "Watchlist item not found: #{e.message}"
+     render json: { status: 'error', message: 'Item not found in watchlist' }, status: :not_found
   end
 
   def watchlist_params
