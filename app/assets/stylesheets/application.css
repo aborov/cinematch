@@ -337,23 +337,53 @@ h6 {
 
 /* Survey-specific styles */
 .survey-card {
-  max-width: 800px;
-  width: 100%;
+  max-width: 650px;
+  width: 90%;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+  border: none;
 }
 
-.progress {
-  height: 2px;
-  background-color: rgba(0, 0, 0, 0.05);
+.survey-card-body {
+  background-color: var(--space-cadet); 
+  color: var(--mint-green);
+  border-bottom-left-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+  transition: all 0.3s ease;
 }
 
-.progress-bar {
-  transition: width 0.3s ease;
+.survey-card .card-header {
+  background-color: var(--jonquil);
+  color: var(--space-cadet);
+}
+
+.survey-progress {
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.survey-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, 
+    var(--mint-green) 0%, 
+    var(--jonquil) 50%, 
+    var(--mint-green) 100%);
+  background-size: 200% 100%;
+  animation: survey-progress-animation 4s ease infinite;
+}
+
+@keyframes survey-progress-animation {
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 0%; }
+  100% { background-position: 0% 0%; }
 }
 
 .question-text {
-  font-size: 1.25rem;
-  color: var(--space-cadet);
-  font-weight: 700;
+  color: var(--jonquil);
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .response-options {
@@ -364,89 +394,135 @@ h6 {
 
 .response-button {
   flex: 1;
-  margin: 0 5px;
-  padding: 10px;
-  border-radius: 4px;
+  padding: 1rem;
+  margin: 0.25rem;
+  border: 2px solid var(--tufts-blue);
+  background-color: transparent;
+  color: var(--mint-green);
   transition: all 0.3s ease;
+  font-weight: 500;
+  border-radius: 0.5rem;
+}
+
+.response-button:hover {
+  background-color: var(--tufts-blue-light);
+  border-color: var(--tufts-blue-light);
+  color: var(--mint-green);
+  transform: translateY(-2px);
+}
+
+.response-button.active,
+.response-button.btn-primary {
+  background-color: var(--tufts-blue);
+  border-color: var(--tufts-blue);
+  color: var(--mint-green);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.response-button.btn-outline-primary {
+  background-color: transparent;
+  border-color: var(--tufts-blue);
+  color: var(--mint-green);
 }
 
 .flex-1 {
   flex: 1;
 }
 
-.question-container h3 {
-  color: var(--engineering-orange);
+.question-container .text-muted {
+  color: var(--mint-green) !important;
+  opacity: 0.7;
 }
 
-#survey-form .btn-outline-primary {
-  color: var(--tufts-blue);
-  border-color: var(--tufts-blue);
+/* Navigation buttons */
+.nav-button {
+  min-width: 100px;
+  padding: 0.5rem 1.25rem;
+  transition: all 0.3s ease;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-#survey-form .btn-outline-primary:hover,
-#survey-form .btn-outline-primary:focus {
+.nav-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.prev-button {
+  background-color: rgba(233, 255, 249, 0.1);
   color: var(--mint-green);
-  background-color: var(--tufts-blue);
-  border-color: var(--tufts-blue);
+  border: 1px solid rgba(233, 255, 249, 0.2);
 }
 
-#survey-form .btn-check:checked + .btn-outline-primary {
+.prev-button:hover {
+  background-color: rgba(233, 255, 249, 0.2);
+  border-color: var(--mint-green);
+}
+
+.next-button {
+  background-color: var(--engineering-orange);
   color: var(--mint-green);
-  background-color: var(--tufts-blue);
-  border-color: var(--tufts-blue);
+  border: 1px solid rgba(233, 255, 249, 0.2);
 }
 
+.next-button:hover {
+  background-color: var(--engineering-orange);
+  border-color: var(--mint-green);
+  filter: brightness(1.2);
+}
+
+.complete-button {
+  background-color: var(--jonquil);
+  color: var(--space-cadet);
+  border: none;
+  padding: 0.5rem 1.5rem;
+  font-weight: 600;
+}
+
+.complete-button:hover {
+  background-color: var(--jonquil);
+  filter: brightness(1.1);
+  transform: scale(1.05) translateY(-2px);
+}
+
+.save-progress-button {
+  background-color: rgba(233, 255, 249, 0.1);
+  color: var(--jonquil);
+  border: 1px solid var(--jonquil);
+}
+
+.save-progress-button:hover {
+  background-color: rgba(239, 200, 26, 0.2);
+  color: var(--jonquil);
+  border-color: var(--jonquil);
+}
+
+/* Genre selection styles */
 #genre-selection .btn-outline-primary {
-  color: var(--engineering-orange);
-  border-color: var(--engineering-orange);
+  color: var(--mint-green);
+  border-color: rgba(233, 255, 249, 0.3);
+  background-color: rgba(26, 143, 227, 0.1);
+  transition: all 0.3s ease;
 }
 
 #genre-selection .btn-outline-primary:hover,
-#genre-selection .btn-outline-primary:focus,
+#genre-selection .btn-outline-primary:focus {
+  background-color: rgba(239, 200, 26, 0.2);
+  border-color: var(--jonquil);
+  color: var(--jonquil);
+  transform: translateY(-2px);
+}
+
 #genre-selection .btn-check:checked + .btn-outline-primary {
-  color: var(--mint-green);
-  background-color: var(--engineering-orange);
-  border-color: var(--engineering-orange);
-}
-
-#submit-button {
-  background-color: var(--jonquil);
+  background-color: rgba(239, 200, 26, 0.3);
   border-color: var(--jonquil);
-  color: var(--space-cadet);
+  color: var(--jonquil);
+  font-weight: 600;
 }
 
-#submit-button:hover {
-  background-color: var(--engineering-orange);
-  border-color: var(--engineering-orange);
-  color: var(--mint-green);
-}
-
-#prev-button, #next-button {
-  min-width: 100px;
-}
-
-#prev-button {
-  background-color: var(--space-cadet);
-  border-color: var(--space-cadet);
-  color: var(--mint-green);
-}
-
-#prev-button:hover {
-  background-color: var(--engineering-orange);
-  border-color: var(--engineering-orange);
-}
-
-#next-button {
-  background-color: var(--tufts-blue);
-  border-color: var(--tufts-blue);
-}
-
-#next-button:hover {
-  background-color: var(--jonquil);
-  border-color: var(--jonquil);
-  color: var(--space-cadet);
-}
-
+/* Responsive styles */
 @media (max-height: 800px) {
   .survey-container {
     align-items: flex-start;
@@ -541,51 +617,43 @@ h6 {
 }
 
 .welcome-modal .modal-content {
-  border-radius: 15px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  background-color: var(--space-cadet);
+  color: var(--mint-green);
+  border-radius: 0.5rem;
+  border: none;
+  overflow: hidden;
 }
 
 .welcome-modal .modal-header {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 20px;
+  border-bottom: none;
 }
 
 .welcome-modal .modal-title {
   color: var(--jonquil);
-  font-size: 24px;
   font-weight: bold;
 }
 
-.welcome-modal .modal-body ul li {
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  padding: 15px;
-  margin-bottom: 15px;
-  transition: transform 0.2s ease-in-out;
+.welcome-modal .modal-body {
+  padding: 2rem 1.5rem;
 }
 
-.welcome-modal .modal-body ul li:hover {
-  transform: translateY(-3px);
-}
-
-.welcome-modal .modal-body ul li i {
-  color: var(--jonquil);
-  font-size: 24px;
-  margin-right: 15px;
+.welcome-modal .modal-footer {
+  border-top: none;
+  background-color: rgba(0, 0, 0, 0.1);
 }
 
 .welcome-modal .modal-footer .btn-primary {
   background-color: var(--jonquil);
-  border: none;
   color: var(--space-cadet);
-  padding: 10px 20px;
-  font-weight: bold;
-  transition: all 0.3s ease;
+  border: none;
+  font-weight: 600;
+  padding: 0.5rem 1.5rem;
 }
 
 .welcome-modal .modal-footer .btn-primary:hover {
-  background-color: var(--mint-green);
-  transform: scale(1.05);
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 @keyframes fadeIn {
@@ -1146,4 +1214,68 @@ h6 {
   background-color: #ffdf4d;
   border-color: #ffdf4d;
   color: var(--space-cadet);
+}
+
+/* Save progress modal styling */
+.save-progress-modal .modal-dialog {
+  max-width: 420px;
+}
+
+.save-progress-modal .modal-content {
+  background-color: var(--space-cadet);
+  color: var(--mint-green);
+  border-radius: 0.5rem;
+  border: none;
+  overflow: hidden;
+}
+
+.save-progress-modal .modal-header {
+  background-color: var(--engineering-orange);
+  color: var(--space-cadet);
+  border-bottom: none;
+  padding: 0.5rem 1rem;
+}
+
+.save-progress-modal .modal-body {
+  padding: 2rem 1.5rem;
+}
+
+.save-progress-modal .btn-close {
+  color: var(--space-cadet);
+  opacity: 0.8;
+}
+
+.save-progress-modal .btn-close:hover {
+  opacity: 1;
+}
+
+/* Responsive styling for save progress modal buttons */
+@media (max-width: 576px) {
+  .save-progress-modal .d-flex {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .save-progress-modal .d-flex a.btn {
+    width: 100% !important;
+    margin-bottom: 0.5rem;
+  }
+  
+  .save-progress-modal .modal-body {
+    padding: 1.5rem 1rem;
+  }
+  
+  .save-progress-modal .btn {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.6rem;
+  }
+}
+
+/* Add smooth transitions for question container */
+.survey-container {
+  transition: all 0.3s ease;
+}
+
+.survey-container {
+  transition: all 0.3s ease;
 }
