@@ -9,4 +9,4 @@ Rails.application.config.assets.version = "1.0"
 # Precompile additional assets.
 # application.js, application.css, and all non-JS/CSS in the app/assets
 # folder are already added.
-Rails.application.config.assets.precompile += %w( landing.css jquery.js jquery_ujs.js good_job_custom.css )
+Rails.application.config.assets.precompile += %w( landing.css jquery.js jquery_ujs.js admin/good_job_dashboard.css admin/good_job_dashboard.js )

@@ -42,7 +42,6 @@
 #
 #  index_contents_on_genre_ids                   (genre_ids) USING gin
 #  index_contents_on_imdb_id                     (imdb_id)
-#  index_contents_on_source_id                   (source_id) UNIQUE
 #  index_contents_on_source_id_and_content_type  (source_id,content_type) UNIQUE
 #
 class Content < ApplicationRecord
@@ -71,13 +70,35 @@ class Content < ApplicationRecord
       end
     when Array
       self[field]
+    when Integer, Float
+      [self[field]]
     else
+      Rails.logger.warn "[Content] Unexpected type for #{field}: #{self[field].class}"
       []
     end
   end
 
   def genre_ids_array
-    parse_array_field(:genre_ids)
+    return [] if genre_ids.blank?
+    
+    case genre_ids
+    when String
+      # Try to parse as JSON first
+      begin
+        parsed = JSON.parse(genre_ids)
+        return parsed.is_a?(Array) ? parsed : [parsed]
+      rescue JSON::ParserError
+        # If not valid JSON, try comma-separated format
+        return genre_ids.split(',').map(&:strip).map(&:to_i)
+      end
+    when Array
+      return genre_ids
+    when Integer, Float
+      return [genre_ids.to_i]
+    else
+      Rails.logger.warn "[Content] Unexpected type for genre_ids: #{genre_ids.class}"
+      return []
+    end
   end
 
   def genre_names

@@ -1,0 +1,218 @@
+<%# Job runner status display %>
+<div class="status-box status-<%= @job_runner_status[:status] %>" data-last-updated="<%= Time.now.to_i %>">
+  <p><%= @job_runner_status[:message] %></p>
+  
+  <% if @job_runner_status[:is_job_runner] %>
+    <%# Show job runner instance stats %>
+    <div class="stats-grid">
+      <div class="stat-box">
+        <h4>Environment</h4>
+        <p><%= Rails.env %></p>
+      </div>
+      <div class="stat-box">
+        <h4>Active Jobs</h4>
+        <p><%= @job_runner_status[:active_jobs] %></p>
+      </div>
+      <div class="stat-box">
+        <h4>Queued Jobs</h4>
+        <p><%= @job_runner_status[:queued_jobs] %></p>
+      </div>
+    </div>
+    
+    <% if @job_runner_status[:recent_errors].present? && @job_runner_status[:recent_errors].any? %>
+      <h4>Recent Errors</h4>
+      <table class="jobs-table">
+        <thead>
+          <tr>
+            <th>Job</th>
+            <th>Error</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @job_runner_status[:recent_errors].each do |job| %>
+            <tr>
+              <td><%= 
+                if job.respond_to?(:job_class)
+                  job_display_name(job)
+                else
+                  job_class = job['job_class'] || job[:job_class]
+                  # For non-ActiveRecord job objects, we can't use the full job_display_name method
+                  job_class
+                end
+              %></td>
+              <td><%= 
+                if job.respond_to?(:error)
+                  job.error.to_s.truncate(100)
+                else
+                  (job['error'] || job[:error]).to_s.truncate(100)
+                end
+              %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+    
+  <% elsif @job_runner_status[:is_development] %>
+    <%# Show development mode message %>
+    <div class="development-info">
+      <h4>Development Mode</h4>
+      <p>The job runner is disabled in development mode. To enable it:</p>
+      <ol>
+        <li>Set <code>USE_JOB_RUNNER=true</code> in your environment</li>
+        <li>Restart your Rails server</li>
+        <li>Check this status again</li>
+      </ol>
+      <p>Alternatively, you can run jobs locally without a separate job runner.</p>
+    </div>
+    
+  <% elsif @job_runner_status[:is_available] %>
+    <%# Show available job runner stats %>
+    <% if @job_runner_status[:details].present? %>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <h4>Environment</h4>
+          <p><%= @job_runner_status[:details]['environment'] || @job_runner_status[:details][:environment] %></p>
+        </div>
+        <div class="stat-box">
+          <h4>Timestamp</h4>
+          <% 
+            timestamp = @job_runner_status[:details]['timestamp'] || @job_runner_status[:details][:timestamp]
+            formatted_timestamp = if timestamp.is_a?(String)
+              begin
+                Time.parse(timestamp).strftime("%Y-%m-%d %H:%M:%S")
+              rescue
+                timestamp
+              end
+            elsif timestamp.respond_to?(:strftime)
+              timestamp.strftime("%Y-%m-%d %H:%M:%S")
+            else
+              timestamp.to_s
+            end
+          %>
+          <p><%= formatted_timestamp %></p>
+        </div>
+        <div class="stat-box">
+          <h4>Good Job Status</h4>
+          <p><%= @job_runner_status[:details]['good_job_status'] || @job_runner_status[:details][:good_job_status] %></p>
+        </div>
+        <% 
+          active_jobs = @job_runner_status[:details]['active_jobs'] || @job_runner_status[:details][:active_jobs]
+          queued_jobs = @job_runner_status[:details]['queued_jobs'] || @job_runner_status[:details][:queued_jobs]
+        %>
+        <% if active_jobs.present? %>
+          <div class="stat-box">
+            <h4>Active Jobs</h4>
+            <p><%= active_jobs %></p>
+          </div>
+          <div class="stat-box">
+            <h4>Queued Jobs</h4>
+            <p><%= queued_jobs %></p>
+          </div>
+        <% end %>
+      </div>
+      
+      <% 
+        recent_errors = @job_runner_status[:details]['recent_errors'] || @job_runner_status[:details][:recent_errors]
+      %>
+      <% if recent_errors.present? && recent_errors.any? %>
+        <h4>Recent Errors</h4>
+        <table class="jobs-table">
+          <thead>
+            <tr>
+              <th>Job</th>
+              <th>Error</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% recent_errors.each do |error| %>
+              <tr>
+                <td><%=
+                  job_class = error['job_class'] || error[:job_class]
+                  if job_class == 'FetchContentJob'
+                    # Try to extract operation type from arguments
+                    arguments = nil
+                    begin
+                      arguments = error['arguments'] || error[:arguments]
+                    rescue => e
+                      # Silently handle errors
+                      arguments = nil
+                    end
+                    
+                    # Handle different argument formats
+                    options = {}
+                    begin
+                      if arguments.is_a?(Array) && arguments.size > 0
+                        first_arg = arguments.first
+                        
+                        # Handle different types of first argument
+                        if first_arg.is_a?(Hash)
+                          options = first_arg
+                        elsif first_arg.is_a?(String) && first_arg.start_with?('{')
+                          # Try to parse as JSON
+                          options = JSON.parse(first_arg)
+                        elsif first_arg.is_a?(String)
+                          # Simple string parameter
+                          options = { 'input' => first_arg }
+                        elsif first_arg.is_a?(TrueClass) || first_arg.is_a?(FalseClass)
+                          # Boolean parameter
+                          options = { 'fetch_new' => first_arg }
+                        elsif first_arg.is_a?(Integer)
+                          # Integer parameter
+                          options = { 'batch_size' => first_arg }
+                        end
+                      end
+                    rescue => e
+                      # If there's an error parsing the arguments, log it and use empty options
+                      Rails.logger.error "Error parsing job arguments: #{e.message}"
+                      options = {}
+                    end
+                    
+                    # Determine operation type
+                    operation_type = if options['fetch_new'] || (options.is_a?(Hash) && options[:fetch_new])
+                      'Fetch New Content'
+                    elsif options['update_existing'] || (options.is_a?(Hash) && options[:update_existing])
+                      'Update Existing Content'
+                    elsif options['fill_missing'] || (options.is_a?(Hash) && options[:fill_missing])
+                      'Fill Missing Details'
+                    else
+                      'All Operations'
+                    end
+                    
+                    "#{job_class} (#{operation_type})"
+                  else
+                    job_class
+                  end
+                %></td>
+                <td><%= error['error'] || error[:error] %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% end %>
+    <% end %>
+    
+    <% if @job_runner_status[:details_error].present? %>
+      <div class="error-message">
+        <p><%= @job_runner_status[:details_error] %></p>
+      </div>
+    <% end %>
+  <% else %>
+    <%# Job runner is not available %>
+    <div class="error-details">
+      <p>The job runner is not available. This could be due to:</p>
+      <ul>
+        <li>The job runner service is not running</li>
+        <li>Network connectivity issues</li>
+        <li>Configuration issues with the job runner URL</li>
+      </ul>
+      <p>Current job runner URL: <code><%= JobRunnerService.send(:job_runner_url) %></code></p>
+    </div>
+  <% end %>
+</div>
+
+<%# Refresh button and auto-update %>
+<div class="refresh-controls">
+  <button id="refresh-job-runner-status" class="refresh-button">Refresh Status</button>
+  <span class="auto-refresh-indicator">Auto-refreshes every 30 seconds</span>
+</div> 

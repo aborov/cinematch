@@ -4,3 +4,7 @@
 //= link application.js
 //= link_tree ../../../vendor/javascript .js
 //= link watchlist_navbar.js
+//= link_directory ../javascripts .js
+//= link_directory ../javascripts/admin .js
+//= link admin/good_job_dashboard.js
+//= link admin/good_job_dashboard.css

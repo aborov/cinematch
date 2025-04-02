@@ -1,0 +1,232 @@
+<%# Job Runner Status - Styles are in app/assets/stylesheets/admin/good_job_dashboard.scss %>
+<h2>Job Runner Status</h2>
+
+<div class="job-runner-status-panel">
+  <% if @job_runner_status[:is_job_runner] %>
+    <div class="status-box status-ok">
+      <h3>Job Runner Instance</h3>
+      <p>This is the job runner instance.</p>
+      
+      <div class="stats-grid">
+        <div class="stat-box">
+          <h4>Environment</h4>
+          <p><%= Rails.env %></p>
+        </div>
+        <div class="stat-box">
+          <h4>Active Jobs</h4>
+          <p><%= @job_runner_status[:active_jobs] %></p>
+        </div>
+        <div class="stat-box">
+          <h4>Queued Jobs</h4>
+          <p><%= @job_runner_status[:queued_jobs] %></p>
+        </div>
+      </div>
+      
+      <% if @job_runner_status[:recent_errors].present? && @job_runner_status[:recent_errors].any? %>
+        <h4>Recent Errors</h4>
+        <table class="jobs-table">
+          <thead>
+            <tr>
+              <th>Job</th>
+              <th>Error</th>
+              <th>Created At</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @job_runner_status[:recent_errors].each do |job| %>
+              <tr>
+                <td><%= 
+                  if job.respond_to?(:job_class)
+                    job_display_name(job)
+                  else
+                    job_class = job['job_class'] || job[:job_class]
+                    # For non-ActiveRecord job objects, we can't use the full job_display_name method
+                    if job_class == 'FetchContentJob'
+                      # Try to extract operation type from arguments
+                      arguments = job['arguments'] || job[:arguments] || []
+                      
+                      # Handle different argument formats
+                      options = arguments.first || {}
+                      
+                      # Parse options if it's a string
+                      if options.is_a?(String) && options.start_with?('{')
+                        begin
+                          options = JSON.parse(options)
+                        rescue => e
+                          Rails.logger.error "Error parsing options JSON: #{e.message}"
+                          options = { 'error' => e.message }
+                        end
+                      elsif options.is_a?(TrueClass) || options.is_a?(FalseClass)
+                        options = { 'fetch_new' => options }
+                      elsif options.is_a?(Integer)
+                        options = { 'batch_size' => options }
+                      elsif !options.is_a?(Hash)
+                        options = { 'input' => options.to_s }
+                      end
+                      
+                      # Determine operation type
+                      operation_type = if options['fetch_new'] || (options.is_a?(Hash) && options[:fetch_new])
+                        'Fetch New Content'
+                      elsif options['update_existing'] || (options.is_a?(Hash) && options[:update_existing])
+                        'Update Existing Content'
+                      elsif options['fill_missing'] || (options.is_a?(Hash) && options[:fill_missing])
+                        'Fill Missing Details'
+                      else
+                        'All Operations'
+                      end
+                      
+                      "#{job_class} (#{operation_type})"
+                    else
+                      job_class
+                    end
+                  end
+                %></td>
+                <td><%= 
+                  if job.respond_to?(:error)
+                    truncate(job.error, length: 100)
+                  else
+                    truncate((job['error'] || job[:error]).to_s, length: 100)
+                  end
+                %></td>
+                <td><%= 
+                  if job.respond_to?(:created_at)
+                    job.created_at.strftime('%Y-%m-%d %H:%M:%S')
+                  elsif job['created_at'] || job[:created_at]
+                    time = job['created_at'] || job[:created_at]
+                    time.is_a?(String) ? (Time.parse(time).strftime('%Y-%m-%d %H:%M:%S') rescue time) : time.strftime('%Y-%m-%d %H:%M:%S')
+                  else
+                    'N/A'
+                  end
+                %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <p>No recent errors.</p>
+      <% end %>
+    </div>
+  <% else %>
+    <% if @job_runner_status[:is_available] %>
+      <div class="status-box status-ok">
+        <h3>Job Runner Status: Available</h3>
+        <p><%= @job_runner_status[:message] %></p>
+        
+        <% if @job_runner_status[:details].present? %>
+          <div class="stats-grid">
+            <div class="stat-box">
+              <h4>Environment</h4>
+              <p><%= @job_runner_status[:details]['environment'] || @job_runner_status[:details][:environment] %></p>
+            </div>
+            <div class="stat-box">
+              <h4>Timestamp</h4>
+              <% 
+                timestamp = @job_runner_status[:details]['timestamp'] || @job_runner_status[:details][:timestamp]
+                formatted_timestamp = if timestamp.is_a?(String)
+                  begin
+                    Time.parse(timestamp).strftime("%Y-%m-%d %H:%M:%S")
+                  rescue
+                    timestamp
+                  end
+                elsif timestamp.respond_to?(:strftime)
+                  timestamp.strftime("%Y-%m-%d %H:%M:%S")
+                else
+                  timestamp.to_s
+                end
+              %>
+              <p><%= formatted_timestamp %></p>
+            </div>
+            <div class="stat-box">
+              <h4>Good Job Status</h4>
+              <p><%= @job_runner_status[:details]['good_job_status'] || @job_runner_status[:details][:good_job_status] %></p>
+            </div>
+            <% 
+              active_jobs = @job_runner_status[:details]['active_jobs'] || @job_runner_status[:details][:active_jobs]
+              queued_jobs = @job_runner_status[:details]['queued_jobs'] || @job_runner_status[:details][:queued_jobs]
+            %>
+            <% if active_jobs.present? %>
+              <div class="stat-box">
+                <h4>Active Jobs</h4>
+                <p><%= active_jobs %></p>
+              </div>
+              <div class="stat-box">
+                <h4>Queued Jobs</h4>
+                <p><%= queued_jobs %></p>
+              </div>
+            <% end %>
+          </div>
+          
+          <% 
+            recent_errors = @job_runner_status[:details]['recent_errors'] || @job_runner_status[:details][:recent_errors]
+          %>
+          <% if recent_errors.present? && recent_errors.any? %>
+            <h4>Recent Errors</h4>
+            <table class="jobs-table">
+              <thead>
+                <tr>
+                  <th>Job</th>
+                  <th>Error</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% recent_errors.each do |error| %>
+                  <tr>
+                    <td><%= error['job_class'] || error[:job_class] %></td>
+                    <td><%= error['error'] || error[:error] %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          <% else %>
+            <p>No recent errors on job runner.</p>
+          <% end %>
+        <% elsif @job_runner_status[:details_error].present? %>
+          <div class="status-box status-warning">
+            <h4>Could not retrieve detailed status</h4>
+            <p><%= @job_runner_status[:details_error] %></p>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="status-box status-error">
+        <h3>Job Runner Status: Unavailable</h3>
+        <p><%= @job_runner_status[:message] %></p>
+        
+        <div class="actions">
+          <%= link_to 'Wake Up Job Runner', admin_good_job_dashboard_path(wake_job_runner: true), 
+                      method: :get, 
+                      class: 'job-button',
+                      data: { confirm: 'Are you sure you want to attempt to wake up the job runner?' } %>
+        </div>
+      </div>
+    <% end %>
+    
+    <div class="status-box">
+      <h3>Job Runner Actions</h3>
+      <div class="actions">
+        <%= link_to 'Refresh Status', admin_good_job_dashboard_check_job_runner_path, class: 'job-sub-button' %>
+        
+        <% if @job_runner_status[:is_available] %>
+          <%= link_to 'Run Fetch Content', admin_good_job_dashboard_run_fetch_content_path, 
+                      method: :post, 
+                      class: 'job-button',
+                      data: { confirm: 'Are you sure you want to start a content fetch job?' } %>
+          
+          <%= form_tag admin_good_job_dashboard_run_update_recommendations_path, method: :post, class: 'job-form' do %>
+            <div class="form-group">
+              <%= label_tag :batch_size, 'Batch Size:' %>
+              <%= number_field_tag :batch_size, 25, min: 10, max: 100, class: 'form-control' %>
+            </div>
+            <%= submit_tag 'Update Recommendations', 
+                        class: 'job-button',
+                        data: { confirm: 'Are you sure you want to update recommendations for all users?' } %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+  
+  <div class="back-link">
+    <%= link_to 'Back to Dashboard', admin_good_job_dashboard_path, class: 'job-sub-button' %>
+  </div>
+</div> 

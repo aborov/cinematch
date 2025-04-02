@@ -64,8 +64,22 @@ Rails.application.configure do
   # want to log everything, set the level to "debug".
   config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
 
-  # Use a different cache store in production.
-  # config.cache_store = :mem_cache_store
+  # Use Redis for caching in production
+  # Skip Redis connection during asset precompilation
+  if ($PROGRAM_NAME.include?('assets:precompile') || ARGV.include?('assets:precompile'))
+    config.cache_store = :null_store
+  else
+    config.cache_store = :redis_cache_store, {
+      url: ENV.fetch("REDIS_URL") { "redis://cinematch-redis:6379/0" },
+      namespace: "cinematch:cache",
+      expires_in: 1.day,
+      size: 25.megabytes,
+      race_condition_ttl: 10.seconds,
+      error_handler: -> (method:, returning:, exception:) {
+        Rails.logger.error "Redis cache error: #{exception.message}"
+      }
+    }
+  end
 
   # Use a real queuing backend for Active Job (and separate queues per environment).
   # config.active_job.queue_adapter = :resque
@@ -105,5 +119,7 @@ Rails.application.configure do
   # Skip DNS rebinding protection for the default health check endpoint.
   # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
   config.hosts << "cinematch.net"
+  config.hosts << "cinematch-job-runner.onrender.com"
+  config.hosts << "cinematch-ywet.onrender.com"
   config.good_job.execution_mode = :async
 end

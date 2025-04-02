@@ -1,4 +1,6 @@
 services:
+
+  # Web service for the main application
   - type: web
     name: Cinematch 
     env: ruby 
@@ -14,6 +16,8 @@ services:
           property: connectionString
       - key: CLAMAV_ENABLED
         value: false
+      - key: JOB_RUNNER_URL
+        value: https://cinematch-job-runner.onrender.com
     buildFilter:
       paths:
       - "**/*.rb"
@@ -22,7 +26,54 @@ services:
       - "config/**/*"
       - "bin/**/*"
 
+  # Web service for memory-intensive background jobs
+  - type: web
+    name: cinematch-job-runner
+    env: ruby
+    plan: free
+    buildCommand: "./bin/render-job-runner-build.sh"
+    startCommand: "./bin/render-job-runner-start.sh"
+    envVars:
+      - key: SECRET_KEY_BASE
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: db
+          property: connectionString
+      - key: CLAMAV_ENABLED
+        value: false
+      - key: MAIN_APP_URL
+        value: https://cinematch-ywet.onrender.com
+      - key: JOB_RUNNER_ONLY
+        value: true
+      - key: RAILS_SERVE_STATIC_FILES
+        value: true
+      - key: RAILS_LOG_TO_STDOUT
+        value: true
+      - key: DISABLE_SPRING
+        value: true
+      - key: DB_POOL
+        value: 10
+      - key: RAILS_ENV
+        value: job_runner
+      - key: ALLOWED_HOSTS
+        value: cinematch-job-runner.onrender.com
+    buildFilter:
+      paths:
+      - "**/*.rb"
+      - "**/*.erb"
+      - "Gemfile*"
+      - "config/**/*"
+      - "bin/**/*"
+
+  # Redis service (Key Value in Render terminology)
+  - type: keyvalue
+    name: cinematch-redis
+    plan: free
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: everywhere
+
 databases: 
   - name: db
-    plan: starter
     ipAllowList: []

@@ -18,6 +18,11 @@ default: &default
   adapter: postgresql
   encoding: unicode
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  # Add connection timeout and statement timeout for better resource management
+  connect_timeout: 5
+  checkout_timeout: 5
+  variables:
+    statement_timeout: <%= ENV.fetch("STATEMENT_TIMEOUT") { "5000" } %>
 
 development:
   <<: *default
@@ -56,3 +61,20 @@ test:
 production:
   <<: *default
   url: <%= ENV['DATABASE_URL'] %>
+  # Optimize connection pool for production
+  pool: <%= ENV.fetch("DB_POOL") { 10 } %>
+  # Add connection timeout and statement timeout for better resource management
+  connect_timeout: 5
+  checkout_timeout: 5
+  variables:
+    statement_timeout: <%= ENV.fetch("STATEMENT_TIMEOUT") { "10000" } %>
+
+job_runner:
+  <<: *default
+  url: <%= ENV['DATABASE_URL'] %>
+  pool: <%= ENV.fetch("DB_POOL") { 20 } %>
+  # Add connection timeout and statement timeout for better resource management
+  connect_timeout: 10
+  checkout_timeout: 10
+  variables:
+    statement_timeout: <%= ENV.fetch("STATEMENT_TIMEOUT") { "30000" } %>

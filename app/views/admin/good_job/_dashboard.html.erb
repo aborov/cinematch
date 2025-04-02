@@ -1,3 +1,4 @@
+<%# Good Job Dashboard - Styles are in app/assets/stylesheets/admin/good_job_dashboard.scss %>
 <div class="good-job-dashboard">
   <div class="stats-panel">
     <h3>Job Statistics</h3>
@@ -14,11 +15,95 @@
         <h4>Last Recommendations Update</h4>
         <p><%= GoodJob::Job.where(job_class: 'UpdateAllRecommendationsJob').finished.maximum(:finished_at)&.strftime('%Y-%m-%d %H:%M:%S') || 'Never' %></p>
       </div>
+      <div class="stat-box">
+        <h4>Users with Preferences</h4>
+        <p><%= UserPreference.count %></p>
+      </div>
+      <div class="stat-box">
+        <h4>Users with Recommendations</h4>
+        <p><%= UserPreference.where.not(recommended_content_ids: []).count %></p>
+      </div>
+      <div class="stat-box">
+        <h4>Job Runner Status</h4>
+        <% if defined?(@job_runner_available) && @job_runner_available %>
+          <p class="status-indicator available">Available</p>
+          <%= link_to 'Check Status', admin_good_job_dashboard_check_job_runner_path, class: 'status-link' %>
+        <% else %>
+          <p class="status-indicator unavailable">Unavailable</p>
+          <%= link_to 'Check Status', admin_good_job_dashboard_check_job_runner_path, class: 'status-link' %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="manual-jobs-panel">
+    <h3>Manual Job Actions</h3>
+    <div class="job-buttons">
+      <div class="job-button-container">
+        <h4>Fetch Content</h4>
+        <p>Next scheduled: <%= @next_fetch_job&.scheduled_at&.strftime('%Y-%m-%d %H:%M:%S') || 'None' %></p>
+        <% if policy(:page).run_fetch_content? %>
+          <%= link_to 'Run Now', admin_good_job_dashboard_run_fetch_content_path, 
+                      method: :post, 
+                      class: 'job-button',
+                      data: { confirm: 'Are you sure you want to start a content fetch job?' } %>
+          <div class="job-sub-buttons">
+            <% if policy(:page).run_fetch_new_content? %>
+              <%= link_to 'Fetch New Only', admin_good_job_dashboard_run_fetch_new_content_path, 
+                          method: :post, 
+                          class: 'job-sub-button',
+                          data: { confirm: 'Are you sure you want to fetch only new content?' } %>
+            <% end %>
+            <% if policy(:page).run_update_existing_content? %>
+              <%= link_to 'Update Existing', admin_good_job_dashboard_run_update_existing_content_path, 
+                          method: :post, 
+                          class: 'job-sub-button',
+                          data: { confirm: 'Are you sure you want to update existing content?' } %>
+            <% end %>
+            <% if policy(:page).run_fill_missing_content_details? %>
+              <%= link_to 'Fill Missing', admin_good_job_dashboard_run_fill_missing_content_details_path, 
+                          method: :post, 
+                          class: 'job-sub-button',
+                          data: { confirm: 'Are you sure you want to fill missing content details?' } %>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+      
+      <div class="job-button-container">
+        <h4>Update Recommendations</h4>
+        <p>Next scheduled: <%= @next_update_job&.scheduled_at&.strftime('%Y-%m-%d %H:%M:%S') || 'None' %></p>
+        <% if policy(:page).run_update_recommendations? %>
+          <%= form_tag admin_good_job_dashboard_run_update_recommendations_path, method: :post, class: 'job-form' do %>
+            <div class="form-group">
+              <%= label_tag :batch_size, 'Batch Size:' %>
+              <%= number_field_tag :batch_size, 50, min: 10, max: 200, class: 'form-control' %>
+            </div>
+            <%= submit_tag 'Run Now', 
+                        class: 'job-button',
+                        data: { confirm: 'Are you sure you want to update recommendations for all users?' } %>
+          <% end %>
+        <% end %>
+      </div>
+      
+      <div class="job-button-container">
+        <h4>Fill Missing Details</h4>
+        <p>Next scheduled: <%= @next_fill_details_job&.scheduled_at&.strftime('%Y-%m-%d %H:%M:%S') || 'None' %></p>
+        <% if policy(:page).run_fill_missing_details? %>
+          <%= link_to 'Run Now', admin_good_job_dashboard_run_fill_missing_details_path, 
+                      method: :post, 
+                      class: 'job-button',
+                      data: { confirm: 'Are you sure you want to fill missing content details?' } %>
+        <% end %>
+      </div>
     </div>
   </div>
 
   <div class="recent-jobs-panel">
     <h3>Recent Jobs</h3>
+    <div class="refresh-controls">
+      <a href="<%= admin_good_job_dashboard_path %>" class="refresh-button">Refresh Job List</a>
+    </div>
     <table class="jobs-table">
       <thead>
         <tr>
@@ -28,17 +113,129 @@
           <th>Started At</th>
           <th>Duration</th>
           <th>Error</th>
+          <th>Details</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
         <% @jobs.order(created_at: :desc).limit(20).each do |job| %>
           <tr class="<%= job.error.present? ? 'error' : '' %>">
-            <td><%= job.job_class %></td>
+            <td><%= job_display_name(job) %></td>
             <td><%= job.queue_name %></td>
             <td><%= job_status(job) %></td>
             <td><%= job.performed_at&.strftime('%Y-%m-%d %H:%M:%S') %></td>
             <td><%= job.finished_at ? ((job.finished_at - job.performed_at).round(2) rescue nil) : nil %> sec</td>
             <td><%= truncate(job.error, length: 50) if job.error.present? %></td>
+            <td>
+              <% if job.error.present? %>
+                <button class="toggle-error-btn" data-job-id="<%= job.id %>">View Error</button>
+                <div id="error-<%= job.id %>" class="error-details hidden">
+                  <pre><%= job.error %></pre>
+                </div>
+              <% end %>
+              <% 
+                begin
+                  # Ensure we have valid serialized_params
+                  if job.serialized_params.present?
+                    # Handle different serialized_params formats
+                    begin
+                      params_hash = nil
+                      if job.serialized_params.is_a?(Hash)
+                        params_hash = job.serialized_params
+                      elsif job.serialized_params.is_a?(String)
+                        params_hash = JSON.parse(job.serialized_params)
+                      else
+                        params_hash = JSON.parse(job.serialized_params.to_s)
+                      end
+                      
+                      # Ensure we have valid arguments
+                      if params_hash.is_a?(Hash) && params_hash['arguments'].present?
+                        arguments = params_hash['arguments']
+                        
+                        # Handle different argument formats
+                        options = {}
+                        begin
+                          if arguments.is_a?(Array) && arguments.size > 0
+                            first_arg = arguments.first
+                            
+                            # Handle different types of first argument
+                            if first_arg.is_a?(Hash)
+                              options = first_arg
+                            elsif first_arg.is_a?(String) && first_arg.start_with?('{')
+                              # Try to parse as JSON
+                              options = JSON.parse(first_arg)
+                            elsif first_arg.is_a?(String)
+                              # Simple string parameter
+                              options = { 'input' => first_arg }
+                            elsif first_arg.is_a?(TrueClass) || first_arg.is_a?(FalseClass)
+                              # Boolean parameter
+                              options = { 'fetch_new' => first_arg }
+                            elsif first_arg.is_a?(Integer)
+                              # Integer parameter
+                              options = { 'batch_size' => first_arg }
+                            end
+                          end
+                        rescue => e
+                          # If there's an error parsing the arguments, just show the error
+                          %>
+                          <div class="job-details">
+                            <strong>Error parsing arguments:</strong> <%= e.message %>
+                          </div>
+                          <%
+                        end
+                        
+                        # Only show details if we have options
+                        if options.present?
+                          # Show job details based on options
+                          %>
+                          <div class="job-details">
+                            <% if job.job_class == 'FetchContentJob' %>
+                              <% if options['fetch_new'] || (options.is_a?(Hash) && options[:fetch_new]) %>
+                                <strong>Operation:</strong> Fetch New Content<br>
+                              <% elsif options['update_existing'] || (options.is_a?(Hash) && options[:update_existing]) %>
+                                <strong>Operation:</strong> Update Existing Content<br>
+                              <% elsif options['fill_missing'] || (options.is_a?(Hash) && options[:fill_missing]) %>
+                                <strong>Operation:</strong> Fill Missing Details<br>
+                              <% else %>
+                                <strong>Operation:</strong> All Operations<br>
+                              <% end %>
+                              
+                              <% batch_size = options['batch_size'] || options[:batch_size] %>
+                              <% if batch_size.present? %>
+                                <strong>Batch Size:</strong> <%= batch_size %><br>
+                              <% end %>
+                              
+                              <% max_items = options['max_items'] || options[:max_items] %>
+                              <% if max_items.present? %>
+                                <strong>Max Items:</strong> <%= max_items %><br>
+                              <% end %>
+                            <% end %>
+                          </div>
+                          <%
+                        end
+                      end
+                    rescue => e
+                      # If there's an error parsing the serialized_params, just show the error
+                      %>
+                      <div class="job-details">
+                        <strong>Error parsing job parameters:</strong> <%= e.message %>
+                      </div>
+                      <%
+                    end
+                  end
+                rescue => e
+                  # Silently handle parsing errors
+                end
+              %>
+            </td>
+            <td>
+              <% if can_delete_job? %>
+                <%= link_to 'Delete', admin_good_job_dashboard_delete_job_path(id: job.id), 
+                            method: :delete, 
+                            class: 'delete-job-btn',
+                            data: { confirm: 'Are you sure you want to delete this job from history?' } %>
+              <% end %>
+            </td>
           </tr>
         <% end %>
       </tbody>
