@@ -160,16 +160,45 @@ class UserRecommendation < ApplicationRecord
       Rails.logger.info("Ensuring recommendations for user #{user_id}")
       
       # Start generating recommendations
-        update(processing: true)
+      update(processing: true)
       
       # Queue the job to generate recommendations
-        GenerateRecommendationsJob.perform_later(user_id)
-      end
+      GenerateRecommendationsJob.perform_later(user_id)
       return false
     end
     
     # We have valid, non-outdated recommendations
     true
+  end
+
+  def fix_missing_content_ids
+    return unless recommendation_scores.present?
+    
+    begin
+      Rails.logger.info "Fixing missing content IDs for user_recommendation #{id}"
+      
+      # Extract all content IDs from recommendation_scores
+      all_content_ids = recommendation_scores.keys.map(&:to_i).uniq
+      
+      if all_content_ids.present?
+        # Format for SQL array
+        content_ids_sql = "ARRAY[#{all_content_ids.join(',')}]::integer[]"
+        
+        # Update with raw SQL
+        sql = <<-SQL
+          UPDATE user_recommendations 
+          SET recommended_content_ids = #{content_ids_sql}
+          WHERE id = #{id};
+        SQL
+        
+        ActiveRecord::Base.connection.execute(sql)
+        Rails.logger.info "Fixed missing content IDs for user_recommendation #{id}, set #{all_content_ids.size} content IDs"
+      else
+        Rails.logger.warn "No content IDs found in recommendation_scores for user_recommendation #{id}"
+      end
+    rescue => e
+      Rails.logger.error "Error fixing missing content IDs: #{e.message}"
+    end
   end
 
   def generate_recommendations
@@ -189,29 +218,66 @@ class UserRecommendation < ApplicationRecord
 
     begin
       if user_preference.use_ai
-        recommended_ids, reasons, match_scores = AiRecommendationService.generate_recommendations(user_preference)
-        update(
-          recommended_content_ids: recommended_ids,
-          recommendation_reasons: reasons,
-          recommendation_scores: match_scores,
-          recommendations_generated_at: Time.current,
-          processing: false
-        )
+        # Use the AiRecommendationService to generate recommendations directly
+        sorted_ids, reasons, scores = AiRecommendationService.generate_recommendations(user_preference)
+        
+        if sorted_ids.present?
+          # Categorize content ids by type
+          movie_ids = []
+          show_ids = []
+          
+          Content.where(id: sorted_ids).each do |content|
+            if content.content_type == 'movie'
+              movie_ids << content.id
+            else
+              show_ids << content.id
+            end
+          end
+          
+          # Update the record with the recommendation data
+          update(
+            recommended_content_ids: {
+              movies: movie_ids,
+              shows: show_ids
+            },
+            recommendation_reasons: reasons,
+            recommendation_scores: scores,
+            recommendations_generated_at: Time.current,
+            processing: false
+          )
+          
+          Rails.logger.info "Saved #{movie_ids.size} movie recommendations and #{show_ids.size} show recommendations"
+        else
+          Rails.logger.warn "No recommendations generated for user #{user_id}"
+          update(processing: false)
+        end
+        
+        # Reload to get the updated content_ids
+        reload
+        
+        Rails.cache.delete_matched("user_#{user_id}_recommendations_*")
+        Rails.cache.delete("user_#{user_id}_recommendations_page_1")
+        
+        # Return the content IDs
+        get_all_content_ids
       else
         recommended_ids = generate_internal_recommendations(user_preference)
         update(
-          recommended_content_ids: recommended_ids,
+          recommended_content_ids: {
+            movies: recommended_ids,
+            shows: []
+          },
           recommendation_reasons: {},
           recommendation_scores: {},
           recommendations_generated_at: Time.current,
           processing: false
         )
+        
+        Rails.cache.delete_matched("user_#{user_id}_recommendations_*")
+        Rails.cache.delete("user_#{user_id}_recommendations_page_1")
+        
+        recommended_ids
       end
-      
-      Rails.cache.delete_matched("user_#{user_id}_recommendations_*")
-      Rails.cache.delete("user_#{user_id}_recommendations_page_1")
-      
-      recommended_ids
     rescue StandardError => e
       update(processing: false)
       Rails.logger.error "Failed to generate recommendations: #{e.message}"
@@ -222,6 +288,34 @@ class UserRecommendation < ApplicationRecord
 
   def calculate_match_score(genre_ids, user_preference)
     user_preference.calculate_match_score(genre_ids)
+  end
+
+  # Call this method when preferences are updated or surveys are completed
+  def mark_as_outdated!
+    Rails.logger.info "Marking recommendations as outdated for user_recommendation #{id}"
+    
+    begin
+      # Use raw SQL to clear fields with proper types
+      sql = <<-SQL
+        UPDATE user_recommendations 
+        SET recommended_content_ids = NULL,
+            recommendation_reasons = NULL::jsonb, 
+            recommendation_scores = NULL::jsonb,
+            recommendations_generated_at = NULL,
+            processing = FALSE
+        WHERE id = #{id};
+      SQL
+      
+      ActiveRecord::Base.connection.execute(sql)
+      Rails.logger.info "Successfully marked recommendations as outdated for user_recommendation #{id}"
+    rescue => e
+      Rails.logger.error "Error marking recommendations as outdated: #{e.message}"
+      # Fallback to simpler update if needed
+      update_columns(
+        recommendations_generated_at: nil,
+        processing: false
+      )
+    end
   end
 
   private
@@ -240,5 +334,17 @@ class UserRecommendation < ApplicationRecord
     content_with_scores.sort_by { |r| -r[:match_score] }
                        .first(100)
                        .map { |r| r[:id] }
+  end
+  
+  # Add ransackable definitions
+  def self.ransackable_attributes(auth_object = nil)
+    [
+      "id", "user_id", "processing", "recommendations_generated_at", 
+      "created_at", "updated_at", "deleted_at"
+    ]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    ["user"]
   end
 end

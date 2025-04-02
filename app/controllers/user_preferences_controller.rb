@@ -25,13 +25,28 @@ class UserPreferencesController < ApplicationController
     }
 
     if @user_preference.update(update_params)
-      Rails.logger.info "User preference updated: #{@user_preference.attributes}"
-      @user_preference.update(processing: true)
-      GenerateRecommendationsJob.perform_later(@user_preference.id)
-      redirect_to recommendations_path, notice: 'Preferences updated. Your recommendations are being generated...'
+      # Log the successful update
+      Rails.logger.info "User preference updated: #{@user_preference.attributes.inspect}"
+      
+      # Clear any user recommendation cache
+      Rails.cache.delete_matched("user_#{current_user.id}_recommendations_*")
+      
+      # Trigger recommendation generation in background
+      if params[:generate_recommendations]
+        user_recommendation = current_user.user_recommendation || current_user.build_user_recommendation
+        # Mark recommendations as outdated first
+        user_recommendation.mark_as_outdated!
+        user_recommendation.update(processing: true)
+        GenerateRecommendationsJob.perform_later(current_user.id)
+        redirect_to recommendations_path, notice: 'Preferences updated. Your recommendations are being generated...'
+      else
+        # Just mark as outdated, but don't generate yet - will happen when user visits recommendations
+        user_recommendation = current_user.user_recommendation || current_user.build_user_recommendation
+        user_recommendation.mark_as_outdated!
+        redirect_to profile_path, notice: 'Preferences updated successfully.'
+      end
     else
-      Rails.logger.error "Failed to update user preference: #{@user_preference.errors.full_messages}"
-      @genres = TmdbService.fetch_genres[:user_facing_genres]
+      @genres = Genre.user_facing_genres
       @available_models = AiModelsConfig.available_models
       render :edit
     end
