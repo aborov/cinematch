@@ -59,13 +59,11 @@
         <% if recommendation[:in_watchlist] %>
           <div class="position-absolute bottom-0 end-0 m-3">
             <% if recommendation[:rating] %>
-              <span class="badge bg-warning text-dark" title="Your rating">
-                <%= recommendation[:rating] %> <i class="fas fa-star"></i>
-              </span>
+              <div class="star-score card-icon-display" title="Your rating: <%= recommendation[:rating] %>/10"><span><%= recommendation[:rating] %></span></div>
             <% elsif recommendation[:watched] %>
-              <i class="fas fa-eye fs-5" title="Watched"></i>
+              <i class="fas fa-eye fs-5 card-icon-display" title="Watched"></i>
             <% else %>
-              <i class="fas fa-bookmark fs-5" title="In Watchlist"></i>
+              <i class="fas fa-bookmark fs-5 card-icon-display" title="In Watchlist"></i>
             <% end %>
           </div>
         <% end %>

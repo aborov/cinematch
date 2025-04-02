@@ -56,12 +56,9 @@ class RecommendationsController < ApplicationController
       @user_recommendation.reload
     end
     
-    # Check if there are any recommendations at all
     has_recommendations = @user_recommendation.recommended_content_ids.present? || 
                           @user_recommendation.recommendation_scores.present?
     
-    # Instead of using ensure_recommendations which can trigger regeneration,
-    # just check if we're already processing or need to start
     if @user_recommendation.processing?
       @processing = true
       logger.info "Recommendations for user #{current_user.id} are already being processed"
@@ -71,64 +68,35 @@ class RecommendationsController < ApplicationController
         @processing = false
         logger.info "Showing existing recommendations while new ones are being processed"
       else
-        # No recommendations available yet
+        # No recommendations available yet and processing
         @recommendations = []
-        @total_pages = 0
-        @page = 1
         
         respond_to do |format|
           format.html
-          format.json do
-            render json: { status: 'processing' }
-          end
+          format.json { render json: { status: 'processing' } }
         end
         return
       end
     elsif !has_recommendations
-      # Only start processing if specifically forced or if we have no recommendations at all
       @processing = true
       logger.info "No recommendations found for user #{current_user.id}, starting generation"
-      
-      # Force regeneration only if we have no recommendations at all
       @user_recommendation.update(processing: true)
       GenerateRecommendationsJob.perform_later(current_user.id)
       
       @recommendations = []
-      @total_pages = 0
-      @page = 1
       
       respond_to do |format|
         format.html
-        format.json do
-          render json: { status: 'processing' }
-        end
+        format.json { render json: { status: 'processing' } }
       end
       return
     else
       @processing = false
     end
     
-    # We have recommendations, show them
-    @page = params[:page].present? ? params[:page].to_i : 1
-    per_page = 15
-    
-    # Get all recommendations to calculate total pages
-    @all_recommendations = load_all_recommendations_count
-    @total_pages = (@all_recommendations.to_f / per_page).ceil
-    
-    # Load the recommendations for the current page
-    @recommendations = load_recommendations(@page, per_page)
+    # We have recommendations, load ALL of them
+    @recommendations = load_all_recommendations
     set_watchlist_status(@recommendations)
-    
-    if @recommendations.empty? && @user_recommendation.recommendation_scores.present?
-      # Try one more time to fix content_ids
-      logger.info "Empty recommendations but have scores, trying to fix for user #{current_user.id}"
-      @user_recommendation.fix_missing_content_ids
-      @user_recommendation.reload
-      # Try loading recommendations again
-      @recommendations = load_recommendations(@page, per_page)
-      set_watchlist_status(@recommendations)
-    end
 
     respond_to do |format|
       format.html
@@ -140,9 +108,7 @@ class RecommendationsController < ApplicationController
         else
           render json: { 
             status: 'ready', 
-            html: render_to_string(partial: 'recommendations_list', locals: { recommendations: @recommendations, total_pages: @total_pages, current_page: @page }),
-            total_pages: @total_pages,
-            current_page: @page
+            html: render_to_string(partial: 'recommendations_list', locals: { recommendations: @recommendations })
           }
         end
       end
@@ -161,6 +127,7 @@ class RecommendationsController < ApplicationController
       end
 
       genre_names = @item.genre_names
+      recommendation_reason = @user_recommendation&.recommendation_reasons&.dig(@item.id.to_s)
 
       render json: {
         id: @item.id,
@@ -186,7 +153,8 @@ class RecommendationsController < ApplicationController
         in_production: @item.in_production,
         creators: @item.creators&.split(',')&.map(&:strip),
         spoken_languages: JSON.parse(@item.spoken_languages || '[]'),
-        content_type: @item.content_type
+        content_type: @item.content_type,
+        recommendation_reason: recommendation_reason
       }
     else
       Rails.logger.error("Content not found: source_id=#{params[:id]}, content_type=#{params[:type]}")
@@ -275,26 +243,19 @@ class RecommendationsController < ApplicationController
     @user_recommendation = current_user.user_recommendation || current_user.create_user_recommendation
   end
 
-  def load_recommendations(page, per_page)
-    offset = (page - 1) * per_page
+  def load_all_recommendations
+    logger.info "Loading ALL recommendations for user #{current_user.id}"
     
-    logger.info "Loading recommendations for user #{current_user.id}"
-    
-    # Get recommendation IDs using the helper method that handles all formats
     content_ids = @user_recommendation.get_all_content_ids
     
     if content_ids.empty? && @user_recommendation.recommendation_scores.present?
-      # Try to recover using the scores if available
       content_ids = @user_recommendation.recommendation_scores.keys.map(&:to_i)
       logger.info "Recovered #{content_ids.size} IDs from scores"
-      
-      # Try to fix the content_ids for next time
       if content_ids.present?
         @user_recommendation.fix_missing_content_ids
       end
     end
     
-    # Return early if no content IDs
     if content_ids.empty?
       logger.warn "No content IDs found for user #{current_user.id}"
       return []
@@ -303,14 +264,12 @@ class RecommendationsController < ApplicationController
     logger.info "Total recommended IDs: #{content_ids.size}"
     logger.info "Unique recommended IDs: #{content_ids.uniq.size}"
     
-    # Load all recommendations
     all_recommendations = Content.where(id: content_ids)
     all_recommendations = all_recommendations.where(adult: [false, nil]) if @user_preference.disable_adult_content
     
     logger.info "Found #{all_recommendations.size} content records"
     
     mapped_recommendations = all_recommendations.map do |content|
-      # Use AI's confidence score if available, otherwise fall back to calculated score
       match_score = if @user_preference.use_ai
         @user_recommendation.recommendation_scores[content.id.to_s].to_f
       else
@@ -333,10 +292,9 @@ class RecommendationsController < ApplicationController
     end
 
     sorted_recommendations = mapped_recommendations.sort_by { |r| -r[:match_score] }
-    result = sorted_recommendations[offset, per_page] || []
     
-    logger.info "Returning #{result.size} recommendations for page #{page}"
-    result
+    logger.info "Returning #{sorted_recommendations.size} total recommendations"
+    sorted_recommendations
   end
 
   def set_watchlist_status(recommendations)
@@ -353,28 +311,5 @@ class RecommendationsController < ApplicationController
         recommendation[:rating] = nil
       end
     end
-  end
-
-  def load_all_recommendations_count
-    # Get recommendation IDs using the helper method that handles all formats
-    content_ids = @user_recommendation.get_all_content_ids
-    
-    if content_ids.empty? && @user_recommendation.recommendation_scores.present?
-      # Fallback to scores if content_ids is missing
-      content_ids = @user_recommendation.recommendation_scores.keys.map(&:to_i)
-      logger.info "Recovered #{content_ids.size} IDs from scores"
-    end
-    
-    if content_ids.empty?
-      logger.warn "No content IDs found"
-      return 0
-    end
-    
-    logger.info "Total recommendations count: #{content_ids.size}"
-    
-    # Count valid content IDs
-    query = Content.where(id: content_ids)
-    query = query.where(adult: [false, nil]) if @user_preference.disable_adult_content
-    query.count
   end
 end

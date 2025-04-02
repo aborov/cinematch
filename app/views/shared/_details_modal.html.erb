@@ -1,14 +1,15 @@
-<div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
+<div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true" data-recommendations-target="detailsModal">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
+      <%# Modal content will be loaded here, but the body needs a target %>
       <div class="modal-header">
         <h5 class="modal-title" id="detailsModalLabel">Details</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body" id="popup-details">
-        <!-- Content will be dynamically inserted here -->
+      <div class="modal-body" id="popup-details" data-recommendations-target="modalBody">
+        <%# Initial empty state or loading indicator for modal body %>
+        <div class="modal-body">Loading details...</div>
       </div>
     </div>
   </div>
 </div>
-

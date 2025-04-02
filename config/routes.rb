@@ -49,7 +49,9 @@ Rails.application.routes.draw do
   patch 'profile', to: 'users#update'
   
   get 'watchlist', to: 'watchlist_items#index'
-  resources :watchlist_items, path: 'watchlist', only: [:create, :destroy] do
+  delete 'watchlist/:source_id', to: 'watchlist_items#destroy_by_source_id', constraints: { source_id: /\d+/ }
+  
+  resources :watchlist_items, path: 'watchlist', only: [:create] do
     collection do
       get 'unwatched_count'
       get 'count'
