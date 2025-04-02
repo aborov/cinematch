@@ -49,9 +49,8 @@ Rails.application.routes.draw do
   patch 'profile', to: 'users#update'
   
   get 'watchlist', to: 'watchlist_items#index'
-  delete 'watchlist/:source_id', to: 'watchlist_items#destroy_by_source_id', constraints: { source_id: /\d+/ }
   
-  resources :watchlist_items, path: 'watchlist', only: [:create] do
+  resources :watchlist_items, path: 'watchlist', only: [:create, :destroy] do
     collection do
       get 'unwatched_count'
       get 'count'
@@ -74,4 +73,6 @@ Rails.application.routes.draw do
   get '/sitemap.xml.gz', to: 'sitemaps#show'
   get "/service-worker.js", to: "service_worker#service_worker"
   get "/manifest.json", to: "service_worker#manifest"
+
+  get 'proxy_image', to: 'proxy#image'
 end

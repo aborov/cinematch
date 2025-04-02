@@ -8,18 +8,20 @@ export default class extends Controller {
     console.log("Navbar watchlist updater connected.");
     // Bind the update method to maintain the controller context ('this')
     this.boundUpdate = this.update.bind(this);
-    window.addEventListener('watchlist:change', this.boundUpdate);
+    window.addEventListener('watchlistUpdated', this.boundUpdate); // For updates from recommendations modal
+    window.addEventListener('watchlist:change', this.boundUpdate); // For updates from watchlist page (assumed)
     // Initial update on connect might be redundant if server renders correctly
     // this.update();
   }
 
   disconnect() {
     console.log("Navbar watchlist updater disconnected.");
+    window.removeEventListener('watchlistUpdated', this.boundUpdate);
     window.removeEventListener('watchlist:change', this.boundUpdate);
   }
 
-  async update() {
-    console.log("Received watchlist:change event, updating navbar...");
+  async update(event) {
+    console.log(`Received ${event ? event.type : 'manual update call'}, updating navbar...`);
     try {
         const [countResponse, recentResponse] = await Promise.all([
             fetch('/watchlist/unwatched_count', { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } }),

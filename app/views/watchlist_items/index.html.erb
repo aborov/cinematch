@@ -30,27 +30,7 @@
       </div>
     </div>
   </div>
-
-  <%# MODAL MOVED INSIDE CONTROLLER SCOPE %>
-  <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true" data-watchlist-target="detailsModal">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-      <div class="modal-content bg-dark text-light" data-watchlist-target="modalBody">
-        <%# Modal content will be loaded dynamically by the controller %>
-        <div class="modal-header">
-          <h5 class="modal-title text-warning" id="detailsModalLabel">Loading...</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-           <div class="text-center p-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        </div>
-      </div>
-    </div>
-    </div>
-  <%# END MOVED MODAL %>
-
-</div> <%# END OF data-controller="watchlist" DIV %>
+</div>
 
 <%= render "shared/footer" %>
+<%= render 'shared/details_modal' %>

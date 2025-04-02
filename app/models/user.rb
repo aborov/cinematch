@@ -372,6 +372,15 @@ class User < ApplicationRecord
     deleted_count
   end
 
+  # Add methods for watchlist counts and recent items
+  def unwatched_items_count
+    watchlist_items.where(watched: false).count
+  end
+
+  def recent_watchlist_items(limit = 5)
+    watchlist_items.where(watched: false).order(created_at: :desc).limit(limit)
+  end
+
   private
 
   def create_user_preference

@@ -69,11 +69,29 @@ class WatchlistItemsController < ApplicationController
   end
 
   def destroy
-    authorize @watchlist_item
-    @watchlist_item.destroy
-    render json: { status: 'success', message: 'Item removed from watchlist' }
-  rescue ActiveRecord::RecordNotFound
-    render json: { status: 'error', message: 'Item not found in watchlist' }, status: :not_found
+    begin
+      # Find by primary key (id) - this is now the main path
+      @watchlist_item = current_user.watchlist_items.find_by(id: params[:id])
+      
+      if @watchlist_item
+        authorize @watchlist_item
+        @watchlist_item.destroy
+        render json: { 
+          status: 'success', 
+          message: 'Item removed from watchlist', 
+          in_watchlist: false, 
+          watched: false, 
+          rating: nil 
+        }
+      else
+        skip_authorization
+        render json: { status: 'error', message: 'Item not found in watchlist' }, status: :not_found
+      end
+    rescue => e
+      skip_authorization
+      Rails.logger.error "Error in destroy action: #{e.message}"
+      render json: { status: 'error', message: "Failed to remove item: #{e.message}" }, status: :internal_server_error
+    end
   end
 
   def status
@@ -83,7 +101,8 @@ class WatchlistItemsController < ApplicationController
     render json: {
       in_watchlist: item.present?,
       watched: item&.watched || false,
-      rating: item&.rating
+      rating: item&.rating,
+      watchlist_item_id: item&.id
     }
   end
 
@@ -189,19 +208,44 @@ class WatchlistItemsController < ApplicationController
 
     rating = params.dig(:watchlist_item, :rating)
     
-    if rating.present?
-      if @watchlist_item.update(rating: rating, watched: true)
-        render json: { status: 'success', rating: @watchlist_item.rating }
+    # Handle clearing the rating
+    if rating.nil?
+      if @watchlist_item.update(rating: nil) # Keep watched status as is when clearing rating
+        render json: { 
+          status: 'success', 
+          rating: @watchlist_item.rating, # will be nil
+          # Include full status
+          in_watchlist: true,
+          watched: @watchlist_item.watched 
+        }
       else
         render json: { 
           status: 'error', 
           message: @watchlist_item.errors.full_messages.join(', ') 
         }, status: :unprocessable_entity
       end
+    # Handle setting a rating
+    elsif rating.present? && rating.to_i.between?(1, 10)
+      # Setting a rating implies marking as watched
+      if @watchlist_item.update(rating: rating, watched: true)
+        render json: { 
+          status: 'success', 
+          rating: @watchlist_item.rating, 
+          # Include full status
+          in_watchlist: true, 
+          watched: @watchlist_item.watched 
+        }
+      else
+        render json: { 
+          status: 'error', 
+          message: @watchlist_item.errors.full_messages.join(', ') 
+        }, status: :unprocessable_entity
+      end
+    # Handle invalid rating value
     else
       render json: { 
         status: 'error', 
-        message: 'Rating cannot be empty' 
+        message: 'Invalid rating value. Must be between 1 and 10, or null to clear.' 
       }, status: :unprocessable_entity
     end
   rescue ActiveRecord::RecordNotFound
@@ -213,6 +257,38 @@ class WatchlistItemsController < ApplicationController
     count = policy_scope(WatchlistItem).where(watched: false).count
     Rails.logger.debug "Unwatched count: #{count}"
     render json: { count: count }
+  end
+
+  # New action to handle deletion by source_id
+  def destroy_by_source_id
+    content_type = params[:content_type]
+    source_id = params[:source_id]
+    
+    unless content_type.present?
+      # Explicitly skip authorization since we're returning early
+      skip_authorization
+      render json: { status: 'error', message: 'Content type missing' }, status: :bad_request
+      return
+    end
+    
+    @watchlist_item = current_user.watchlist_items.find_by(source_id: source_id, content_type: content_type)
+    
+    if @watchlist_item
+      authorize @watchlist_item, :destroy? # Authorize using the destroy? policy method
+      @watchlist_item.destroy
+      render json: { 
+        status: 'success', 
+        message: 'Item removed from watchlist', 
+        # Return new state
+        in_watchlist: false, 
+        watched: false, 
+        rating: nil 
+      }
+    else
+      # Skip authorization since we didn't find an item to authorize
+      skip_authorization
+      render json: { status: 'error', message: 'Item not found in watchlist' }, status: :not_found
+    end
   end
 
   private
@@ -246,10 +322,11 @@ class WatchlistItemsController < ApplicationController
     else
       # For other member actions (toggle_watched, reposition), find by source_id from URL params[:id]
       # Ensure content_type is also available for these actions if needed
-      # Note: This assumes toggle_watched/reposition routes also use :id for source_id
       content_type = params.dig(:watchlist_item, :content_type) || params[:content_type]
       unless content_type.present?
          Rails.logger.error "Content type missing for set_watchlist_item on action: #{action_name}"
+         # Explicitly skip authorization since we're raising an error
+         skip_authorization
          # Raise an error or handle appropriately - finding by source_id alone might be ambiguous
          raise ActiveRecord::RecordNotFound, "Content type missing for finding watchlist item by source_id"
       end
@@ -257,6 +334,8 @@ class WatchlistItemsController < ApplicationController
     end
   rescue ActiveRecord::RecordNotFound => e
      Rails.logger.error "Watchlist item not found: #{e.message}"
+     # Skip authorization since we didn't find an item to authorize
+     skip_authorization
      render json: { status: 'error', message: 'Item not found in watchlist' }, status: :not_found
   end
 

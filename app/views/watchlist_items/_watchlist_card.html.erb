@@ -3,12 +3,15 @@
      data-watchlist-source-id-value="<%= item[:source_id] %>"
      data-watchlist-content-type-value="<%= item[:content_type] %>"
      data-watchlist-rating-value="<%= item[:rating] || 0 %>"
-     data-action="click->watchlist#showDetails"
      role="article" 
      aria-labelledby="title-<%= item[:source_id] %>">
   <div class="row g-1">
     <div class="col-4 col-lg-3">
-      <%= image_tag item[:poster_url], class: "card-img watchlist-poster", alt: "#{item[:title]} poster", loading: "lazy" %>
+      <% poster_src = item[:poster_url] %>
+      <% if poster_src&.start_with?('https://image.tmdb.org/') %>
+        <% poster_src = proxy_image_path(url: poster_src) %>
+      <% end %>
+      <%= image_tag poster_src || '/assets/placeholder.png', class: "card-img watchlist-poster", alt: "#{item[:title]} poster", loading: "lazy", onerror: "this.onerror=null; this.src='/assets/placeholder.png';" %>
     </div>
     <div class="col-8 col-lg-9">
       <div class="card-body position-relative p-2">

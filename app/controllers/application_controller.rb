@@ -21,11 +21,19 @@ class ApplicationController < ActionController::Base
   end
 
   def skip_authorization?
-    devise_controller? || pages_controller? || is_a?(ActiveAdmin::BaseController) || self.class.ancestors.include?(ActiveAdmin::BaseController)
+    devise_controller? || 
+    pages_controller? || 
+    proxy_controller? ||
+    is_a?(ActiveAdmin::BaseController) || 
+    self.class.ancestors.include?(ActiveAdmin::BaseController)
   end
 
   def pages_controller?
     controller_name == 'pages'
+  end
+
+  def proxy_controller?
+    controller_name == 'proxy'
   end
 
   def set_csrf_cookie
