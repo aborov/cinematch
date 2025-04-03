@@ -54,7 +54,6 @@ class UserPreferencesController < ApplicationController
 
   def create
     @user_preference = current_user.ensure_user_preference
-    @user_preference.recommendations_generated_at = Time.current if @user_preference.new_record?
 
     if @user_preference.update(survey_params)
       recommendations = @user_preference.generate_recommendations

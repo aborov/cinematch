@@ -87,8 +87,9 @@ class RecommendationService
       sorted_recommendations = content_with_scores.sort_by { |r| -r[:match_score] }
       top_recommendations = sorted_recommendations.first(100).map { |r| r[:id] }
       
-      # Update user preference with new recommendations
-      user_preference.update(
+      # Update user recommendation with new recommendations
+      user_recommendation = user_preference.user.ensure_user_recommendation
+      user_recommendation.update(
         recommended_content_ids: top_recommendations, 
         recommendations_generated_at: Time.current
       )
@@ -186,8 +187,9 @@ class RecommendationService
             sorted_recommendations = content_with_scores.sort_by { |r| -r[:match_score] }
             top_recommendations = sorted_recommendations.first(100).map { |r| r[:id] }
             
-            # Update user preference with new recommendations
-            user_preference.update(
+            # Update user recommendation with new recommendations
+            user_recommendation = user.ensure_user_recommendation
+            user_recommendation.update(
               recommended_content_ids: top_recommendations, 
               recommendations_generated_at: Time.current
             )

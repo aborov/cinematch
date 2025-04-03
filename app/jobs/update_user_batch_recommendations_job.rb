@@ -49,8 +49,8 @@ class UpdateUserBatchRecommendationsJob < ApplicationJob
               user_preference = user_preferences[user.id] || user.ensure_user_preference
               
               if !options[:force] && !options['force'] && 
-                 user_preference.recommendations_generated_at.present? && 
-                 user_preference.recommendations_generated_at > 24.hours.ago
+                 user.user_recommendation&.recommendations_generated_at.present? && 
+                 user.user_recommendation&.recommendations_generated_at > 24.hours.ago
                 
                 skipped += 1
                 next
